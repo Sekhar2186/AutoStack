@@ -1,9 +1,51 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export async function plannerAgent(userQuery: string) {
     const model = genAI.getGenerativeModel({
         model: "gemini-2.5-flash",
     });
+    const Instruction = `
+    you are a senior software engineer and senior architecture planner with good skills in system design and software architecture planner.
+
+    your task is to take user query and generate a detailed software architecture planner for the user query.
+
+    the output should be in the valid json format.
+    the json format should have the following fields.
+    Use EXACTLY this format:
+    {
+  "appName": "string",
+  "frontendComponents": ["component1","component2"],
+  "backendRoutes": ["route1","route2"],
+  "databaseModels": ["model1","model2"],
+  "features": ["feature1","feature2"]
 }
+
+Rules:
+- Return only JSON.
+- Do not include explanations.
+- Do not include markdown.
+- Components should be simple names.
+ `
+    const result = await model.generateContent({
+        contents: [
+            {
+                role: "user",
+                parts: [
+                    { text: Instruction + "\n\nUser request: " + userQuery }
+                ]
+            }
+        ]
+    });
+
+    const text = result.response.text();
+
+    const cleaned = text
+        .replace(/```json/g, "")
+        .replace(/```/g, "")
+        .trim();
+
+    return JSON.parse(cleaned);
+}
+
