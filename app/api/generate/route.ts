@@ -1,4 +1,5 @@
 import { plannerAgent } from "@/lib/agents/plannerAgent";
+import { coderAgent } from "@/lib/agents/coderAgent";
 
 export async function POST(req: Request) {
     try {
@@ -6,10 +7,12 @@ export async function POST(req: Request) {
         const prompt = body.prompt;
 
         const blueprint = await plannerAgent(prompt);
+        const code = await coderAgent(blueprint);
 
         return Response.json({
             success: true,
-            blueprint: blueprint
+            blueprint: blueprint,
+            code: code
         });
     }
     catch (error) {
