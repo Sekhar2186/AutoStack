@@ -1,5 +1,6 @@
 import { plannerAgent } from "@/lib/agents/plannerAgent";
 import { coderAgent } from "@/lib/agents/coderAgent";
+import { projectBuilder } from "@/lib/services/projectBuilder";
 
 export async function POST(req: Request) {
     try {
@@ -8,11 +9,13 @@ export async function POST(req: Request) {
 
         const blueprint = await plannerAgent(prompt);
         const code = await coderAgent(blueprint);
+        const projectPath = await projectBuilder(code.files);
 
         return Response.json({
             success: true,
             blueprint: blueprint,
-            code: code
+            code: code,
+            projectPath: projectPath
         });
     }
     catch (error) {
