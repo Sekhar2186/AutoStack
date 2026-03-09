@@ -15,11 +15,16 @@ Return ONLY JSON.
 
 JSON format:
 {
-"files" : {
-    "server/server.js": "...code...",
-    "server/routes/example.js": "...code...",
-    "client/src/App.js": "...code..."
-    }
+{
+  "routes": {
+    "fileName.js": "express route code"
+  },
+  "models": {
+    "fileName.js": "mongoose schema code"
+  },
+  "components": {
+    "fileName.js": "react component code"
+  }
 }
     Rules:
 - Return raw JSON only

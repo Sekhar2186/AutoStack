@@ -2,6 +2,7 @@ import { plannerAgent } from "@/lib/agents/plannerAgent";
 import { coderAgent } from "@/lib/agents/coderAgent";
 import { projectBuilder } from "@/lib/services/projectBuilder";
 import { zipProject } from "@/lib/services/zipProject";
+import { runProject } from "@/lib/services/serverRunner";
 
 export async function POST(req: Request) {
     try {
@@ -12,13 +13,15 @@ export async function POST(req: Request) {
         const code = await coderAgent(blueprint);
         const projectPath = await projectBuilder(code.files);
         const zipPath = await zipProject(projectPath);
+        const previewLink = await runProject(projectPath);
 
         return Response.json({
             success: true,
             blueprint: blueprint,
             code: code,
             projectPath: projectPath,
-            zipPath: zipPath
+            zipPath: zipPath,
+            previewLink: previewLink
         });
     }
     catch (error) {
