@@ -1,6 +1,8 @@
 import { plannerAgent } from "@/lib/agents/plannerAgent";
 import { coderAgent } from "@/lib/agents/coderAgent";
-import { projectBuilder } from "@/lib/services/projectBuilder";
+import { versionManager } from "@/lib/services/versionManager";
+import { templateLoader } from "@/lib/services/templateLoader";
+import { codeInjector } from "@/lib/services/codeInjector";
 import { zipProject } from "@/lib/services/zipProject";
 import { runProject } from "@/lib/services/serverRunner";
 
@@ -11,24 +13,33 @@ export async function POST(req: Request) {
 
         const blueprint = await plannerAgent(prompt);
         const code = await coderAgent(blueprint);
-        const projectPath = await projectBuilder(code.files);
+
+        const { projectId, projectPath, version } = await versionManager();
+
+        if (version === "v1") {
+            await templateLoader(projectPath);
+        }
+
+        await codeInjector(projectPath, code);
+
         const zipPath = await zipProject(projectPath);
-        const previewLink = await runProject(projectPath);
+        const previewLink = runProject(projectPath);
 
         return Response.json({
             success: true,
-            blueprint: blueprint,
-            code: code,
-            projectPath: projectPath,
-            zipPath: zipPath,
-            previewLink: previewLink
+            projectId,
+            version,
+            blueprint,
+            zipPath,
+            previewLink
         });
-    }
-    catch (error) {
+
+    } catch (error) {
         console.error(error);
+
         return Response.json({
             success: false,
-            message: "Failed to generate blueprint"
+            message: "Failed to generate project"
         });
     }
 }

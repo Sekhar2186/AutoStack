@@ -41,4 +41,15 @@ export async function codeInjector(projectPath: string, generatedCode: any) {
             fs.writeFileSync(filePath, generatedCode.models[fileName]);
         }
     }
+    if (generatedCode.pages) {
+
+        const appDir = path.join(projectPath, "app");
+
+        for (const fileName in generatedCode.pages) {
+
+            const filePath = path.join(appDir, fileName);
+
+            fs.writeFileSync(filePath, generatedCode.pages[fileName]);
+        }
+    }
 }

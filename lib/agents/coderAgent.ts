@@ -3,47 +3,69 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export async function coderAgent(blueprint: any) {
-    const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash",
-    });
+  const model = genAI.getGenerativeModel({
+    model: "gemini-2.5-flash",
+  });
 
-    const instruction = `You are a web developer.
+  const instruction = `
+You are a Next.js full-stack developer.
 
-Generate a simple full-stack web app based on the blueprint.
+Generate a full-stack app using Next.js App Router.
 
-Return ONLY JSON.
+Rules:
+- Use TypeScript (.ts / .tsx)
+- Do NOT use Express
+- API routes must be in: app/api/<route>/route.ts
+- Use NextRequest and NextResponse
+- Components must be React functional components
+- Create a main UI page in app/page.tsx
+- Use relative imports only
+- Example: "../components/TodoList"
+- Example: "../lib/models/Todo"
+- Do NOT use MongoDB or mongoose
+- Use in-memory array for todos
+- Do NOT use any database
+- Store todos in a simple array inside the API route
 
-JSON format:
-{
+Return ONLY JSON:
+
 {
   "routes": {
-    "fileName.js": "express route code"
+    "todos.ts": "Next.js API route code"
   },
   "models": {
-    "fileName.js": "mongoose schema code"
+    "Todo.ts": "mongoose schema"
   },
   "components": {
-    "fileName.js": "react component code"
+    "TodoList.tsx": "React component"
+  },
+  "pages": {
+    "page.tsx": "Main UI code"
   }
 }
-    Rules:
+
+Rules:
 - Return raw JSON only
 - No explanations
 - No markdown
 
 `;
+  const result = await model.generateContent([
+    instruction,
+    JSON.stringify(blueprint)
+  ]);
 
-    const result = await model.generateContent([
-        instruction,
-        JSON.stringify(blueprint)
-    ]);
+  const response = result.response.text();
 
-    const response = result.response.text();
+  const cleaned = response
+    .replace(/```json/g, "")
+    .replace(/```/g, "")
+    .trim();
 
-    const cleaned = response
-        .replace(/```json/g, "")
-        .replace(/```/g, "")
-        .trim();
+  const jsonStart = cleaned.indexOf("{");
+  const jsonEnd = cleaned.lastIndexOf("}");
 
-    return JSON.parse(cleaned);
+  const jsonString = cleaned.slice(jsonStart, jsonEnd + 1);
+
+  return JSON.parse(jsonString);
 }
