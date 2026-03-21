@@ -14,10 +14,12 @@ export async function POST(req: Request) {
         const blueprint = await plannerAgent(prompt);
         const code = await coderAgent(blueprint);
 
+        const templateType = body.template || "modern-ui";
+
         const { projectId, projectPath, version } = await versionManager();
 
         if (version === "v1") {
-            await templateLoader(projectPath);
+            await templateLoader(projectPath, templateType);
         }
 
         await codeInjector(projectPath, code);

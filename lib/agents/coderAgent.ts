@@ -26,6 +26,11 @@ Rules:
 - Use in-memory array for todos
 - Do NOT use any database
 - Store todos in a simple array inside the API route
+- Do NOT generate full UI layout
+- Follow existing template structure
+- Only modify components and logic
+- Use Tailwind CSS only
+- Do NOT override layout.tsx
 
 Return ONLY JSON:
 
