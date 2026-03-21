@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
         <html lang="en">
-            <body className="bg-gradient-to-br from-gray-900 via-black to-gray-800 text-white min-h-screen">
+            <body className="bg-linear-to-br from-gray-900 via-black to-gray-800 text-white min-h-screen">
                 <motion.main
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
