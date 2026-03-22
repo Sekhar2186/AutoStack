@@ -39,7 +39,7 @@ export async function versionManager(projectId?: string) {
 
     await fsExtra.copy(latestPath, newVersionPath);
 
-    if (sorted.length >= 3) {
+    if (sorted.length >= 4) {
         const oldest = sorted[0];
         const oldestPath = path.join(projectDir, oldest);
         fs.rmSync(oldestPath, { recursive: true, force: true });
