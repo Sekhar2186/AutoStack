@@ -1,3 +1,5 @@
+/* AUTO-IMPORTS */
+
 export default function Page() {
     return (
         <div>

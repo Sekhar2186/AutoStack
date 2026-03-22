@@ -44,9 +44,9 @@ Return ONLY JSON:
   "components": {
     "TodoList.tsx": "React component"
   },
-  "pages": {
-    "page.tsx": "Main UI code"
-  }
+  "imports" : "import TodoList from '@/components/TodoList';" ,
+
+  "injection" : "<TodoList/>"
 }
 
 Rules:

@@ -41,15 +41,26 @@ export async function codeInjector(projectPath: string, generatedCode: any) {
             fs.writeFileSync(filePath, generatedCode.models[fileName]);
         }
     }
-    if (generatedCode.pages) {
 
-        const appDir = path.join(projectPath, "app");
+    const pagePath = path.join(projectPath, "app", "page.tsx");
 
-        for (const fileName in generatedCode.pages) {
+    if (fs.existsSync(pagePath)) {
+        let pageContent = fs.readFileSync(pagePath, "utf-8");
 
-            const filePath = path.join(appDir, fileName);
-
-            fs.writeFileSync(filePath, generatedCode.pages[fileName]);
+        if (generatedCode.imports) {
+            pageContent = pageContent.replace(
+                "/* AUTO-IMPORTS */",
+                generatedCode.imports
+            );
         }
+
+        if (generatedCode.injection) {
+            pageContent = pageContent.replace(
+                "{/* AUTO-INJECT-COMPONENTS */}",
+                generatedCode.injection
+            );
+        }
+
+        fs.writeFileSync(pagePath, pageContent);
     }
 }
