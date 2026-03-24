@@ -8,45 +8,40 @@ export async function coderAgent(blueprint: any) {
   });
 
   const instruction = `
-You are a Next.js full-stack developer.
+You are a professional full-stack developer.
 
-Generate a full-stack app using Next.js App Router.
+Generate a full-stack web app using Next.js App Router.
 
-Rules:
+STRICT RULES:
 - Use TypeScript (.ts / .tsx)
-- Do NOT use Express
-- API routes must be in: app/api/<route>/route.ts
+- Use Next.js App Router (app folder)
+- API routes must be inside: app/api/<route>/route.ts
 - Use NextRequest and NextResponse
 - Components must be React functional components
-- Create a main UI page in app/page.tsx
-- Use relative imports only
-- Example: "../components/TodoList"
-- Example: "../lib/models/Todo"
-- Do NOT use MongoDB or mongoose
-- Use in-memory array for todos
-- Do NOT use any database
-- Store todos in a simple array inside the API route
-- Do NOT generate full UI layout
+- Use relative imports only (../components/...)
 - Follow existing template structure
+- DO NOT override layout.tsx
 - Only modify components and logic
 - Use Tailwind CSS only
-- Do NOT override layout.tsx
+- Ensure responsive design
 
-Return ONLY JSON:
+IMPORTANT:
+- STRICTLY follow the USER REQUEST
+- DO NOT generate generic apps
+- DO NOT generate Todo apps unless explicitly asked
+- Generate components relevant to the request (portfolio, dashboard, blog, etc.)
+
+RETURN ONLY JSON:
 
 {
   "routes": {
-    "todos.ts": "Next.js API route code"
-  },
-  "models": {
-    "Todo.ts": "mongoose schema"
+    "routeName.ts": "Next.js API route code"
   },
   "components": {
-    "TodoList.tsx": "React component"
+    "ComponentName.tsx": "React component code"
   },
-  "imports" : "import TodoList from '@/components/TodoList';" ,
-
-  "injection" : "<TodoList/>"
+  "imports": "import statements for page.tsx",
+  "injection": "JSX to render inside page.tsx"
 }
 
 Rules:
@@ -55,9 +50,11 @@ Rules:
 - No markdown
 
 `;
+
   const result = await model.generateContent([
     instruction,
-    JSON.stringify(blueprint)
+    "USER REQUEST: " + (blueprint?.appName || ""),
+    JSON.stringify(blueprint),
   ]);
 
   const response = result.response.text();
@@ -70,7 +67,16 @@ Rules:
   const jsonStart = cleaned.indexOf("{");
   const jsonEnd = cleaned.lastIndexOf("}");
 
+  if (jsonStart === -1 || jsonEnd === -1) {
+    throw new Error("Invalid JSON response from model");
+  }
+
   const jsonString = cleaned.slice(jsonStart, jsonEnd + 1);
 
-  return JSON.parse(jsonString);
+  try {
+    return JSON.parse(jsonString);
+  } catch (err) {
+    console.error("JSON PARSE ERROR:", jsonString);
+    throw err;
+  }
 }
