@@ -11,19 +11,26 @@ export async function POST(req: Request) {
         const body = await req.json();
         const prompt = body.prompt;
 
+        const existingProjectId = body.projectId;
+        const templateType = body.template || "modern-ui";
+
+        //AI
         const blueprint = await plannerAgent(prompt);
         const code = await coderAgent(blueprint);
 
-        const templateType = body.template || "modern-ui";
+        //Version Management
+        const { projectId, projectPath, version } = await versionManager(existingProjectId);
 
-        const { projectId, projectPath, version } = await versionManager();
-
+        //Only load template v1
         if (version === "v1") {
             await templateLoader(projectPath, templateType);
         }
 
+        //Inject code Safely
         await codeInjector(projectPath, code);
 
+
+        //Zip + Run
         const zipPath = await zipProject(projectPath);
         const previewLink = runProject(projectPath);
 

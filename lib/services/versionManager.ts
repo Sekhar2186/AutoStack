@@ -21,11 +21,13 @@ export async function versionManager(projectId?: string) {
     }
     const projectDir = path.join(baseDir, projectId);
 
-    const versions = fs.readdirSync(projectDir);
+    if (!fs.existsSync(projectDir)) {
+        throw new Error("Project Not Found");
+    }
 
-    const sorted = versions
-        .filter(v => v.startsWith("v"))
-        .sort((a, b) => Number(a.slice(1)) - Number(b.slice(1)));
+    const versions = fs.readdirSync(projectDir).filter(v => v.startsWith("v"));
+
+    const sorted = versions.sort((a, b) => Number(a.slice(1)) - Number(b.slice(1)));
 
     const latest = sorted[sorted.length - 1];
 
@@ -33,10 +35,11 @@ export async function versionManager(projectId?: string) {
 
     const newVersion = `v${nextVersionNumber}`;
 
-    const newVersionPath = path.join(projectDir, newVersion);
-
     const latestPath = path.join(projectDir, latest);
 
+    const newVersionPath = path.join(projectDir, newVersion);
+
+    // Copy previous version → new version
     await fsExtra.copy(latestPath, newVersionPath);
 
     if (sorted.length >= 4) {
