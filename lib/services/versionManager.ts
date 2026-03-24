@@ -7,7 +7,7 @@ export async function versionManager(projectId?: string) {
     const baseDir = path.join(process.cwd(), "generated");
 
     if (!projectId) {
-        const newProjectId = `${Date.now()}`;
+        const newProjectId = `project_${Date.now()}`;
         const projectDir = path.join(baseDir, newProjectId);
         const version = "v1";
         const versionPath = path.join(projectDir, version);
