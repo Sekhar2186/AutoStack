@@ -1,36 +1,53 @@
 import { plannerAgent } from "@/lib/agents/plannerAgent";
-import { coderAgent } from "@/lib/agents/coderAgent";
+
 import { versionManager } from "@/lib/services/versionManager";
 import { templateLoader } from "@/lib/services/templateLoader";
+
 import { codeInjector } from "@/lib/services/codeInjector";
 import { zipProject } from "@/lib/services/zipProject";
 import { runProject } from "@/lib/services/serverRunner";
 
+import { componentAgent } from "@/lib/agents/componentAgent";
+import { routeAgent } from "@/lib/agents/routeAgent";
+import { pageAgent } from "@/lib/agents/pageAgent";
+
 export async function POST(req: Request) {
     try {
         const body = await req.json();
+
         const prompt = body.prompt;
 
         const existingProjectId = body.projectId;
         const templateType = body.template || "modern-ui";
 
-        //AI
+        // AI planning
         const blueprint = await plannerAgent(prompt);
-        const code = await coderAgent(blueprint);
 
-        //Version Management
-        const { projectId, projectPath, version } = await versionManager(existingProjectId);
+        // Multi-agent generation
+        const components = await componentAgent(blueprint);
+        const routes = await routeAgent(blueprint);
+        const page = await pageAgent(blueprint);
 
-        //Only load template v1
+        // Merge outputs
+        const code = {
+            components: components.components || {},
+            routes: routes.routes || {},
+            page: page.page || ""
+        };
+
+        // Version system
+        const { projectId, projectPath, version } =
+            await versionManager(existingProjectId);
+
+        // Load template (v1 only)
         if (version === "v1") {
             await templateLoader(projectPath, templateType);
         }
 
-        //Inject code Safely
+        // Inject generated code
         await codeInjector(projectPath, code);
 
-
-        //Zip + Run
+        // Zip + preview
         const zipPath = await zipProject(projectPath);
         const previewLink = runProject(projectPath);
 
