@@ -1,5 +1,5 @@
 "use client";
-
+import "./global.css";
 import { motion } from "framer-motion";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -10,7 +10,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.5 }}
-                    className="max-w-3xl mx-auto p-6"
+                    className="w-full min-h-screen"
                 >
                     {children}
                 </motion.main>

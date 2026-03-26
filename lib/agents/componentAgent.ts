@@ -3,11 +3,11 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export async function componentAgent(blueprint: any) {
-    const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash",
-    });
+  const model = genAI.getGenerativeModel({
+    model: "gemini-2.5-flash",
+  });
 
-    const instruction = `
+  /** const instruction = `
 You are a React UI developer.
 
 Generate ONLY React components based on the user request.
@@ -29,9 +29,9 @@ IMPORTANT:
 RETURN JSON:
 
 {
-  "components": {
-    "ComponentName.tsx": "code"
-  }
+"components": {
+  "ComponentName.tsx": "code"
+}
 }
 
 Rules:
@@ -39,19 +39,39 @@ Rules:
 - No markdown
 - No explanations
 `;
+*/
+  const instruction = `
+Generate React components based on USER REQUEST.
 
-    const result = await model.generateContent([
-        instruction,
-        "USER REQUEST: " + (blueprint?.appName || ""),
-        JSON.stringify(blueprint),
-    ]);
+RULES:
+- Use TypeScript
+- Use Tailwind CSS
+- Create reusable components
+- DO NOT generate Todo components unless asked
+- Examples:
+  - HeroSection.tsx
+  - ProjectCard.tsx
+  - Navbar.tsx
 
-    const text = result.response.text();
+Return JSON:
 
-    const cleaned = text.replace(/```json|```/g, "").trim();
+{
+  "ComponentName.tsx": "code"
+}
+`;
 
-    const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error("Invalid JSON from componentAgent");
+  const result = await model.generateContent([
+    instruction,
+    "USER REQUEST: " + (blueprint?.appName || ""),
+    JSON.stringify(blueprint),
+  ]);
 
-    return JSON.parse(jsonMatch[0]);
+  const text = result.response.text();
+
+  const cleaned = text.replace(/```json|```/g, "").trim();
+
+  const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error("Invalid JSON from componentAgent");
+
+  return JSON.parse(jsonMatch[0]);
 }

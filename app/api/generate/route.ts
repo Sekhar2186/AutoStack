@@ -26,13 +26,16 @@ export async function POST(req: Request) {
         // Multi-agent generation
         const components = await componentAgent(blueprint);
         const routes = await routeAgent(blueprint);
-        const page = await pageAgent(blueprint);
+        const page = await pageAgent({
+            blueprint,
+            components: components.components
+        });
 
         // Merge outputs
         const code = {
-            components: components.components || {},
-            routes: routes.routes || {},
-            page: page.page || ""
+            components: components || {},
+            routes: routes || {},
+            page: page
         };
 
         // Version system

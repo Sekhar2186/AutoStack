@@ -1,5 +1,5 @@
 "use client";
-
+import "./global.css";
 import { useState } from "react";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -17,7 +17,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     </button>
                 </div>
 
-                <main className="max-w-3xl mx-auto p-6">
+                <main className="w-full min-h-screen">
                     {children}
                 </main>
             </body>
