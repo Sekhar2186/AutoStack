@@ -5,6 +5,9 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 export async function componentAgent(blueprint: any) {
   const model = genAI.getGenerativeModel({
     model: "gemini-2.5-flash",
+    generationConfig: {
+      responseMimeType: "application/json",
+    },
   });
 
   /** const instruction = `
@@ -73,5 +76,15 @@ Return JSON:
   const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error("Invalid JSON from componentAgent");
 
-  return JSON.parse(jsonMatch[0]);
+  let jsonString = jsonMatch[0];
+  
+  // Clean up common bad escape characters inside JSON strings (e.g. \s, \., \[ etc. that the LLM forgot to double-escape)
+  jsonString = jsonString.replace(/\\(?!["\\/bfnrtu])/g, "\\\\");
+
+  try {
+    return JSON.parse(jsonString);
+  } catch (error) {
+    console.error("JSON parse failed. Sanitized snippet:", jsonString.slice(0, 200));
+    throw error;
+  }
 }

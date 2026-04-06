@@ -25,10 +25,15 @@ export async function POST(req: Request) {
 
         // Multi-agent generation
         const components = await componentAgent(blueprint);
-        const routes = await routeAgent(blueprint);
+        let routes = {};
+
+        if (blueprint.requiresAPI) {
+            routes = await routeAgent(blueprint);
+        }
+        // const routes = await routeAgent(blueprint);
         const page = await pageAgent({
             blueprint,
-            components: components.components
+            components: components || {}
         });
 
         // Merge outputs

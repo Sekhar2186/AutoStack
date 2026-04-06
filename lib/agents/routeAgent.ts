@@ -5,6 +5,9 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 export async function routeAgent(blueprint: any) {
   const model = genAI.getGenerativeModel({
     model: "gemini-2.5-flash",
+    generationConfig: {
+      responseMimeType: "application/json",
+    },
   });
 
   /** const instruction = `
@@ -49,6 +52,13 @@ RULES:
 - No MongoDB unless required
 - No todo logic unless asked
 
+STRICT JSON RULES:
+- Escape all quotes using \"
+- Escape newlines using \\n
+- Do NOT include markdown
+- Return only valid JSON
+
+
 Return JSON:
 
 {
@@ -61,13 +71,37 @@ Return JSON:
     JSON.stringify(blueprint),
   ]);
 
-  const text = result.response.text();
+  const raw = result.response.text();
 
-  const cleaned = text.replace(/```json|```/g, "").trim();
+  // remove markdown blocks
+  const cleaned = raw
+    .replace(/```json/g, "")
+    .replace(/```/g, "")
+    .trim();
 
-  const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) throw new Error("Invalid JSON from routeAgent");
+  // extract JSON safely
+  const start = cleaned.indexOf("{");
+  const end = cleaned.lastIndexOf("}");
 
-  return JSON.parse(jsonMatch[0]);
+  if (start === -1 || end === -1) {
+    console.error("RAW:", raw);
+    throw new Error("Invalid JSON structure from routeAgent");
+  }
+
+  let jsonString = cleaned.slice(start, end + 1);
+
+  // FIX ESCAPE ISSUES
+  jsonString = jsonString
+    // Avoid blindly replacing \n globally as it breaks structural formatting
+    // Clean up common bad escape characters inside JSON strings (e.g. \s, \., \[ etc)
+    .replace(/\\(?!["\\/bfnrtu])/g, "\\\\");
+
+  try {
+    return JSON.parse(jsonString);
+  } catch (err) {
+    console.error("RAW:", raw);
+    console.error("CLEANED:", jsonString);
+    throw new Error("JSON parse failed in routeAgent");
+  }
 
 }
