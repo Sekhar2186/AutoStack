@@ -16,6 +16,10 @@ export async function plannerAgent(userQuery: string) {
     Use EXACTLY this format:
     {
   "appName": "string",
+  "frontendPages": [
+      { "name": "HomePage", "route": "/" },
+      { "name": "AboutPage", "route": "/about" }
+  ],
   "frontendComponents": ["component1","component2"],
   "backendRoutes": ["route1","route2"],
   "databaseModels": ["model1","model2"],

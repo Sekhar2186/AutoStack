@@ -92,6 +92,7 @@ Return JSON:
 
   // FIX ESCAPE ISSUES
   jsonString = jsonString
+    .replace(/\\'/g, "'")
     // Avoid blindly replacing \n globally as it breaks structural formatting
     // Clean up common bad escape characters inside JSON strings (e.g. \s, \., \[ etc)
     .replace(/\\(?!["\\/bfnrtu])/g, "\\\\");

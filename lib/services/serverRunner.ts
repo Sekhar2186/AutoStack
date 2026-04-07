@@ -5,7 +5,7 @@ export function runProject(projectPath: string) {
 
     const port = 3001 + Math.floor(Math.random() * 1000);
 
-    const process = spawn("npm", ["run", "dev", "--", "-p", port.toString()], {
+    const process = spawn(`npm install && npm run dev -- -p ${port}`, [], {
         cwd: projectPath,
         shell: true,
         stdio: "inherit"

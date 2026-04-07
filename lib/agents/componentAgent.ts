@@ -56,6 +56,13 @@ RULES:
   - ProjectCard.tsx
   - Navbar.tsx
 
+STRICT JSON RULES:
+- Escape all quotes using \"
+- Escape newlines using \\n
+- Do NOT include markdown
+- DO NOT escape single quotes (use ' not \\')
+- Return only valid JSON
+
 Return JSON:
 
 {
@@ -78,6 +85,9 @@ Return JSON:
 
   let jsonString = jsonMatch[0];
   
+  // Fix AI commonly escaping single quotes which is invalid in JSON
+  jsonString = jsonString.replace(/\\'/g, "'");
+
   // Clean up common bad escape characters inside JSON strings (e.g. \s, \., \[ etc. that the LLM forgot to double-escape)
   jsonString = jsonString.replace(/\\(?!["\\/bfnrtu])/g, "\\\\");
 

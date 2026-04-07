@@ -31,16 +31,27 @@ export async function POST(req: Request) {
             routes = await routeAgent(blueprint);
         }
         // const routes = await routeAgent(blueprint);
-        const page = await pageAgent({
-            blueprint,
-            components: components || {}
-        });
+        const frontendPages = blueprint.frontendPages || [{ name: "HomePage", route: "/" }];
+        const generatedPages: Record<string, string> = {};
+
+        for (const p of frontendPages) {
+            const pageCode = await pageAgent({
+                blueprint,
+                components: components || {},
+                pageName: p.name,
+                pageRoute: p.route
+            });
+            
+            let routePath = p.route.replace(/^\//, ''); // Remove leading slash
+            routePath = routePath === "" ? "page.tsx" : `${routePath}/page.tsx`;
+            generatedPages[routePath] = pageCode;
+        }
 
         // Merge outputs
         const code = {
             components: components || {},
             routes: routes || {},
-            page: page
+            pages: generatedPages
         };
 
         // Version system

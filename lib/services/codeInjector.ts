@@ -4,9 +4,12 @@ import path from "path";
 export async function codeInjector(projectPath: string, generatedCode: any) {
     if (generatedCode.components) {
         const compDir = path.join(projectPath, "components");
+        // We still ensure the base compDir exists
         fs.mkdirSync(compDir, { recursive: true });
         for (const fileName in generatedCode.components) {
             const filePath = path.join(compDir, fileName);
+            // Ensure any component subdirectories (e.g. "ui/button.tsx") exist
+            fs.mkdirSync(path.dirname(filePath), { recursive: true });
             fs.writeFileSync(filePath, generatedCode.components[fileName]);
         }
     }
@@ -38,6 +41,8 @@ export async function codeInjector(projectPath: string, generatedCode: any) {
 
             const filePath = path.join(modelDir, fileName);
 
+            fs.mkdirSync(path.dirname(filePath), { recursive: true });
+
             fs.writeFileSync(filePath, generatedCode.models[fileName]);
         }
     }
@@ -63,8 +68,12 @@ export async function codeInjector(projectPath: string, generatedCode: any) {
     //
     //fs.writeFileSync(pagePath, pageContent);
 
-    if (generatedCode.page) {
-        const pagePath = path.join(projectPath, "app", "page.tsx");
-        fs.writeFileSync(pagePath, generatedCode.page);
+    if (generatedCode.pages) {
+        for (const [routePath, pageContent] of Object.entries(generatedCode.pages)) {
+            const pageFilePath = path.join(projectPath, "app", routePath);
+            const dir = path.dirname(pageFilePath);
+            fs.mkdirSync(dir, { recursive: true });
+            fs.writeFileSync(pageFilePath, pageContent as string);
+        }
     }
 }

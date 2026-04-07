@@ -91,7 +91,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export async function pageAgent(data: any) {
-    const { blueprint, components } = data;
+    const { blueprint, components, pageName, pageRoute } = data;
     const model = genAI.getGenerativeModel({
         model: "gemini-2.5-flash",
     });
@@ -99,22 +99,25 @@ export async function pageAgent(data: any) {
     const instruction = `
 You are a Next.js developer.
 
-You are given EXISTING components.
+You are given EXISTING components to build the following page:
+Page Name: ${pageName || 'Home'}
+Route Path: ${pageRoute || '/'}
 
 IMPORTANT:
-- You MUST use these components
-- DO NOT ignore any component
-- DO NOT create new components
+- Use only the components that are relevant to this specific page.
+- DO NOT ignore components if they logically belong on this page.
+- DO NOT create new components, use inline HTML/Tailwind for custom layouts if a component is lacking.
 
 Available Components:
 ${Object.keys(components).join(", ")}
 
 TASK:
-- Import ALL components
-- Use ALL components in page.tsx
-- Maintain logical UI order
+- Import required components using the absolute path alias (e.g., \`import ComponentName from "@/components/ComponentName";\`).
+- NEVER use relative imports like \`../\` or \`../../\` to resolve components. 
+- Use them to assemble the ${pageName || 'Home'} page correctly based on the USER REQUEST.
+- Maintain logical UI order and spacing.
 
-Return full page.tsx code
+Return full page.tsx code (and nothing else).
 `;
 
     const result = await model.generateContent([
