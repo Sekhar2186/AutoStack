@@ -25,21 +25,36 @@ export async function versionManager(projectId?: string) {
         throw new Error("Project Not Found");
     }
 
-    const versions = fs.readdirSync(projectDir).filter(v => v.startsWith("v"));
+    const versions = fs.readdirSync(projectDir);
 
-    const sorted = versions.sort((a, b) => Number(a.slice(1)) - Number(b.slice(1)));
+    const sorted = versions
+        .filter(v => /^v\d+$/.test(v))
+        .sort((a, b) => Number(a.slice(1)) - Number(b.slice(1)));
+
+    if (sorted.length === 0) {
+        const version = "v1";
+        const versionPath = path.join(projectDir, version);
+        if (!fs.existsSync(versionPath)) {
+            fs.mkdirSync(versionPath, { recursive: true });
+        }
+        return {
+            projectId,
+            version,
+            projectPath: versionPath
+        };
+    }
 
     const latest = sorted[sorted.length - 1];
-
     const nextVersionNumber = Number(latest.slice(1)) + 1;
-
     const newVersion = `v${nextVersionNumber}`;
 
     const latestPath = path.join(projectDir, latest);
-
     const newVersionPath = path.join(projectDir, newVersion);
 
-    // Copy previous version → new version
+    if (latestPath === newVersionPath) {
+        throw new Error(`Version collision detected: ${latestPath}`);
+    }
+
     await fsExtra.copy(latestPath, newVersionPath);
 
     if (sorted.length >= 4) {
@@ -51,6 +66,7 @@ export async function versionManager(projectId?: string) {
     return {
         projectId,
         version: newVersion,
-        projectPath: newVersionPath
+        projectPath: newVersionPath,
+        previousPath: latestPath
     };
 }

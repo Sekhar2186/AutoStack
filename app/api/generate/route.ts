@@ -1,3 +1,5 @@
+import path from "path";
+import fs from "fs";
 import { plannerAgent } from "@/lib/agents/plannerAgent";
 
 import { versionManager } from "@/lib/services/versionManager";
@@ -20,28 +22,47 @@ export async function POST(req: Request) {
         const existingProjectId = body.projectId;
         const templateType = body.template || "modern-ui";
 
+        // Version system
+        const { projectId, projectPath, version, previousPath } =
+            await versionManager(existingProjectId);
+
         // AI planning
-        const blueprint = await plannerAgent(prompt);
+        const blueprint = await plannerAgent(prompt, previousPath);
 
         // Multi-agent generation
-        const components = await componentAgent(blueprint);
+        const components = await componentAgent(blueprint, previousPath);
         let routes = {};
 
-        if (blueprint.requiresAPI) {
-            routes = await routeAgent(blueprint);
+        if (blueprint?.requiresAPI) {
+            try {
+                routes = await routeAgent(blueprint, previousPath);
+            } catch (e) {
+                console.error("RouteAgent failed:", e);
+                routes = {};
+            }
         }
         // const routes = await routeAgent(blueprint);
         const frontendPages = blueprint.frontendPages || [{ name: "HomePage", route: "/" }];
         const generatedPages: Record<string, string> = {};
 
         for (const p of frontendPages) {
+            let previousPageCode = null;
+
+            if (previousPath) {
+                const prevPagePath = path.join(previousPath, "app", "page.tsx");
+
+                if (fs.existsSync(prevPagePath)) {
+                    previousPageCode = fs.readFileSync(prevPagePath, "utf-8");
+                }
+            }
             const pageCode = await pageAgent({
                 blueprint,
                 components: components || {},
                 pageName: p.name,
-                pageRoute: p.route
+                pageRoute: p.route,
+                previousPath: previousPath
             });
-            
+
             let routePath = p.route.replace(/^\//, ''); // Remove leading slash
             routePath = routePath === "" ? "page.tsx" : `${routePath}/page.tsx`;
             generatedPages[routePath] = pageCode;
@@ -53,10 +74,6 @@ export async function POST(req: Request) {
             routes: routes || {},
             pages: generatedPages
         };
-
-        // Version system
-        const { projectId, projectPath, version } =
-            await versionManager(existingProjectId);
 
         // Load template (v1 only)
         if (version === "v1") {

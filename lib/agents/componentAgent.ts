@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
-export async function componentAgent(blueprint: any) {
+export async function componentAgent(blueprint: any, previousPath?: string) {
   const model = genAI.getGenerativeModel({
     model: "gemini-2.5-flash",
     generationConfig: {
@@ -70,11 +70,13 @@ Return JSON:
 }
 `;
 
-  const result = await model.generateContent([
-    instruction,
-    "USER REQUEST: " + (blueprint?.appName || ""),
-    JSON.stringify(blueprint),
-  ]);
+  let promptParts = instruction + "\n\nUSER REQUEST: " + (blueprint?.appName || "") + "\n\n" + JSON.stringify(blueprint);
+
+  if (previousPath) {
+    promptParts += `\n\nExisting project is at: ${previousPath}. Ensure components are compatible with the existing structure.`;
+  }
+
+  const result = await model.generateContent([promptParts]);
 
   const text = result.response.text();
 

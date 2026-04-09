@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
-export async function routeAgent(blueprint: any) {
+export async function routeAgent(blueprint: any, previousPath?: string) {
   const model = genAI.getGenerativeModel({
     model: "gemini-2.5-flash",
     generationConfig: {
@@ -65,11 +65,13 @@ Return JSON:
   "routeName.ts": "code"
 }
 `;
-  const result = await model.generateContent([
-    instruction,
-    "USER REQUEST: " + (blueprint?.appName || ""),
-    JSON.stringify(blueprint),
-  ]);
+  let promptParts = instruction + "\n\nUSER REQUEST: " + (blueprint?.appName || "") + "\n\n" + JSON.stringify(blueprint);
+
+  if (previousPath) {
+    promptParts += `\n\nExisting project is at: ${previousPath}. Ensure API routes are consistent with existing structure.`;
+  }
+
+  const result = await model.generateContent([promptParts]);
 
   const raw = result.response.text();
 
