@@ -86,7 +86,7 @@ Return JSON:
   if (!jsonMatch) throw new Error("Invalid JSON from componentAgent");
 
   let jsonString = jsonMatch[0];
-  
+
   // Fix AI commonly escaping single quotes which is invalid in JSON
   jsonString = jsonString.replace(/\\'/g, "'");
 
