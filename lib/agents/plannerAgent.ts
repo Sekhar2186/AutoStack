@@ -1,10 +1,11 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { safeJsonParse } from "@/lib/utils/jsonUtils";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export async function plannerAgent(userQuery: string, previousPath?: string) {
     const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash",
+        model: process.env.NEXT_PUBLIC_GEMINI_MODEL || "gemini-1.5-flash",
     });
     const Instruction = `
     you are a senior software engineer and senior architecture planner with good skills in system design and software architecture planner.
@@ -17,13 +18,14 @@ export async function plannerAgent(userQuery: string, previousPath?: string) {
     {
   "appName": "string",
   "frontendPages": [
-      { "name": "HomePage", "route": "/" },
+      { "name": "HomePage", "route": "/", "interactions": ["search", "filter"] },
       { "name": "AboutPage", "route": "/about" }
   ],
   "frontendComponents": ["component1","component2"],
   "backendRoutes": ["route1","route2"],
   "databaseModels": ["model1","model2"],
-  "features": ["feature1","feature2"]
+  "features": ["feature1","feature2"],
+  "interactionNotes": "High level notes on how components should interact"
 }
 
 Rules:
@@ -52,11 +54,11 @@ Rules:
 
     const text = result.response.text();
 
-    const cleaned = text
-        .replace(/```json/g, "")
-        .replace(/```/g, "")
-        .trim();
-
-    return JSON.parse(cleaned);
+    try {
+        return safeJsonParse(text);
+    } catch (error) {
+        console.error("JSON parse failed in plannerAgent. Raw text snippet:", text.slice(0, 200));
+        throw error;
+    }
 }
 

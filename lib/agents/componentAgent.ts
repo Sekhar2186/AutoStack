@@ -1,60 +1,37 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { safeJsonParse } from "@/lib/utils/jsonUtils";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export async function componentAgent(blueprint: any, previousPath?: string) {
   const model = genAI.getGenerativeModel({
-    model: "gemini-2.5-flash",
+    model: process.env.NEXT_PUBLIC_GEMINI_MODEL || "gemini-1.5-flash",
     generationConfig: {
       responseMimeType: "application/json",
     },
   });
 
-  /** const instruction = `
-You are a React UI developer.
-
-Generate ONLY React components based on the user request.
-
-STRICT RULES:
-- Use TypeScript (.tsx)
-- Use functional components
-- Use Tailwind CSS
-- Keep components modular and reusable
-- DO NOT generate API routes
-- DO NOT generate page.tsx
-- Follow modern UI practices
-- Ensure responsive design
-
-IMPORTANT:
-- STRICTLY follow the user request
-- DO NOT generate Todo apps unless asked
-
-RETURN JSON:
-
-{
-"components": {
-  "ComponentName.tsx": "code"
-}
-}
-
-Rules:
-- Return raw JSON only
-- No markdown
-- No explanations
-`;
-*/
   const instruction = `
 Generate React components based on USER REQUEST.
 
 RULES:
-- Use TypeScript
-- Use Tailwind CSS
-- Create reusable components
-- DO NOT generate Todo components unless asked
+- Use TypeScript with clear interface definitions for Props.
+- Use Tailwind CSS.
+- Create reusable components.
+- ALWAYS use 'export default function ComponentName' for the main component.
+- Add '"use client";' at the very top of the file if the component uses hooks (useState, useEffect, etc.) or interactive event handlers (onClick, onChange, etc.).
+- STRICT PROP RULES:
+  - Prop interfaces MUST use optional '?' for all interactive/callback props (e.g., \`onClick?: (id: string) => void\`).
+  - ALWAYS provide a default no-op function in the component parameters for callbacks (e.g., \`{ onClick = () => {} }\`).
+  - Ensure props used for list iteration (.map()) are NOT optional unless you provide a fallback empty array.
+- STANDARDIZED NAMING:
+  - Use \`items\` for arrays of data.
+  - Use \`title\`, \`description\`, \`image\`, \`id\` as standard field names.
+  - Use \`onAction\` or specific verbs like \`onSearch\`, \`onSubmit\`, \`onClose\`.
+- DO NOT generate Todo components unless asked.
 - Examples:
-  - HeroSection.tsx
-  - ProjectCard.tsx
-  - Navbar.tsx
+  - Modal.tsx: export default function Modal({ isOpen, onClose = () => {}, title, children }) { ... }
+  - Search.tsx: export default function Search({ onSearch = (q) => {}, placeholder = "..." }) { ... }
 
 STRICT JSON RULES:
 - Escape all quotes using \"
@@ -80,23 +57,10 @@ Return JSON:
 
   const text = result.response.text();
 
-  const cleaned = text.replace(/```json|```/g, "").trim();
-
-  const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) throw new Error("Invalid JSON from componentAgent");
-
-  let jsonString = jsonMatch[0];
-
-  // Fix AI commonly escaping single quotes which is invalid in JSON
-  jsonString = jsonString.replace(/\\'/g, "'");
-
-  // Clean up common bad escape characters inside JSON strings (e.g. \s, \., \[ etc. that the LLM forgot to double-escape)
-  jsonString = jsonString.replace(/\\(?!["\\/bfnrtu])/g, "\\\\");
-
   try {
-    return JSON.parse(jsonString);
+    return safeJsonParse(text);
   } catch (error) {
-    console.error("JSON parse failed. Sanitized snippet:", jsonString.slice(0, 200));
+    console.error("JSON parse failed in componentAgent. Raw text snippet:", text.slice(0, 200));
     throw error;
   }
 }

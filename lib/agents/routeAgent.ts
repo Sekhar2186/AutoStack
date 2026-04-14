@@ -1,47 +1,15 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { safeJsonParse } from "@/lib/utils/jsonUtils";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export async function routeAgent(blueprint: any, previousPath?: string) {
   const model = genAI.getGenerativeModel({
-    model: "gemini-2.5-flash",
+    model: process.env.NEXT_PUBLIC_GEMINI_MODEL || "gemini-1.5-flash",
     generationConfig: {
       responseMimeType: "application/json",
     },
   });
-
-  /** const instruction = `
-You are a backend developer using Next.js App Router.
-
-Generate ONLY API routes based on the user request.
-
-STRICT RULES:
-- Use TypeScript (.ts)
-- Use Next.js route handlers
-- File path: app/api/<route>/route.ts
-- Use NextRequest and NextResponse
-- DO NOT use Express
-- DO NOT use MongoDB or mongoose
-- Use in-memory storage (arrays)
-- Keep logic simple and clean
-
-IMPORTANT:
-- STRICTLY follow user request
-- DO NOT generate Todo APIs unless asked
-
-RETURN JSON:
-
-{
- "routes": {
-   "routeName.ts": "API route code"
- }
-}
-Rules:
-- Return raw JSON only
-- No markdown
-- No explanations
-`;
-*/
 
   const instruction = `
 Generate API routes ONLY if required.
@@ -75,36 +43,10 @@ Return JSON:
 
   const raw = result.response.text();
 
-  // remove markdown blocks
-  const cleaned = raw
-    .replace(/```json/g, "")
-    .replace(/```/g, "")
-    .trim();
-
-  // extract JSON safely
-  const start = cleaned.indexOf("{");
-  const end = cleaned.lastIndexOf("}");
-
-  if (start === -1 || end === -1) {
-    console.error("RAW:", raw);
-    throw new Error("Invalid JSON structure from routeAgent");
-  }
-
-  let jsonString = cleaned.slice(start, end + 1);
-
-  // FIX ESCAPE ISSUES
-  jsonString = jsonString
-    .replace(/\\'/g, "'")
-    // Avoid blindly replacing \n globally as it breaks structural formatting
-    // Clean up common bad escape characters inside JSON strings (e.g. \s, \., \[ etc)
-    .replace(/\\(?!["\\/bfnrtu])/g, "\\\\");
-
   try {
-    return JSON.parse(jsonString);
+    return safeJsonParse(raw);
   } catch (err) {
-    console.error("RAW:", raw);
-    console.error("CLEANED:", jsonString);
-    throw new Error("JSON parse failed in routeAgent");
+    console.error("JSON parse failed in routeAgent. Raw text snippet:", raw.slice(0, 200));
+    throw err;
   }
-
 }

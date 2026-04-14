@@ -4,7 +4,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export async function pageAgent(blueprint: any) {
     const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash",
+        model: process.env.NEXT_PUBLIC_GEMINI_MODEL || "gemini-1.5-flash",
     });
 
     /**  const instruction = `
@@ -93,7 +93,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 export async function pageAgent(data: any) {
     const { blueprint, components, pageName, pageRoute } = data;
     const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash",
+        model: process.env.NEXT_PUBLIC_GEMINI_MODEL || "gemini-1.5-flash",
     });
 
     const instruction = `
@@ -103,21 +103,20 @@ You are given EXISTING components to build the following page:
 Page Name: ${pageName || 'Home'}
 Route Path: ${pageRoute || '/'}
 
-IMPORTANT:
-- Use only the components that are relevant to this specific page.
-- DO NOT ignore components if they logically belong on this page.
-- DO NOT create new components, use inline HTML/Tailwind for custom layouts if a component is lacking.
-
-Available Components:
-${Object.keys(components).join(", ")}
-
-TASK:
+RULES:
+- Available Components: ${Object.keys(components).join(", ")}
 - Import required components using the absolute path alias (e.g., \`import ComponentName from "@/components/ComponentName";\`).
-- NEVER use relative imports like \`../\` or \`../../\` to resolve components. 
-- Use them to assemble the ${pageName || 'Home'} page correctly based on the USER REQUEST.
-- Maintain logical UI order and spacing.
-
-Return full page.tsx code (and nothing else).
+- ALWAYS use DEFAULT imports (e.g., \`import ComponentName from "@/components/ComponentName";\`).
+- ALWAYS include '"use client";' at the very top of the file (before any imports).
+- NEVER recreate complex logic if a component exists; just use the component.
+- DEFENSIVE PROP PASSING:
+  - Identify components that likely need interactivity (Search, Modals, Forms).
+  - Lift state to the page level to manage these components.
+  - ALWAYS pass required props (like arrays for lists) and provide realistic sample data/handlers.
+  - Use standardized names in your state/handlers to match component guesses (e.g., \`handleSearch\`, \`items\`).
+- Use Next.js \`<Link>\` component for all internal navigation instead of \`<a>\`.
+- Maintain logical UI order and spacing with Tailwind CSS.
+- Return full page.tsx code (and nothing else).
 `;
 
     const result = await model.generateContent([
