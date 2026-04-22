@@ -91,15 +91,19 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export async function pageAgent(data: any) {
-    const { blueprint, components, pageName, pageRoute } = data;
-    const model = genAI.getGenerativeModel({
-        model: process.env.NEXT_PUBLIC_GEMINI_MODEL || "gemini-1.5-flash",
-    });
+  const { blueprint, components, pageName, pageRoute, previousPageCode } = data;
+  const model = genAI.getGenerativeModel({
+    model: process.env.NEXT_PUBLIC_GEMINI_MODEL || "gemini-1.5-flash",
+  });
 
-    const instruction = `
+  const isIterative = !!previousPageCode;
+
+  const instruction = `
 You are a Next.js developer.
 
-You are given EXISTING components to build the following page:
+${isIterative ? 'You are UPDATING an existing page. Maintain the structure but improve or add features according to the blueprint and user request.' : 'You are building a NEW page.'}
+
+You are given EXISTING components to build/update the following page:
 Page Name: ${pageName || 'Home'}
 Route Path: ${pageRoute || '/'}
 
@@ -119,18 +123,26 @@ RULES:
 - Return full page.tsx code (and nothing else).
 `;
 
-    const result = await model.generateContent([
-        instruction,
-        "USER REQUEST: " + (blueprint?.appName || ""),
-    ]);
+  const promptParts = [
+    instruction,
+    "USER REQUEST: " + (blueprint?.appName || ""),
+    "BLUEPRINT: " + JSON.stringify(blueprint),
+  ];
 
-    const text = result.response.text();
+  if (isIterative) {
+    promptParts.push("EXISTING PAGE CODE TO BE UPDATED:\n" + previousPageCode);
+    promptParts.push("INSTRUCTIONS: Modify the existing code above to incorporate the new requirements from the blueprint. Keep what works, fix what is broken, and add what is missing.");
+  }
 
-    // clean markdown if present
-    const cleaned = text
-        .replace(/```tsx/g, "")
-        .replace(/```/g, "")
-        .trim();
+  const result = await model.generateContent(promptParts);
 
-    return cleaned;
+  const text = result.response.text();
+
+  // clean markdown if present
+  const cleaned = text
+    .replace(/```tsx/g, "")
+    .replace(/```/g, "")
+    .trim();
+
+  return cleaned;
 }
