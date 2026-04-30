@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { safeJsonParse } from "@/lib/utils/jsonUtils";
+import { generateAI } from "@/lib/services/ai/modelRouter";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
@@ -51,13 +52,19 @@ RETURN ONLY JSON:
   
 `;
 
-  const result = await model.generateContent([
+  //const result = await model.generateContent([
+  // instruction,
+  // "USER REQUEST: " + (blueprint?.appName || ""),
+  // JSON.stringify(blueprint),
+  //]);
+
+  //const response = result.response.text();
+
+  const response = await generateAI("gemini", [
     instruction,
     "USER REQUEST: " + (blueprint?.appName || ""),
     JSON.stringify(blueprint),
   ]);
-
-  const response = result.response.text();
 
   try {
     return safeJsonParse(response);

@@ -105,7 +105,13 @@ export async function POST(req: Request) {
         const blueprint = await plannerAgent(prompt, previousPath);
 
         // STEP 6: Components
-        const components = await componentAgent(blueprint, previousPath);
+        let components = {};
+        try {
+            components = await componentAgent(blueprint, previousPath);
+        } catch (e) {
+            console.error("ComponentAgent failed:", e);
+            components = {};
+        }
 
         // STEP 7: Routes
         let routes = {};

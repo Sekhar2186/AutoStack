@@ -1,5 +1,5 @@
 import { verifyToken } from "@/lib/middleware/auth";
-import { getOffer } from "@/lib/services/priceservice";
+import { getOffer } from "@/lib/services/priceService";
 import { getUsers, saveUsers } from "@/lib/services/userService";
 
 export async function POST(req: Request) {

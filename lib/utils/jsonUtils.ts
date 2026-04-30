@@ -88,10 +88,20 @@ export function fixTruncatedJSON(jsonString: string): string {
  * Sanitizes common LLM JSON glitches.
  */
 export function sanitizeJSONString(jsonString: string): string {
-  return jsonString
-    .replace(/\\'/g, "'") // Fix invalid escaped single quotes
-    .replace(/\\(?!["\\/bfnrtu])/g, "\\\\") // Double escape unknown escape sequences
-    .replace(/[\u0000-\u001F]+/g, ""); // Remove control characters
+  let s = jsonString.replace(/\\'/g, "'"); // Fix invalid escaped single quotes
+
+  // Double escape unknown escape sequences
+  s = s.replace(/\\(.)/g, (match, char) => {
+    if (['"', '\\', '/', 'b', 'f', 'n', 'r', 't', 'u'].includes(char)) {
+      return match;
+    }
+    return '\\\\' + char;
+  });
+
+  // Remove control characters except \n, \r, \t
+  s = s.replace(/[\u0000-\u0008\u000B-\u000C\u000E-\u001F]+/g, "");
+
+  return s;
 }
 
 /**

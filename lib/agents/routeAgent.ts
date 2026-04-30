@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { safeJsonParse } from "@/lib/utils/jsonUtils";
+import { generateAI } from "../services/ai/modelRouter";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
@@ -39,9 +40,10 @@ Return JSON:
     promptParts += `\n\nExisting project is at: ${previousPath}. Ensure API routes are consistent with existing structure.`;
   }
 
-  const result = await model.generateContent([promptParts]);
+  //const result = await model.generateContent([promptParts]);
 
-  const raw = result.response.text();
+  //const raw = result.response.text();
+  const raw = await generateAI("gemini", [promptParts]);
 
   try {
     return safeJsonParse(raw);

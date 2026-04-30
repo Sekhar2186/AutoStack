@@ -87,6 +87,7 @@ NO explanation
 */
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { generateAI } from "../services/ai/modelRouter";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
@@ -134,9 +135,11 @@ RULES:
     promptParts.push("INSTRUCTIONS: Modify the existing code above to incorporate the new requirements from the blueprint. Keep what works, fix what is broken, and add what is missing.");
   }
 
-  const result = await model.generateContent(promptParts);
+  //const result = await model.generateContent(promptParts);
 
-  const text = result.response.text();
+  //const text = result.response.text();
+
+  const text = await generateAI("gemini", promptParts);
 
   // clean markdown if present
   const cleaned = text
