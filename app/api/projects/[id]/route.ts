@@ -14,7 +14,7 @@ function buildFileTree(dirPath: string, basePath: string, depth: number = 0): an
 
         const fullPath = path.join(dirPath, entry.name);
         const relPath = path.relative(basePath, fullPath).replace(/\\/g, "/");
-        
+
         if (entry.isDirectory()) {
             nodes.push({
                 name: entry.name,
@@ -42,35 +42,55 @@ function buildFileTree(dirPath: string, basePath: string, depth: number = 0): an
     return nodes;
 }
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(
+    req: Request,
+    context: { params: Promise<{ id: string }> }
+) {
     try {
         const user = verifyToken(req);
+
         if (!user) {
-            return Response.json({ success: false, message: "Unauthorized" }, { status: 401 });
+            return Response.json(
+                { success: false, message: "Unauthorized" },
+                { status: 401 }
+            );
         }
 
-        const resolvedParams = await params;
-        const projectId = resolvedParams.id;
-        const projectDir = path.join(process.cwd(), "generated", projectId);
+        const { id: projectId } = await context.params;
+
+        const projectDir = path.join(
+            process.cwd(),
+            "generated",
+            projectId
+        );
 
         if (!fs.existsSync(projectDir)) {
-            return Response.json({ success: false, message: "Project not found" }, { status: 404 });
+            return Response.json(
+                { success: false, message: "Project not found" },
+                { status: 404 }
+            );
         }
 
-        const versions = fs.readdirSync(projectDir)
-            .filter(v => /^v\d+$/.test(v))
+        const versions = fs
+            .readdirSync(projectDir)
+            .filter(v => /^v\\d+$/.test(v))
             .sort((a, b) => Number(a.slice(1)) - Number(b.slice(1)));
 
         if (versions.length === 0) {
-            return Response.json({ success: false, message: "No versions found" }, { status: 404 });
+            return Response.json(
+                { success: false, message: "No versions found" },
+                { status: 404 }
+            );
         }
 
         const latestVersion = versions[versions.length - 1];
+
         const versionPath = path.join(projectDir, latestVersion);
 
         const fileTree = buildFileTree(versionPath, versionPath);
 
-        const { previewLink, port } = await startPreview(projectId, versionPath);
+        const { previewLink, port } =
+            await startPreview(projectId, versionPath);
 
         return Response.json({
             success: true,
@@ -83,8 +103,16 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
                 zipPath: `/api/download?projectId=${projectId}&version=${latestVersion}`
             }
         });
+
     } catch (error) {
         console.error("Error fetching project details:", error);
-        return Response.json({ success: false, message: "Failed to fetch project details" }, { status: 500 });
+
+        return Response.json(
+            {
+                success: false,
+                message: "Failed to fetch project details"
+            },
+            { status: 500 }
+        );
     }
-}
+};
