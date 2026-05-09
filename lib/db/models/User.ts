@@ -1,26 +1,22 @@
 import mongoose from "mongoose";
 
-const UserSchema = new mongoose.Schema({
-    name: String,
-    email: {
-        type: String,
-        unique: true
-    },
-    password: String,
-    credits: {
-        type: Number,
-        default: 20
-    },
-    plan: {
-        type: String,
-        default: "free"
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now
-    }
-});
+const MONGODB_URI = process.env.MONGODB_URI;
 
-export const User =
-    mongoose.models.User ||
-    mongoose.model("User", UserSchema);
+export async function connectDB() {
+    try {
+        if (!MONGODB_URI) {
+            throw new Error("MONGODB_URI missing");
+        }
+
+        if (mongoose.connection.readyState >= 1) {
+            return;
+        }
+
+        await mongoose.connect(MONGODB_URI);
+
+        console.log("MongoDB Connected");
+    } catch (error) {
+        console.error("MongoDB Connection Error:", error);
+        throw error;
+    }
+}
