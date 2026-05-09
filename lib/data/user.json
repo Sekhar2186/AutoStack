@@ -5,5 +5,22 @@
     "password": "$2b$10$.khcCiTQmwr5ryuwG9ZEqulQx.vMMTCLdhexwnuWuOSKEMANFElky",
     "credits": 10,
     "createdAt": "2026-04-21T06:27:24.594Z"
+  },
+  {
+    "id": "1778234043405",
+    "email": "somasekharkurapati6423@gmail.com",
+    "password": "$2b$10$.k5AYWSNCmmR2MGBSErileJm8YjMSaehHdm7vxTazj8FMV5ekuB6C",
+    "plan": "pro",
+    "credits": 500,
+    "trialEndsAt": "2026-07-07T09:54:03.405Z",
+    "lastReset": "2026-05-08T09:54:03.405Z",
+    "projects": [
+      {
+        "projectId": "project_1778314253063",
+        "appName": "CodeMentor AI",
+        "description": "An AI-powered guide to mastering coding and accelerating your career.",
+        "createdAt": "2026-05-09T08:14:00.000Z"
+      }
+    ]
   }
 ]

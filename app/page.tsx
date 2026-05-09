@@ -1,35 +1,17 @@
-"use client";
+import Navbar from "@/components/landing/Navbar";
+import Hero from "@/components/landing/Hero";
+import Features from "@/components/landing/Features";
+import Pricing from "@/components/landing/Pricing";
+import Footer from "@/components/landing/Footer";
 
-import { useState } from "react";
-
-export default function Home() {
-
-    const [prompt, setPrompt] = useState("");
-    const [result, setResult] = useState(null);
-    const generate = async () => {
-        const res = await fetch("/api/generate", {
-            method: "POST",
-            body: JSON.stringify({ prompt }),
-            headers: { "Content-Type": "application/json" }
-        });
-
-        const data = await res.json();
-        setResult(data.blueprint);
-    };
-
-    return (
-        <div style={{ padding: "40px" }}>
-            <h1>AI Web Generator</h1>
-
-            <input
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                placeholder="Describe your web app"
-            />
-
-            <button onClick={generate}>Generate</button>
-
-            <pre>{JSON.stringify(result, null, 2)}</pre>
-        </div>
-    );
+export default function LandingPage() {
+  return (
+    <main className="relative min-h-screen bg-[#020617] overflow-x-hidden">
+      <Navbar />
+      <Hero />
+      <Features />
+      <Pricing />
+      <Footer />
+    </main>
+  );
 }

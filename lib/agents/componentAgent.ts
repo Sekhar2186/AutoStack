@@ -6,7 +6,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export async function componentAgent(blueprint: any, previousPath?: string) {
   const model = genAI.getGenerativeModel({
-    model: process.env.NEXT_PUBLIC_GEMINI_MODEL || "gemini-1.5-flash",
+    model: process.env.NEXT_PUBLIC_GEMINI_MODEL || "gemini-2.5-flash",
     generationConfig: {
       responseMimeType: "application/json",
     },
@@ -24,7 +24,7 @@ RULES:
 - STRICT PROP RULES:
   - Prop interfaces MUST use optional '?' for all interactive/callback props (e.g., \`onClick?: (id: string) => void\`).
   - ALWAYS provide a default no-op function in the component parameters for callbacks (e.g., \`{ onClick = () => {} }\`).
-  - Ensure props used for list iteration (.map()) are NOT optional unless you provide a fallback empty array.
+  - ALWAYS provide an empty array as a default parameter for ANY prop that is an array to prevent .map() crashes (e.g., \`{ items = [] }\`).
 - STANDARDIZED NAMING:
   - Use \`items\` for arrays of data.
   - Use \`title\`, \`description\`, \`image\`, \`id\` as standard field names.

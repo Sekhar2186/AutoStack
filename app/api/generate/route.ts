@@ -12,7 +12,8 @@ import { templateLoader } from "@/lib/services/templateLoader";
 
 import { codeInjector } from "@/lib/services/codeInjector";
 import { zipProject } from "@/lib/services/zipProject";
-import { runProject } from "@/lib/services/serverRunner";
+//import { runProject } from "@/lib/services/serverRunner";
+import { startPreview } from "@/lib/services/previewManager";
 
 import { verifyToken } from "@/lib/middleware/auth";
 import {
@@ -104,26 +105,45 @@ export async function POST(req: Request) {
         // STEP 5: AI planning
         const blueprint = await plannerAgent(prompt, previousPath);
 
-        // STEP 6: Components
-        let components = {};
-        try {
-            components = await componentAgent(blueprint, previousPath);
-        } catch (e) {
-            console.error("ComponentAgent failed:", e);
-            components = {};
+        // Save new project to user history
+        if (currentUser && version === "v1" && !existingProjectId) {
+            if (!currentUser.projects) currentUser.projects = [];
+            currentUser.projects.unshift({
+                projectId,
+                appName: blueprint?.appName || "Untitled Project",
+                description: blueprint?.description || prompt.substring(0, 100) + "...",
+                createdAt: new Date().toISOString()
+            });
+            saveUsers(users);
         }
 
-        // STEP 7: Routes
+        // STEP 6 & 7: Components and Routes
+        let components = {};
         let routes = {};
 
+        const parallelTasks = [];
+
+        parallelTasks.push(
+            componentAgent(blueprint, previousPath)
+                .then(res => { components = res; })
+                .catch(e => {
+                    console.error("ComponentAgent failed:", e);
+                    components = {};
+                })
+        );
+
         if (blueprint?.requiresAPI) {
-            try {
-                routes = await routeAgent(blueprint, previousPath);
-            } catch (e) {
-                console.error("RouteAgent failed:", e);
-                routes = {};
-            }
+            parallelTasks.push(
+                routeAgent(blueprint, previousPath)
+                    .then(res => { routes = res; })
+                    .catch(e => {
+                        console.error("RouteAgent failed:", e);
+                        routes = {};
+                    })
+            );
         }
+
+        await Promise.all(parallelTasks);
 
         // STEP 8: Pages
         const frontendPages =
@@ -131,7 +151,7 @@ export async function POST(req: Request) {
 
         const generatedPages: Record<string, string> = {};
 
-        for (const p of frontendPages) {
+        const pagePromises = frontendPages.map(async (p: any) => {
             let routePath = p.route.replace(/^\//, "");
             routePath = routePath === "" ? "page.tsx" : `${routePath}/page.tsx`;
 
@@ -143,19 +163,25 @@ export async function POST(req: Request) {
                     previousPageCode = fs.readFileSync(prevPagePath, "utf-8");
                 }
             }
+            const uiPrompt = body.ui || "";
 
-            const pageCode = await pageAgent({
-                blueprint,
-                components: components || {},
-                pageName: p.name,
-                pageRoute: p.route,
-                previousPath,
-                previousPageCode
-            });
+            try {
+                const pageCode = await pageAgent({
+                    blueprint,
+                    components: components || {},
+                    pageName: p.name,
+                    pageRoute: p.route,
+                    previousPath,
+                    previousPageCode,
+                    uiPrompt
+                });
+                generatedPages[routePath] = pageCode;
+            } catch (e) {
+                console.error(`PageAgent failed for ${p.name}:`, e);
+            }
+        });
 
-
-            generatedPages[routePath] = pageCode;
-        }
+        await Promise.all(pagePromises);
 
         // STEP 9: Merge code
         const code = {
@@ -188,7 +214,9 @@ export async function POST(req: Request) {
 
         // STEP 13: ZIP + PREVIEW
         const zipPath = await zipProject(projectPath);
-        const previewLink = runProject(projectPath);
+        //const previewLink = runProject(projectPath);
+        const { previewLink, port } =
+            await startPreview(projectId, projectPath);
 
         // FINAL RESPONSE
         return Response.json({
@@ -198,7 +226,8 @@ export async function POST(req: Request) {
             blueprint,
             zipPath,
             pdfPath,
-            previewLink
+            previewLink,
+            port
         });
 
     } catch (error) {

@@ -6,7 +6,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export async function coderAgent(blueprint: any) {
   const model = genAI.getGenerativeModel({
-    model: process.env.NEXT_PUBLIC_GEMINI_MODEL || "gemini-1.5-flash",
+    model: process.env.NEXT_PUBLIC_GEMINI_MODEL || "gemini-2.5-flash",
   });
 
   const instruction = `

@@ -92,9 +92,9 @@ import { generateAI } from "../services/ai/modelRouter";
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export async function pageAgent(data: any) {
-  const { blueprint, components, pageName, pageRoute, previousPageCode } = data;
+  const { blueprint, components, pageName, pageRoute, previousPageCode, uiPrompt } = data;
   const model = genAI.getGenerativeModel({
-    model: process.env.NEXT_PUBLIC_GEMINI_MODEL || "gemini-1.5-flash",
+    model: process.env.NEXT_PUBLIC_GEMINI_MODEL || "gemini-2.5-flash",
   });
 
   const isIterative = !!previousPageCode;
@@ -122,7 +122,26 @@ RULES:
 - Use Next.js \`<Link>\` component for all internal navigation instead of \`<a>\`.
 - Maintain logical UI order and spacing with Tailwind CSS.
 - Return full page.tsx code (and nothing else).
-`;
+
+${uiPrompt ? `
+CUSTOM UI REQUIREMENTS:
+- Follow this UI style exactly:
+${uiPrompt}
+
+- Use Tailwind CSS only
+- Add modern UI effects if requested:
+  - glassmorphism
+  - gradients
+  - blur effects
+  - hover animations
+  - smooth transitions
+  - neon/glow effects
+- Keep the template structure intact
+- Ensure responsive design
+- Do NOT generate plain/basic UI
+` : ""}
+    - Return full page.tsx code
+  `;
 
   const promptParts = [
     instruction,

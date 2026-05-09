@@ -6,7 +6,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export async function routeAgent(blueprint: any, previousPath?: string) {
   const model = genAI.getGenerativeModel({
-    model: process.env.NEXT_PUBLIC_GEMINI_MODEL || "gemini-1.5-flash",
+    model: process.env.NEXT_PUBLIC_GEMINI_MODEL || "gemini-2.5-flash",
     generationConfig: {
       responseMimeType: "application/json",
     },
