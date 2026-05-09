@@ -1,21 +1,22 @@
 import { verifyToken } from "@/lib/middleware/auth";
-import { getUsers } from "@/lib/services/userService";
+import { connectDB } from "@/lib/db/connect";
+import { User } from "@/lib/db/models/User";
 
 export async function GET(req: Request) {
     try {
-        const user = verifyToken(req);
+        await connectDB();
+        const decoded = verifyToken(req);
 
-        if (!user) {
+        if (!decoded) {
             return Response.json({
                 success: false,
                 message: "Unauthorized"
             }, { status: 401 });
         }
 
-        const users = getUsers();
-        const currentUser = users.find((u: any) => u.id === user.id);
+        const user = await User.findById((decoded as any).id);
 
-        if (!currentUser) {
+        if (!user) {
             return Response.json({
                 success: false,
                 message: "User not found"
@@ -24,7 +25,7 @@ export async function GET(req: Request) {
 
         return Response.json({
             success: true,
-            projects: currentUser.projects || []
+            projects: user.projects || []
         });
 
     } catch (error) {

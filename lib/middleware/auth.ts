@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import { getUsers } from "../services/userService";
 
-const SECRET = "your_secret_key";
+const SECRET = process.env.JWT_SECRET || "your_secret_key";
 
 export function verifyToken(req: Request) {
     const authHeader = req.headers.get("authorization");
@@ -10,11 +10,9 @@ export function verifyToken(req: Request) {
 
     const token = authHeader.split(" ")[1];
 
-    // For testing/demo purposes from the dashboard
+    // Optional: Keep a simpler demo-token if needed, but remove JSON dependency
     if (token === "demo-token") {
-        const users = getUsers();
-        // Return the first user (or the specific pro user) as the authenticated user
-        return users.length > 0 ? users[users.length - 1] : null; 
+        return { id: "demo-user", email: "demo@example.com", plan: "pro" };
     }
 
     try {

@@ -8,6 +8,14 @@ const UserSchema = new mongoose.Schema({
     credits: { type: Number, default: 20 },
     trialEndsAt: { type: Date },
     lastReset: { type: Date, default: Date.now },
+    projects: [
+        {
+            projectId: String,
+            appName: String,
+            description: String,
+            createdAt: { type: Date, default: Date.now }
+        }
+    ],
     createdAt: { type: Date, default: Date.now }
 });
 

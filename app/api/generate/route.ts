@@ -16,12 +16,15 @@ import { zipProject } from "@/lib/services/zipProject";
 import { startPreview } from "@/lib/services/previewManager";
 
 import { verifyToken } from "@/lib/middleware/auth";
-import {
+/*import {
     getUsers,
     saveUsers,
     resetDailyCredits,
     updateUserPlan
-} from "@/lib/services/userService";
+} from "@/lib/services/userService";*/
+
+import { connectDB } from "@/lib/db/connect";
+import { User } from "@/lib/db/models/User";
 
 export async function POST(req: Request) {
     try {
@@ -55,11 +58,10 @@ export async function POST(req: Request) {
 
         // STEP 2: User handling
         let currentUser: any = null;
-        let users: any[] = [];
 
         if (user) {
-            users = getUsers();
-            currentUser = users.find((u: any) => u.id === user.id);
+            await connectDB();
+            currentUser = await User.findById(user.id);
 
             if (!currentUser) {
                 return Response.json({
@@ -68,11 +70,16 @@ export async function POST(req: Request) {
                 });
             }
 
-            // Trial expiry logic
-            updateUserPlan(currentUser);
+            // Daily reset logic
+            const now = new Date();
+            const last = new Date(currentUser.lastReset);
+            const isNewDay = now.getDate() !== last.getDate() || now.getMonth() !== last.getMonth() || now.getFullYear() !== last.getFullYear();
 
-            // Daily reset
-            resetDailyCredits(currentUser);
+            if (isNewDay) {
+                if (currentUser.plan === "pro") currentUser.credits = 500;
+                else if (currentUser.plan === "free") currentUser.credits = 20;
+                currentUser.lastReset = now;
+            }
 
             // Credit check
             if (currentUser.plan !== "pro_plus" && currentUser.credits <= 0) {
@@ -82,12 +89,12 @@ export async function POST(req: Request) {
                 });
             }
 
-            // Deduct credit (except unlimited)
+            // Deduct credit
             if (currentUser.plan !== "pro_plus") {
                 currentUser.credits -= 1;
             }
 
-            saveUsers(users);
+            await currentUser.save();
         }
 
         // STEP 3: Request body
@@ -107,14 +114,13 @@ export async function POST(req: Request) {
 
         // Save new project to user history
         if (currentUser && version === "v1" && !existingProjectId) {
-            if (!currentUser.projects) currentUser.projects = [];
             currentUser.projects.unshift({
                 projectId,
                 appName: blueprint?.appName || "Untitled Project",
                 description: blueprint?.description || prompt.substring(0, 100) + "...",
-                createdAt: new Date().toISOString()
+                createdAt: new Date()
             });
-            saveUsers(users);
+            await currentUser.save();
         }
 
         // STEP 6 & 7: Components and Routes
