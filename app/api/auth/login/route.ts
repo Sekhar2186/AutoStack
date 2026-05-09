@@ -1,33 +1,73 @@
-import { findUserByEmail } from "@/lib/services/userService";
+//import { findUserByEmail } from "@/lib/services/userService";
+import { connectDB } from "@/lib/db/connect";
+import { User } from "@/lib/db/models/User";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-const SECRET = "your_secret_key";
+const SECRET = process.env.JWT_SECRET!;
 
 export async function POST(req: Request) {
-    const body = await req.json();
-    const { email, password } = body;
+    try {
+        await connectDB();
 
-    const user = findUserByEmail(email);
+        const body = await req.json();
+        const { email, password } = body;
 
-    if (!user) {
-        return Response.json({ success: false, message: "User not found" });
+        if (!email || !password) {
+            return Response.json(
+                { success: false, message: "Missing fields" },
+                { status: 400 }
+            );
+        }
+
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return Response.json(
+                { success: false, message: "User not found" },
+                { status: 404 }
+            );
+        }
+
+        const isMatch = await bcrypt.compare(
+            password,
+            user.password
+        );
+
+        if (!isMatch) {
+            return Response.json(
+                { success: false, message: "Invalid password" },
+                { status: 401 }
+            );
+        }
+
+        const token = jwt.sign(
+            {
+                id: user._id,
+                email: user.email,
+                plan: user.plan
+            },
+            SECRET,
+            { expiresIn: "7d" }
+        );
+
+        return Response.json({
+            success: true,
+            token,
+            user: {
+                id: user._id,
+                email: user.email,
+                plan: user.plan,
+                credits: user.credits
+            }
+        });
+
+    } catch (error) {
+        console.error(error);
+
+        return Response.json(
+            { success: false, message: "Server Error" },
+            { status: 500 }
+        );
     }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    if (!isMatch) {
-        return Response.json({ success: false, message: "Invalid password" });
-    }
-
-    const token = jwt.sign(
-        { id: user.id, email: user.email },
-        SECRET,
-        { expiresIn: "7d" }
-    );
-
-    return Response.json({
-        success: true,
-        token
-    });
 }

@@ -1,33 +1,59 @@
-import { createUser, findUserByEmail } from "@/lib/services/userService";
+//import { createUser, findUserByEmail } from "@/lib/services/userService";
+import { connectDB } from "@/lib/db/connect";
+import { User } from "@/lib/db/models/User";
 import bcrypt from "bcryptjs";
 
 export async function POST(req: Request) {
-    const body = await req.json();
-    const { email, password } = body;
+    try {
+        await connectDB();
 
-    const existing = findUserByEmail(email);
+        const body = await req.json();
+        const { name, email, password } = body;
 
-    if (existing) {
-        return Response.json({ success: false, message: "User already exists" });
+        if (!email || !password) {
+            return Response.json(
+                { success: false, message: "Missing fields" },
+                { status: 400 }
+            );
+        }
+
+        const existingUser = await User.findOne({ email });
+
+        if (existingUser) {
+            return Response.json(
+                { success: false, message: "User already exists" },
+                { status: 400 }
+            );
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        await User.create({
+            name,
+            email,
+            password: hashedPassword,
+
+            plan: "free",
+            credits: 20,
+
+            trialEndsAt: new Date(
+                Date.now() + 60 * 24 * 60 * 60 * 1000
+            ),
+
+            lastReset: new Date()
+        });
+
+        return Response.json({
+            success: true,
+            message: "User created successfully"
+        });
+
+    } catch (error) {
+        console.error(error);
+
+        return Response.json(
+            { success: false, message: "Server Error" },
+            { status: 500 }
+        );
     }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const newUser = {
-        id: Date.now().toString(),
-        email,
-        password: hashedPassword,
-
-        plan: "pro",
-        credits: 500,
-
-        trialEndsAt: new Date(
-            Date.now() + 60 * 24 * 60 * 60 * 1000   // 60 days
-        ).toISOString(),
-
-        lastReset: new Date().toISOString()
-    };
-    createUser(newUser);
-
-    return Response.json({ success: true, message: "User created" });
 }
