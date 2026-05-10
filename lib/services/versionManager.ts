@@ -1,10 +1,11 @@
 import fs from "fs";
 import path from "path";
 import fsExtra from "fs-extra";
+import { getGeneratedBasePath } from "@/lib/utils/pathUtils";
 
 export async function versionManager(projectId?: string) {
 
-    const baseDir = path.join(process.cwd(), "generated");
+    const baseDir = getGeneratedBasePath();
 
     if (!projectId) {
         const newProjectId = `project_${Date.now()}`;

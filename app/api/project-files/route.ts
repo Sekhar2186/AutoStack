@@ -1,6 +1,7 @@
 import { verifyToken } from "@/lib/middleware/auth";
 import fs from "fs";
 import path from "path";
+import { getGeneratedBasePath } from "@/lib/utils/pathUtils";
 
 export async function GET(req: Request) {
     try {
@@ -18,7 +19,7 @@ export async function GET(req: Request) {
             return Response.json({ success: false, message: "Missing required parameters" }, { status: 400 });
         }
 
-        const filePath = path.join(process.cwd(), "generated", projectId, version, file);
+        const filePath = path.join(getGeneratedBasePath(), projectId, version, file);
 
         if (!fs.existsSync(filePath)) {
             return Response.json({ success: false, message: "File not found" }, { status: 404 });

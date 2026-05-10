@@ -1,6 +1,7 @@
 import { verifyToken } from "@/lib/middleware/auth";
 import fs from "fs";
 import path from "path";
+import { getGeneratedBasePath } from "@/lib/utils/pathUtils";
 
 export async function GET(req: Request) {
     try {
@@ -17,7 +18,7 @@ export async function GET(req: Request) {
             return new Response("Missing projectId", { status: 400 });
         }
 
-        const zipPath = path.join(process.cwd(), "generated", projectId, `${version}.zip`);
+        const zipPath = path.join(getGeneratedBasePath(), projectId, `${version}.zip`);
 
         if (!fs.existsSync(zipPath)) {
             return new Response("ZIP file not found", { status: 404 });

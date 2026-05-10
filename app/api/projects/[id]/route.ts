@@ -1,6 +1,7 @@
 import { verifyToken } from "@/lib/middleware/auth";
 import fs from "fs";
 import path from "path";
+import { getGeneratedBasePath } from "@/lib/utils/pathUtils";
 import { startPreview } from "@/lib/services/previewManager";
 
 function buildFileTree(dirPath: string, basePath: string, depth: number = 0): any[] {
@@ -59,9 +60,8 @@ export async function GET(
         const { id: projectId } = await context.params;
 
         const projectDir = path.join(
-            process.cwd(),
-            "generated",
-            projectId
+            getGeneratedBasePath(),
+            projectId,
         );
 
         if (!fs.existsSync(projectDir)) {
