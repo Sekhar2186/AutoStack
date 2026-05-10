@@ -8,9 +8,10 @@ import {
 
 const uiLibraries = ["Tailwind CSS", "Shadcn/UI", "Material UI", "Chakra UI", "Ant Design", "Bootstrap"];
 const aiModels = [
-  { id: "gemini-pro", name: "Gemini 2.5 Flash", locked: false },
-  { id: "gemini-flash", name: "Gemini 1.5 Flash", locked: false },
-  { id: "gemini", name: "Gemini 3.0 Flash", locked: false },
+  { id: "gemini-3.0-flash", name: "Gemini 3.0 Flash", locked: false },
+  { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash", locked: false },
+  { id: "gemini-1.5-flash", name: "Gemini 1.5 Flash", locked: false },
+  { id: "gemini-2.0-flash", name: "Gemini 2.0 Flash", locked: false },
   { id: "gpt4o", name: "GPT-4o", locked: true },
   { id: "claude-sonnet", name: "Claude Sonnet", locked: true },
 ];
@@ -36,7 +37,7 @@ interface PromptEngineProps {
 export default function PromptEngine({ onGenerate, isGenerating }: PromptEngineProps) {
   const [prompt, setPrompt] = useState("");
   const [uiLib, setUiLib] = useState("Tailwind CSS");
-  const [model, setModel] = useState("gemini-pro");
+  const [model, setModel] = useState("gemini-2.5-flash");
   const [style, setStyle] = useState("glass");
   const [uiDropOpen, setUiDropOpen] = useState(false);
   const [modelDropOpen, setModelDropOpen] = useState(false);

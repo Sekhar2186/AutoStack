@@ -70,7 +70,7 @@ export default function Sidebar({ collapsed, onToggle, activeNav, onNavChange, c
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeNav === item.id;
-          
+
           if (item.href) {
             return (
               <Link
@@ -101,8 +101,8 @@ export default function Sidebar({ collapsed, onToggle, activeNav, onNavChange, c
               id={`nav-${item.id}`}
               onClick={() => !item.comingSoon && onNavChange(item.id)}
               className={`relative group flex items-center gap-3 w-full px-3 py-2.5 rounded-xl transition-all duration-200 text-left ${isActive
-                  ? "bg-linear-to-r from-cyan-500/15 to-purple-600/10 text-slate-100 border border-cyan-500/20"
-                  : "text-slate-500 hover:text-slate-300 hover:bg-white/4"
+                ? "bg-linear-to-r from-cyan-500/15 to-purple-600/10 text-slate-100 border border-cyan-500/20"
+                : "text-slate-500 hover:text-slate-300 hover:bg-white/4"
                 } ${item.comingSoon ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
             >
               <Icon size={17} className={`shrink-0 ${isActive ? "text-cyan-400" : ""}`} />
@@ -233,9 +233,8 @@ export default function Sidebar({ collapsed, onToggle, activeNav, onNavChange, c
               <button
                 key={id}
                 onClick={() => onNavChange(id)}
-                className={`flex items-center gap-3 px-3 py-2 rounded-xl transition-all ${
-                  isActive ? "bg-white/5 text-slate-100" : "text-slate-600 hover:text-slate-300 hover:bg-white/4"
-                }`}
+                className={`flex items-center gap-3 px-3 py-2 rounded-xl transition-all ${isActive ? "bg-white/5 text-slate-100" : "text-slate-600 hover:text-slate-300 hover:bg-white/4"
+                  }`}
               >
                 <Icon size={17} className={`shrink-0 ${isActive ? "text-cyan-400" : ""}`} />
                 {!collapsed && <span className="text-[13px] font-medium">{label}</span>}

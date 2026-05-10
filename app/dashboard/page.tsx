@@ -27,8 +27,9 @@ export default function CommandCenter() {
 
   useEffect(() => {
     if (activeNav === "projects") {
+      const token = localStorage.getItem("token");
       fetch("/api/projects", {
-        headers: { "Authorization": "Bearer demo-token" }
+        headers: { "Authorization": `Bearer ${token}` }
       })
       .then(res => res.json())
       .then(data => {
@@ -57,7 +58,7 @@ export default function CommandCenter() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": "Bearer demo-token",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`,
         },
         body: JSON.stringify(payload),
       });
@@ -94,7 +95,7 @@ export default function CommandCenter() {
 
     try {
       const res = await fetch(`/api/projects/${projectId}`, {
-        headers: { "Authorization": "Bearer demo-token" }
+        headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
       });
       const data = await res.json();
       if (data.success) {
