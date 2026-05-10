@@ -16,10 +16,22 @@ function getNextPort() {
     return currentPort++;
 }
 
+function isServerless() {
+    return !!(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NETLIFY);
+}
+
 export async function startPreview(
     projectId: string,
     projectPath: string
 ) {
+    // In serverless environments, we cannot spawn child processes
+    if (isServerless()) {
+        return {
+            previewLink: "",
+            port: 0
+        };
+    }
+
     // 🔥 If already running
     if (runningProjects[projectId]) {
         return {
@@ -42,14 +54,12 @@ export async function startPreview(
         }
     }
 
-
-
+    // Use npx to run next dev directly without shell: true (fixes DEP0190)
     const child = spawn(
-        "npm",
-        ["run", "dev", "--", "-p", port.toString()],
+        "npx",
+        ["next", "dev", "-p", port.toString()],
         {
             cwd: projectPath,
-            shell: true,
             stdio: "ignore"
         }
     );
