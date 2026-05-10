@@ -34,6 +34,8 @@ Rules:
 - Do not include explanations.
 - Do not include markdown.
 - Components should be simple names.
+- CRITICAL ROUTING RULE: If you define a component that implies a page view , you MUST create a corresponding entry in \`frontendPages\`. Every navigable view requires a page route .
+- CRITICAL: Provide a COMPLETE list of \`frontendPages\` and \`frontendComponents\`. If an app needs a Dashboard, Login, Signup, and Settings, list ALL of them. Do not skip essential pages or components.
 - If existing project context is provided, ensure the new plan is compatible with it.
  `
     let promptParts = Instruction + "\n\nUser request: " + userQuery;

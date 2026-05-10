@@ -35,7 +35,8 @@ IMPORTANT:
 - DO NOT generate Todo apps unless explicitly asked.
 - Generate components relevant to the request (portfolio, dashboard, blog, etc.).
 - DO NOT escape single quotes like \\\'
-- RETURN STRICT VALID JSON ONLY.
+- Do NOT wrap your output in markdown code blocks (no \`\`\`json).
+- RETURN STRICT VALID JSON ONLY. No conversational text.
 
 RETURN ONLY JSON:
 

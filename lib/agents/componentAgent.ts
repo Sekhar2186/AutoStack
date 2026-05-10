@@ -25,6 +25,8 @@ RULES:
   - Prop interfaces MUST use optional '?' for all interactive/callback props (e.g., \`onClick?: (id: string) => void\`).
   - ALWAYS provide a default no-op function in the component parameters for callbacks (e.g., \`{ onClick = () => {} }\`).
   - ALWAYS provide an empty array as a default parameter for ANY prop that is an array to prevent .map() crashes (e.g., \`{ items = [] }\`).
+- ROUTING RULES:
+  - If the component is a Login, Signup, or Auth form, YOU MUST import \`useRouter\` from \`next/navigation\` and use \`router.push()\` to navigate the user to the main dashboard or home page upon form submission. Do not just \`console.log\` the submission.
 - STANDARDIZED NAMING:
   - Use \`items\` for arrays of data.
   - Use \`title\`, \`description\`, \`image\`, \`id\` as standard field names.
@@ -37,9 +39,11 @@ RULES:
 STRICT JSON RULES:
 - Escape all quotes using \"
 - Escape newlines using \\n
-- Do NOT include markdown
+- Do NOT include markdown blocks (no \`\`\`json)
 - DO NOT escape single quotes (use ' not \\')
-- Return only valid JSON
+- Ensure ALL dependencies (like lucide-react icons) are actually imported if used.
+- DO NOT import components or files that you haven't defined.
+- Return ONLY valid parseable JSON. No conversational text.
 
 Return JSON:
 

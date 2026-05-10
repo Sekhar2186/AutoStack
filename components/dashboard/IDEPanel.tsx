@@ -30,6 +30,7 @@ const viewports = [
 
 function PreviewTab({ app, isGenerating, onComplete }: { app: any, isGenerating: boolean, onComplete?: () => void }) {
   const [vp, setVp] = useState("desktop");
+  const [refreshKey, setRefreshKey] = useState(0);
   const width = viewports.find((v) => v.id === vp)?.w ?? "100%";
 
   return (
@@ -42,6 +43,13 @@ function PreviewTab({ app, isGenerating, onComplete }: { app: any, isGenerating:
           <span className="text-[11px] text-slate-500 flex-1 ml-2 font-mono">localhost:3000</span>
         </div>
         <div className="flex items-center gap-1">
+          <button 
+            onClick={() => setRefreshKey(k => k + 1)}
+            className="p-1.5 mr-2 rounded-lg text-slate-600 hover:text-slate-300 hover:bg-white/5 transition-all"
+            title="Reload Preview"
+          >
+            <RefreshCw size={13} />
+          </button>
           {viewports.map(({ id, icon: Icon }) => (
             <button
               key={id}
@@ -64,6 +72,7 @@ function PreviewTab({ app, isGenerating, onComplete }: { app: any, isGenerating:
             <GenerationProgress isGenerating={true} onComplete={onComplete || (() => {})} />
           ) : app?.previewLink ? (
             <iframe 
+              key={refreshKey}
               src={app.previewLink} 
               className="w-full h-full border-none bg-white" 
               title="Preview"

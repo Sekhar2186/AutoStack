@@ -24,8 +24,8 @@ RULES:
 STRICT JSON RULES:
 - Escape all quotes using \"
 - Escape newlines using \\n
-- Do NOT include markdown
-- Return only valid JSON
+- Do NOT include markdown blocks (no \`\`\`json)
+- Return ONLY valid parseable JSON. No conversational text.
 
 
 Return JSON:

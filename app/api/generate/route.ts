@@ -159,6 +159,7 @@ export async function POST(req: Request) {
 
         const pagePromises = frontendPages.map(async (p: any) => {
             let routePath = p.route.replace(/^\//, "");
+            routePath = routePath.replace(/:([^\/]+)/g, "[$1]");
             routePath = routePath === "" ? "page.tsx" : `${routePath}/page.tsx`;
 
             let previousPageCode = null;

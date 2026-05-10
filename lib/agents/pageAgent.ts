@@ -110,6 +110,8 @@ Route Path: ${pageRoute || '/'}
 
 RULES:
 - Available Components: ${Object.keys(components).join(", ")}
+- CRITICAL: YOU MUST ONLY IMPORT AND USE COMPONENTS FROM THE 'Available Components' LIST ABOVE. 
+- IF A COMPONENT (like 'Navbar' or 'Footer') IS NOT IN THE LIST, DO NOT IMPORT IT. Build it inline or ignore it. Hallucinated imports will crash the app!
 - Import required components using the absolute path alias (e.g., \`import ComponentName from "@/components/ComponentName";\`).
 - ALWAYS use DEFAULT imports (e.g., \`import ComponentName from "@/components/ComponentName";\`).
 - ALWAYS include '"use client";' at the very top of the file (before any imports).
@@ -120,8 +122,10 @@ RULES:
   - ALWAYS pass required props (like arrays for lists) and provide realistic sample data/handlers.
   - Use standardized names in your state/handlers to match component guesses (e.g., \`handleSearch\`, \`items\`).
 - Use Next.js \`<Link>\` component for all internal navigation instead of \`<a>\`.
+- ROUTING RULES:
+  - If you are building a Login, Signup, or Auth page, YOU MUST import \`useRouter\` from \`next/navigation\` and use \`router.push()\` to navigate the user to the main dashboard or home page upon form submission.
 - Maintain logical UI order and spacing with Tailwind CSS.
-- Return full page.tsx code (and nothing else).
+- CRITICAL: Return ONLY the raw TSX code. DO NOT wrap the code in markdown code blocks (e.g., no \`\`\`tsx or \`\`\`). No explanations.
 
 ${uiPrompt ? `
 CUSTOM UI REQUIREMENTS:
@@ -160,10 +164,10 @@ ${uiPrompt}
 
   const text = await generateAI("gemini", promptParts);
 
-  // clean markdown if present
+  // clean markdown if present (defensive)
   const cleaned = text
-    .replace(/```tsx/g, "")
-    .replace(/```/g, "")
+    .replace(/^```[a-z]*\n?/gm, "")
+    .replace(/```$/gm, "")
     .trim();
 
   return cleaned;
