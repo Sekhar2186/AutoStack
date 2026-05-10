@@ -16,7 +16,7 @@ export default function CommandCenter() {
   const [showIDE, setShowIDE] = useState(false);
   const [generatedApp, setGeneratedApp] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Credit Logic
   const [creditsUsed, setCreditsUsed] = useState(0);
   const [totalCredits, setTotalCredits] = useState(20);
@@ -31,13 +31,13 @@ export default function CommandCenter() {
       fetch("/api/projects", {
         headers: { "Authorization": `Bearer ${token}` }
       })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          setProjects(data.projects);
-        }
-      })
-      .catch(err => console.error("Failed to fetch projects:", err));
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            setProjects(data.projects);
+          }
+        })
+        .catch(err => console.error("Failed to fetch projects:", err));
     }
   }, [activeNav]);
 
@@ -45,10 +45,10 @@ export default function CommandCenter() {
     setIsGenerating(true);
     setShowIDE(false);
     setError(null);
-    
+
     try {
       const payload: any = { ...data };
-      
+
       // If we already have a project, pass its ID to the backend for versioning (v2, v3, etc.)
       if (generatedApp?.projectId) {
         payload.projectId = generatedApp.projectId;
@@ -64,9 +64,9 @@ export default function CommandCenter() {
       });
 
       if (!response.ok) throw new Error("Backend generation failed");
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
         setGeneratedApp(result);
         // handleGenerationComplete will be called by IDEPanel after its internal progress is done
@@ -116,6 +116,13 @@ export default function CommandCenter() {
     setShowIDE(true);
   };
 
+  const handleNewProject = () => {
+    setGeneratedApp(null);
+    setShowIDE(false);
+    setGenerationCount(0);
+    setActiveNav("dashboard");
+  };
+
   return (
     <main className="flex h-screen w-full bg-[#020617] text-slate-50 overflow-hidden font-sans">
       {/* Background ambient effects */}
@@ -125,9 +132,9 @@ export default function CommandCenter() {
       </div>
 
       {/* Sidebar */}
-      <Sidebar 
-        collapsed={collapsed} 
-        onToggle={() => setCollapsed(!collapsed)} 
+      <Sidebar
+        collapsed={collapsed}
+        onToggle={() => setCollapsed(!collapsed)}
         activeNav={activeNav}
         onNavChange={setActiveNav}
         credits={{ used: creditsUsed, total: totalCredits }}
@@ -136,7 +143,7 @@ export default function CommandCenter() {
       {/* Main Workspace */}
       <div className="flex-1 flex overflow-hidden relative">
         <div className="flex-1 grid grid-cols-1 lg:grid-cols-[400px_1fr] h-full overflow-hidden">
-          
+
           {/* Left: Prompt Engine */}
           <section className="h-full border-r border-white/5 relative z-10">
             <PromptEngine onGenerate={handleGenerate} isGenerating={isGenerating} />
@@ -162,14 +169,14 @@ export default function CommandCenter() {
                     >
                       <div className="w-20 h-20 rounded-3xl bg-linear-to-br from-cyan-500/10 to-purple-600/10 border border-white/5 flex items-center justify-center mb-6 shadow-2xl">
                         <motion.div
-                          animate={{ 
+                          animate={{
                             rotate: [0, 10, -10, 0],
                             scale: [1, 1.1, 1]
                           }}
-                          transition={{ 
-                            repeat: Infinity, 
+                          transition={{
+                            repeat: Infinity,
                             duration: 4,
-                            ease: "easeInOut" 
+                            ease: "easeInOut"
                           }}
                         >
                           <div className="w-10 h-10 rounded-xl bg-linear-to-br from-cyan-500 to-purple-600 flex items-center justify-center shadow-lg">
@@ -179,19 +186,21 @@ export default function CommandCenter() {
                       </div>
                       <h2 className="text-2xl font-bold text-slate-100 mb-3">Welcome to the Command Center</h2>
                       <p className="text-slate-500 max-w-md mx-auto leading-relaxed">
-                        Describe your application in the prompt engine to the left. 
+                        Describe your application in the prompt engine to the left.
                         Our AI will handle the architecture, components, and backend logic in seconds.
                       </p>
-                      
+
                       <div className="grid grid-cols-2 gap-4 mt-12 w-full max-w-lg">
                         {[
                           { title: "Recent Projects", desc: "Access your last 5 builds", action: () => setActiveNav("projects") },
-                          { title: "New Templates", desc: "Start from high-quality presets", action: () => {} },
-                          { title: "Community", desc: "Explore what others are building", action: () => {} },
-                          { title: "Settings", desc: "Manage your API keys & models", action: () => {} }
+                          { title: "New Templates", desc: "Start from high-quality presets", action: () => setActiveNav("dashboard") },
+                          {
+                            title: "Community", desc: "Explore what others are building", action: () => window.location.href = "/"
+                          },
+                          { title: "Settings", desc: "Manage your API keys & models", action: () => setActiveNav("settings") }
                         ].map((item, idx) => (
-                          <div 
-                            key={idx} 
+                          <div
+                            key={idx}
                             onClick={item.action}
                             className="glass glass-hover p-4 rounded-xl border border-white/5 text-left transition-all cursor-pointer"
                           >
@@ -208,11 +217,11 @@ export default function CommandCenter() {
                       animate={{ opacity: 1, y: 0 }}
                       className="h-full"
                     >
-                      <IDEPanel 
-                        app={generatedApp} 
-                        isGenerating={isGenerating} 
+                      <IDEPanel
+                        app={generatedApp}
+                        isGenerating={isGenerating}
                         error={error}
-                        onComplete={handleGenerationComplete} 
+                        onComplete={handleGenerationComplete}
                       />
                     </motion.div>
                   )}
@@ -232,7 +241,10 @@ export default function CommandCenter() {
                       <h2 className="text-2xl font-bold text-slate-100">Your Projects</h2>
                       <p className="text-slate-500 text-sm">Manage and scale your AI-generated applications</p>
                     </div>
-                    <button className="shimmer-btn px-4 py-2 rounded-xl bg-linear-to-r from-cyan-500 to-purple-600 text-sm font-semibold text-white">
+                    <button
+                      onClick={handleNewProject}
+                      className="shimmer-btn px-4 py-2 rounded-xl bg-linear-to-r from-cyan-500 to-purple-600 text-sm font-semibold text-white"
+                    >
                       New Project
                     </button>
                   </div>
@@ -252,8 +264,8 @@ export default function CommandCenter() {
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {projects.map((p, idx) => (
-                        <div 
-                          key={idx} 
+                        <div
+                          key={idx}
                           onClick={() => handleProjectClick(p.projectId)}
                           className="glass p-5 rounded-2xl border border-white/5 hover:bg-white/5 transition-all cursor-pointer"
                         >

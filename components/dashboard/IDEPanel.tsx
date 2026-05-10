@@ -43,7 +43,7 @@ function PreviewTab({ app, isGenerating, onComplete }: { app: any, isGenerating:
           <span className="text-[11px] text-slate-500 flex-1 ml-2 font-mono">localhost:3000</span>
         </div>
         <div className="flex items-center gap-1">
-          <button 
+          <button
             onClick={() => setRefreshKey(k => k + 1)}
             className="p-1.5 mr-2 rounded-lg text-slate-600 hover:text-slate-300 hover:bg-white/5 transition-all"
             title="Reload Preview"
@@ -69,12 +69,12 @@ function PreviewTab({ app, isGenerating, onComplete }: { app: any, isGenerating:
           style={{ width, minHeight: "400px" }}
         >
           {isGenerating ? (
-            <GenerationProgress isGenerating={true} onComplete={onComplete || (() => {})} />
+            <GenerationProgress isGenerating={true} onComplete={onComplete || (() => { })} />
           ) : app?.previewLink ? (
-            <iframe 
+            <iframe
               key={refreshKey}
-              src={app.previewLink} 
-              className="w-full h-full border-none bg-white" 
+              src={app.previewLink}
+              className="w-full h-full border-none bg-white"
               title="Preview"
             />
           ) : (
@@ -219,7 +219,63 @@ function FileRow({ node, activeFile, onSelect }: { node: FileNode; activeFile: s
 
 function FilesTab({ app, onSelect }: { app: any, onSelect: (f: string) => void }) {
   const [active, setActive] = useState("app/page.tsx");
-  const tree = app?.blueprint || [];
+  
+  const generateTree = (blueprint: any) => {
+    if (!blueprint) return [];
+    
+    const root: any[] = [];
+
+    const addPathToTree = (fullPath: string, isDir: boolean) => {
+      const parts = fullPath.split("/");
+      let currentLevel = root;
+      
+      parts.forEach((part, index) => {
+        const isLast = index === parts.length - 1;
+        const depth = index;
+        
+        let existing = currentLevel.find(item => item.name === part && item.isDir === (!isLast || isDir));
+        
+        if (!existing) {
+          const newNode: any = {
+            name: part,
+            isDir: !isLast || isDir,
+            depth,
+            path: parts.slice(0, index + 1).join("/"),
+            open: depth === 0 // Auto-open top level folders
+          };
+          if (newNode.isDir) newNode.children = [];
+          currentLevel.push(newNode);
+          existing = newNode;
+        }
+        
+        if (existing.isDir) {
+          currentLevel = existing.children;
+        }
+      });
+    };
+
+    // Add app files
+    (blueprint.frontendPages || []).forEach((p: any) => {
+      let routePath = p.route.replace(/^\//, "");
+      routePath = routePath.replace(/:([^\/]+)/g, "[$1]");
+      const fileName = routePath === "" ? "page.tsx" : `${routePath}/page.tsx`;
+      addPathToTree(`app/${fileName}`, false);
+    });
+
+    // Add components
+    (blueprint.frontendComponents || []).forEach((c: string) => {
+      addPathToTree(`components/${c}.tsx`, false);
+    });
+    
+    // Add API routes
+    (blueprint.backendRoutes || []).forEach((r: string) => {
+      addPathToTree(`app/api/${r}/route.ts`, false);
+    });
+
+    return root;
+  };
+
+  const tree = app?.blueprint ? generateTree(app.blueprint) : [];
 
   const handleSelect = (f: string) => {
     setActive(f);
@@ -316,7 +372,7 @@ function VersionsTab({ app, onSwitch }: { app: any, onSwitch: (v: string) => voi
               animate={{ opacity: 1, x: 0 }}
               className={`relative mb-6 p-4 rounded-xl border ${ver.current ? "bg-cyan-500/5 border-cyan-500/20" : "bg-white/2 border-white/5 hover:border-white/10"}`}
             >
-              <div className={`absolute -left-[21px] top-4 w-3 h-3 rounded-full border-2 ${ver.current ? "bg-cyan-500 border-cyan-400" : "bg-slate-800 border-slate-700"}`} />
+              <div className={`absolute left-[21px] top-4 w-3 h-3 rounded-full border-2 ${ver.current ? "bg-cyan-500 border-cyan-400" : "bg-slate-800 border-slate-700"}`} />
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-bold text-slate-200">{ver.v}</span>
                 {ver.current ? (
@@ -347,7 +403,7 @@ function DocsTab({ app }: { app: any }) {
       <div className="max-w-2xl mx-auto w-full">
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-2xl font-bold text-slate-100">Project Documentation</h2>
-          <button 
+          <button
             onClick={downloadPDF}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-[11px] font-bold text-cyan-400 hover:bg-cyan-500/20 transition-all"
           >
@@ -356,7 +412,7 @@ function DocsTab({ app }: { app: any }) {
           </button>
         </div>
         <p className="text-slate-500 mb-8 pb-8 border-b border-white/5">Auto-generated technical overview based on your prompt.</p>
-        
+
         <div className="space-y-10">
           <section>
             <h3 className="text-sm font-bold text-cyan-400 uppercase tracking-widest mb-4">Project Summary</h3>
@@ -465,8 +521,8 @@ export default function IDEPanel({ app, isGenerating, error, onComplete }: { app
         </div>
 
         <div className="flex items-center gap-2">
-          {app?.zipPath && (
-            <a href={app.zipPath} download className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-[11px] font-bold text-slate-400 hover:text-white hover:bg-white/8 transition-all">
+          {app?.projectId && (
+            <a href={`/api/download?projectId=${app.projectId}&version=${app.version || "v1"}`} download className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-[11px] font-bold text-slate-400 hover:text-white hover:bg-white/8 transition-all">
               <Archive size={14} />
               Export ZIP
             </a>
