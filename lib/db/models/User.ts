@@ -13,6 +13,7 @@ const UserSchema = new mongoose.Schema({
             projectId: String,
             appName: String,
             description: String,
+            latestVersion: { type: Number, default: 1 },
             createdAt: { type: Date, default: Date.now }
         }
     ],

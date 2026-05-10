@@ -3,10 +3,15 @@ import path from "path";
 import fsExtra from "fs-extra";
 import { getGeneratedBasePath } from "@/lib/utils/pathUtils";
 
-export async function versionManager(projectId?: string) {
+function isServerless() {
+    return !!(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NETLIFY);
+}
+
+export async function versionManager(projectId?: string, currentUser?: any) {
 
     const baseDir = getGeneratedBasePath();
 
+    // ── NEW PROJECT ────────────────────────────────────────────────────────────
     if (!projectId) {
         const newProjectId = `project_${Date.now()}`;
         const projectDir = path.join(baseDir, newProjectId);
@@ -20,10 +25,47 @@ export async function versionManager(projectId?: string) {
             projectPath: versionPath
         };
     }
+
     const projectDir = path.join(baseDir, projectId);
 
+    // ── SERVERLESS: use DB version counter ────────────────────────────────────
+    if (isServerless()) {
+        let nextVersionNumber = 2; // default: bump to v2
+
+        if (currentUser) {
+            const projectRecord = currentUser.projects?.find(
+                (p: any) => p.projectId === projectId
+            );
+            if (projectRecord) {
+                // Increment the stored version
+                nextVersionNumber = (projectRecord.latestVersion || 1) + 1;
+                projectRecord.latestVersion = nextVersionNumber;
+                await currentUser.save();
+            }
+        }
+
+        const newVersion = `v${nextVersionNumber}`;
+        const newVersionPath = path.join(projectDir, newVersion);
+        fs.mkdirSync(newVersionPath, { recursive: true });
+
+        return {
+            projectId,
+            version: newVersion,
+            projectPath: newVersionPath,
+            previousPath: undefined  // ephemeral FS — no previous files to copy
+        };
+    }
+
+    // ── LOCAL: filesystem-based versioning ────────────────────────────────────
     if (!fs.existsSync(projectDir)) {
-        throw new Error("Project Not Found");
+        const version = "v1";
+        const versionPath = path.join(projectDir, version);
+        fs.mkdirSync(versionPath, { recursive: true });
+        return {
+            projectId,
+            version,
+            projectPath: versionPath
+        };
     }
 
     const versions = fs.readdirSync(projectDir);
