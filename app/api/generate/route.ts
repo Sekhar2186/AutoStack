@@ -123,37 +123,41 @@ export async function POST(req: Request) {
             await currentUser.save();
         }
 
-        // STEP 6 & 7: Components and Routes (sequential to avoid rate limits)
+        // STEP 6 & 7: Components and Routes (parallel)
         let components = {};
         let routes = {};
 
-        try {
-            components = await componentAgent(blueprint, previousPath);
-        } catch (e) {
-            console.error("ComponentAgent failed:", e);
-            components = {};
-        }
+        const parallelTasks = [];
 
-        // Delay before next agent call
-        await new Promise(r => setTimeout(r, 3000));
+        parallelTasks.push(
+            componentAgent(blueprint, previousPath)
+                .then(res => { components = res; })
+                .catch(e => {
+                    console.error("ComponentAgent failed:", e);
+                    components = {};
+                })
+        );
 
         if (blueprint?.requiresAPI) {
-            try {
-                routes = await routeAgent(blueprint, previousPath);
-            } catch (e) {
-                console.error("RouteAgent failed:", e);
-                routes = {};
-            }
-            await new Promise(r => setTimeout(r, 3000));
+            parallelTasks.push(
+                routeAgent(blueprint, previousPath)
+                    .then(res => { routes = res; })
+                    .catch(e => {
+                        console.error("RouteAgent failed:", e);
+                        routes = {};
+                    })
+            );
         }
 
-        // STEP 8: Pages (sequential to avoid rate limits)
+        await Promise.all(parallelTasks);
+
+        // STEP 8: Pages (parallel)
         const frontendPages =
             blueprint.frontendPages || [{ name: "HomePage", route: "/" }];
 
         const generatedPages: Record<string, string> = {};
 
-        for (const p of frontendPages) {
+        const pagePromises = frontendPages.map(async (p: any) => {
             let routePath = p.route.replace(/^\//, "");
             routePath = routePath.replace(/:([^\/]+)/g, "[$1]");
             routePath = routePath === "" ? "page.tsx" : `${routePath}/page.tsx`;
@@ -182,12 +186,9 @@ export async function POST(req: Request) {
             } catch (e) {
                 console.error(`PageAgent failed for ${p.name}:`, e);
             }
+        });
 
-            // Small delay between pages to respect rate limits
-            if (frontendPages.indexOf(p) < frontendPages.length - 1) {
-                await new Promise(r => setTimeout(r, 3000));
-            }
-        }
+        await Promise.all(pagePromises);
 
         // STEP 9: Merge code
         const code = {
