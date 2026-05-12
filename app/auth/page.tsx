@@ -10,11 +10,11 @@ function AuthContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const mode = searchParams.get("mode");
-  
+
   const [isLogin, setIsLogin] = useState(mode !== "signup");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -31,16 +31,16 @@ function AuthContent() {
     setError("");
 
     const endpoint = isLogin ? "/api/auth/login" : "/api/auth/signUp";
-    
+
     try {
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData)
       });
-      
+
       const data = await res.json();
-      
+
       if (data.success) {
         if (isLogin) {
           localStorage.setItem("token", data.token);
@@ -79,8 +79,8 @@ function AuthContent() {
       </div>
 
       {/* Back to Home */}
-      <Link 
-        href="/" 
+      <Link
+        href="/"
         className="absolute top-8 left-8 flex items-center gap-2 text-slate-500 hover:text-slate-300 transition-colors text-sm font-medium z-20"
       >
         <ChevronLeft size={16} />
@@ -110,7 +110,7 @@ function AuthContent() {
         <div className="glass rounded-3xl border border-white/10 p-8 shadow-2xl">
           <AnimatePresence mode="wait">
             {error && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
@@ -133,12 +133,12 @@ function AuthContent() {
                 </label>
                 <div className="relative group">
                   <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-cyan-400 transition-colors" size={18} />
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     placeholder="John Doe"
                     required={!isLogin}
                     value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     className="w-full bg-white/5 border border-white/5 rounded-2xl py-3.5 pl-12 pr-4 text-slate-200 placeholder-slate-600 outline-none focus:border-cyan-500/30 focus:bg-white/7 transition-all"
                   />
                 </div>
@@ -151,12 +151,12 @@ function AuthContent() {
               </label>
               <div className="relative group">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-cyan-400 transition-colors" size={18} />
-                <input 
-                  type="email" 
+                <input
+                  type="email"
                   placeholder="name@company.com"
                   required
                   value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="w-full bg-white/5 border border-white/5 rounded-2xl py-3.5 pl-12 pr-4 text-slate-200 placeholder-slate-600 outline-none focus:border-cyan-500/30 focus:bg-white/7 transition-all"
                 />
               </div>
@@ -168,12 +168,12 @@ function AuthContent() {
               </label>
               <div className="relative group">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-cyan-400 transition-colors" size={18} />
-                <input 
-                  type="password" 
+                <input
+                  type="password"
                   placeholder="••••••••"
                   required
                   value={formData.password}
-                  onChange={(e) => setFormData({...formData, password: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="w-full bg-white/5 border border-white/5 rounded-2xl py-3.5 pl-12 pr-4 text-slate-200 placeholder-slate-600 outline-none focus:border-cyan-500/30 focus:bg-white/7 transition-all"
                 />
               </div>
@@ -205,7 +205,7 @@ function AuthContent() {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <button 
+            <button
               type="button"
               onClick={() => handleSocialAuth("github")}
               disabled={loading}
@@ -214,7 +214,7 @@ function AuthContent() {
               <GitBranch size={18} />
               GitHub
             </button>
-            <button 
+            <button
               type="button"
               onClick={() => handleSocialAuth("google")}
               disabled={loading}
@@ -227,7 +227,7 @@ function AuthContent() {
         </div>
 
         <div className="mt-8 text-center">
-          <button 
+          <button
             onClick={() => setIsLogin(!isLogin)}
             className="text-sm text-slate-500 hover:text-cyan-400 transition-colors"
           >

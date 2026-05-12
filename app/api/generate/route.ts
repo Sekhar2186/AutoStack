@@ -5,7 +5,8 @@ import { plannerAgent } from "@/lib/agents/plannerAgent";
 import { componentAgent } from "@/lib/agents/componentAgent";
 import { routeAgent } from "@/lib/agents/routeAgent";
 import { pageAgent } from "@/lib/agents/pageAgent";
-import { generatePDF } from "@/lib/agents/docAgent";
+import { docAgent } from "@/lib/agents/docAgent";
+import { generatePDF } from "@/lib/services/generatePDF";
 
 import { versionManager } from "@/lib/services/versionManager";
 import { templateLoader } from "@/lib/services/templateLoader";
@@ -16,6 +17,7 @@ import { zipProject } from "@/lib/services/zipProject";
 import { startPreview } from "@/lib/services/previewManager";
 
 import { verifyToken } from "@/lib/middleware/auth";
+import pLimit from "p-limit";
 /*import {
     getUsers,
     saveUsers,
@@ -151,50 +153,105 @@ export async function POST(req: Request) {
 
         await Promise.all(parallelTasks);
 
-        // STEP 8: Pages (parallel)
+        // STEP 8: Pages (sequential)
         const frontendPages =
             blueprint.frontendPages || [{ name: "HomePage", route: "/" }];
 
         const generatedPages: Record<string, string> = {};
+        console.log(`[Generate] Starting parallel generation for ${frontendPages.length} pages...`);
 
-        const pagePromises = frontendPages.map(async (p: any) => {
-            let routePath = p.route.replace(/^\//, "");
-            routePath = routePath.replace(/:([^\/]+)/g, "[$1]");
-            routePath = routePath === "" ? "page.tsx" : `${routePath}/page.tsx`;
+        const limit = pLimit(2);
 
-            let previousPageCode = null;
+        //const sleep = (ms: number) =>
+        // new Promise(resolve => setTimeout(resolve, ms));
 
-            if (previousPath) {
-                const prevPagePath = path.join(previousPath, "app", routePath);
-                if (fs.existsSync(prevPagePath)) {
-                    previousPageCode = fs.readFileSync(prevPagePath, "utf-8");
-                }
-            }
-            const uiPrompt = body.ui || "";
+        await Promise.all(
+            frontendPages.map((p: any) =>
+                limit(async () => {
 
-            try {
-                const pageCode = await pageAgent({
-                    blueprint,
-                    components: components || {},
-                    pageName: p.name,
-                    pageRoute: p.route,
-                    previousPath,
-                    previousPageCode,
-                    uiPrompt
-                });
-                generatedPages[routePath] = pageCode;
-            } catch (e) {
-                console.error(`PageAgent failed for ${p.name}:`, e);
-            }
-        });
+                    console.log(`[PageAgent] Generating ${p.name}`);
 
-        await Promise.all(pagePromises);
+                    //await sleep(3000);
+
+                    let routePath = p.route.replace(/^\//, "");
+                    routePath = routePath.replace(/:([^\/]+)/g, "[$1]");
+                    routePath =
+                        routePath === ""
+                            ? "page.tsx"
+                            : `${routePath}/page.tsx`;
+
+                    let previousPageCode = null;
+
+                    if (previousPath) {
+                        const prevPagePath = path.join(
+                            previousPath,
+                            "app",
+                            routePath
+                        );
+
+                        if (fs.existsSync(prevPagePath)) {
+                            previousPageCode =
+                                fs.readFileSync(prevPagePath, "utf-8");
+                        }
+                    }
+
+                    const uiPrompt = body.ui || "";
+
+                    try {
+                        const pageCode = await pageAgent({
+                            blueprint,
+                            components: components || {},
+                            pageName: p.name,
+                            pageRoute: p.route,
+                            previousPath,
+                            previousPageCode,
+                            uiPrompt
+                        });
+
+                        generatedPages[routePath] = pageCode;
+
+                        console.log(`[PageAgent] Finished ${p.name}`);
+
+                    } catch (e) {
+
+                        console.error(
+                            `PageAgent failed for ${p.name} (${p.route}):`,
+                            e
+                        );
+
+                        generatedPages[routePath] =
+                            `// Failed to generate ${p.name}`;
+
+                    }
+                })
+            )
+        );
+        // STEP 8.5: Generate AI docs
+        let docs = {};
+        try {
+            docs = await docAgent({
+                prompt,
+                blueprint,
+                projectId,
+                version,
+                components: Object.keys(components || {}),
+                pages: Object.keys(generatedPages || {}),
+                routes: Object.keys(routes || {}),
+                ui: body.ui || "",
+                template: templateType,
+                model: process.env.NEXT_PUBLIC_GEMINI_MODEL || "gemini"
+            });
+        } catch (e) {
+            console.error("Doc generation failed:", e);
+            docs = {};
+        }
 
         // STEP 9: Merge code
         const code = {
             components: components || {},
             routes: routes || {},
-            pages: generatedPages
+            pages: generatedPages,
+            docs: docs || {}
         };
 
         // STEP 10: Template (only first version)
@@ -211,10 +268,11 @@ export async function POST(req: Request) {
                 projectId,
                 version,
                 prompt,
-                template: templateType,
-                ui: body.ui || null,
+                docs,
+                blueprint,
                 components: Object.keys(components || {}),
-                pages: Object.keys(generatedPages || {})
+                pages: Object.keys(generatedPages || {}),
+                routes: Object.keys(routes || {})
             },
             projectPath
         );

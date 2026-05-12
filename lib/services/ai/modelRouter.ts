@@ -2,10 +2,10 @@ import { generateWithGemini } from "./providers/gemini";
 // import { generateWithOpenAI } from "./providers/openai";
 // import { generateWithClaude } from "./providers/claude";
 
-export async function generateAI(model: string, prompt: any) {
+export async function generateAI(model: string, prompt: any, config: any = {}) {
     switch (model) {
         case "gemini":
-            return generateWithGemini(prompt);
+            return generateWithGemini(prompt, config);
 
         case "openai":
             throw new Error("OpenAI not enabled yet");
@@ -14,6 +14,6 @@ export async function generateAI(model: string, prompt: any) {
             throw new Error("Claude not enabled yet");
 
         default:
-            return generateWithGemini(prompt);
+            return generateWithGemini(prompt, config);
     }
 }

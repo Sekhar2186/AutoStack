@@ -47,6 +47,7 @@ export async function GET(
     req: Request,
     context: { params: Promise<{ id: string }> }
 ) {
+    console.log("DEBUG: GET request received for project details");
     try {
         const user = verifyToken(req);
 
@@ -71,9 +72,9 @@ export async function GET(
             );
         }
 
-        const versions = fs
-            .readdirSync(projectDir)
-            .filter(v => /^v\\d+$/.test(v))
+        const allFiles = fs.readdirSync(projectDir);
+        const versions = allFiles
+            .filter(v => /^v\d+$/.test(v))
             .sort((a, b) => Number(a.slice(1)) - Number(b.slice(1)));
 
         if (versions.length === 0) {
@@ -92,6 +93,30 @@ export async function GET(
         const { previewLink, port } =
             await startPreview(projectId, versionPath);
 
+        // Extract docs if available
+        let projectDocs = {
+            summary: "Professional AI-generated application based on your custom prompt.",
+            architecture: "Next.js 14 (App Router), Tailwind CSS, Framer Motion, Lucide Icons.",
+            features: ["Responsive Design", "AI-Generated Components", "Dynamic Routing", "Modern UI/UX"]
+        };
+
+        try {
+            const docsJsonPath = path.join(versionPath, "docs.json");
+            const readmePath = path.join(versionPath, "README.md");
+
+            if (fs.existsSync(docsJsonPath)) {
+                const docsJson = JSON.parse(fs.readFileSync(docsJsonPath, "utf-8"));
+                projectDocs = { ...projectDocs, ...docsJson };
+            } else if (fs.existsSync(readmePath)) {
+                const readme = fs.readFileSync(readmePath, "utf-8");
+                // Basic extraction logic
+                const summaryMatch = readme.match(/# (.*?)\n([\s\S]*?)\n##/);
+                if (summaryMatch) projectDocs.summary = summaryMatch[2].trim().substring(0, 300) + "...";
+            }
+        } catch (e) {
+            console.error("Failed to parse docs:", e);
+        }
+
         return Response.json({
             success: true,
             project: {
@@ -100,6 +125,7 @@ export async function GET(
                 blueprint: fileTree,
                 previewLink,
                 port,
+                docs: projectDocs,
                 zipPath: `/api/download?projectId=${projectId}&version=${latestVersion}`
             }
         });

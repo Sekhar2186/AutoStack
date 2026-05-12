@@ -17,14 +17,17 @@ function getNextPort() {
 }
 
 function isServerless() {
-    return !!(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NETLIFY);
+    return !!(
+        process.env.VERCEL ||
+        process.env.AWS_LAMBDA_FUNCTION_NAME ||
+        process.env.NETLIFY
+    );
 }
 
 export async function startPreview(
     projectId: string,
     projectPath: string
 ) {
-    // In serverless environments, we cannot spawn child processes
     if (isServerless()) {
         return {
             previewLink: "",
@@ -32,7 +35,6 @@ export async function startPreview(
         };
     }
 
-    // 🔥 If already running
     if (runningProjects[projectId]) {
         return {
             previewLink: `http://localhost:${runningProjects[projectId].port}`,
@@ -42,34 +44,42 @@ export async function startPreview(
 
     const port = getNextPort();
 
-    // Preemptively symlink node_modules from the root project to avoid slow npm install
     const rootNodeModules = path.join(process.cwd(), "node_modules");
     const projectNodeModules = path.join(projectPath, "node_modules");
 
-    if (fs.existsSync(rootNodeModules) && !fs.existsSync(projectNodeModules)) {
+    if (
+        fs.existsSync(rootNodeModules) &&
+        !fs.existsSync(projectNodeModules)
+    ) {
         try {
             fs.symlinkSync(rootNodeModules, projectNodeModules, "dir");
         } catch (e) {
-            console.error("Failed to symlink node_modules:", e);
+            console.error("Symlink failed:", e);
         }
     }
+    console.log("PREVIEW PROJECT PATH:", projectPath);
 
-    // Use npx to run next dev directly without shell: true (fixes DEP0190)
+    // IMPORTANT
     const child = spawn(
-        "npx",
-        ["next", "dev", "-p", port.toString()],
+        "npm",
+        ["run", "dev", "--", "-p", port.toString()],
         {
             cwd: projectPath,
-            stdio: "ignore"
+            shell: true,
+            detached: true,
         }
     );
+
+    child.stdout?.on('data', (data) => console.log(`[PREVIEW ${port}] ${data}`));
+    child.stderr?.on('data', (data) => console.error(`[PREVIEW ${port} ERROR] ${data}`));
+
+    child.unref();
 
     runningProjects[projectId] = {
         port,
         process: child
     };
 
-    // 🔥 Auto cleanup after 10 mins
     setTimeout(() => {
         stopPreview(projectId);
     }, 10 * 60 * 1000);

@@ -1,8 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { 
-  HelpCircle, Book, MessageSquare, ExternalLink, 
+import {
+  HelpCircle, Book, MessageSquare, ExternalLink,
   ChevronRight, Mail, GitBranch, Globe
 } from "lucide-react";
 
@@ -78,7 +78,7 @@ export default function HelpView() {
         <h3 className="text-lg font-bold text-slate-100 mb-6">Frequently Asked Questions</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {faqs.map((faq, i) => (
-            <motion.div 
+            <motion.div
               key={i}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}

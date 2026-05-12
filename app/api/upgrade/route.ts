@@ -17,10 +17,10 @@ export async function POST(req: Request) {
 
         const offer = getOffer(plan, duration);
 
-        // 🔥 APPLY PLAN
+        //  APPLY PLAN
         currentUser.plan = plan;
 
-        // 🔥 SET PLAN EXPIRY
+        //  SET PLAN EXPIRY
         currentUser.planExpiresAt = new Date(
             Date.now() + duration * 30 * 24 * 60 * 60 * 1000
         ).toISOString();

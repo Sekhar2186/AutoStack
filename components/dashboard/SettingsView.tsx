@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  User, Mail, Shield, CreditCard, Palette, LogOut, 
+import {
+  User, Mail, Shield, CreditCard, Palette, LogOut,
   ChevronRight, Camera, BarChart3, Clock, Zap, Globe
 } from "lucide-react";
 
@@ -38,20 +38,19 @@ export default function SettingsView({ credits }: SettingsViewProps) {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-left ${
-                activeTab === tab.id 
-                  ? "bg-white/5 text-slate-100 border border-white/10" 
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-left ${activeTab === tab.id
+                  ? "bg-white/5 text-slate-100 border border-white/10"
                   : "text-slate-500 hover:text-slate-300 hover:bg-white/4"
-              }`}
+                }`}
             >
               <tab.icon size={18} />
               <span className="text-sm font-medium">{tab.label}</span>
               {activeTab === tab.id && <ChevronRight size={14} className="ml-auto opacity-50" />}
             </button>
           ))}
-          
+
           <div className="mt-auto pt-4 border-t border-white/5">
-            <button 
+            <button
               onClick={() => {
                 localStorage.removeItem("token");
                 window.location.href = "/";
@@ -77,7 +76,7 @@ export default function SettingsView({ credits }: SettingsViewProps) {
               >
                 <div>
                   <h3 className="text-lg font-bold text-slate-100 mb-6">Profile Information</h3>
-                  
+
                   <div className="flex items-center gap-8 mb-8">
                     <div className="relative group cursor-pointer">
                       <div className="w-24 h-24 rounded-3xl bg-linear-to-br from-cyan-500/20 to-purple-600/20 border-2 border-dashed border-white/10 flex items-center justify-center text-slate-400 group-hover:border-cyan-500/40 transition-all overflow-hidden">
@@ -97,17 +96,17 @@ export default function SettingsView({ credits }: SettingsViewProps) {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Full Name</label>
-                      <input 
-                        type="text" 
-                        defaultValue="Sekhar Kurapati" 
+                      <input
+                        type="text"
+                        defaultValue="Sekhar Kurapati"
                         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 outline-none focus:border-cyan-500/30 transition-all"
                       />
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Email Address</label>
-                      <input 
-                        type="email" 
-                        defaultValue="sekhar@autostack.dev" 
+                      <input
+                        type="email"
+                        defaultValue="sekhar@autostack.dev"
                         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 outline-none focus:border-cyan-500/30 transition-all"
                       />
                     </div>
@@ -138,7 +137,7 @@ export default function SettingsView({ credits }: SettingsViewProps) {
                     </div>
                     <div className="text-3xl font-bold text-slate-100">{credits.used} <span className="text-lg text-slate-500 font-medium">/ {credits.total}</span></div>
                     <div className="mt-4 h-1.5 rounded-full bg-white/5 overflow-hidden">
-                      <div className="h-full bg-linear-to-r from-cyan-500 to-purple-600 rounded-full" style={{ width: `${(credits.used/credits.total)*100}%` }} />
+                      <div className="h-full bg-linear-to-r from-cyan-500 to-purple-600 rounded-full" style={{ width: `${(credits.used / credits.total) * 100}%` }} />
                     </div>
                   </div>
                   <div className="glass p-5 rounded-2xl border border-white/5">
@@ -191,11 +190,10 @@ export default function SettingsView({ credits }: SettingsViewProps) {
                       { id: "vibrant", name: "Vibrant Cyan", bg: "bg-cyan-950", active: false },
                       { id: "corporate", name: "Corporate Blue", bg: "bg-slate-900", active: false },
                     ].map((theme) => (
-                      <div 
+                      <div
                         key={theme.id}
-                        className={`group relative aspect-video rounded-xl border-2 transition-all cursor-pointer overflow-hidden ${
-                          theme.active ? "border-cyan-500 shadow-[0_0_15px_rgba(34,211,238,0.2)]" : "border-white/5 hover:border-white/20"
-                        }`}
+                        className={`group relative aspect-video rounded-xl border-2 transition-all cursor-pointer overflow-hidden ${theme.active ? "border-cyan-500 shadow-[0_0_15px_rgba(34,211,238,0.2)]" : "border-white/5 hover:border-white/20"
+                          }`}
                       >
                         <div className={`w-full h-full ${theme.bg} p-3`}>
                           <div className="w-1/2 h-1.5 rounded bg-white/10 mb-1" />

@@ -1,82 +1,79 @@
-import PDFDocument from "pdfkit/js/pdfkit.standalone";
-import fs from "fs";
-import path from "path";
+import { generateAI } from "../services/ai/modelRouter";
 
-export async function generatePDF(data: any, projectPath: string) {
-    const doc = new PDFDocument();
+export async function docAgent(data: any) {
 
-    const pdfPath = path.join(projectPath, "report.pdf");
+    const prompt = `
+You are an expert software architect and technical documentation writer.
+
+Analyze the generated AI project deeply and generate professional markdown documentation.
+
+IMPORTANT:
+- DO NOT use placeholders
+- DO NOT write generic summaries
+- Analyze the actual project idea
+- Understand the user prompt
+- Explain generated features
+- Explain generated architecture
+- Explain generated components and pages
+- Explain project workflow
+- Explain future improvements
+- Explain limitations
+- Write realistic technical documentation
+
+Generate:
+
+1. README.md
+2. PROJECT_REPORT.md
+3. ARCHITECTURE.md
+4. TODO.md
+
+The documentation should include:
+
+- Project title
+- User prompt analysis
+- Project objective
+- Features generated
+- Pages generated
+- Components generated
+- Architecture explanation
+- AI agent pipeline
+- Folder structure
+- Tech stack
+- Workflow
+- Limitations
+- Future scope
+- Version information
+- Summary of generated application
+- Estimated development time saved
+
+Return ONLY valid JSON.
+
+FORMAT:
+{
+  "README.md": "...",
+  "PROJECT_REPORT.md": "...",
+  "ARCHITECTURE.md": "...",
+  "TODO.md": "...",
+  "docs.json": "{\"summary\": \"...\", \"architecture\": \"...\", \"features\": [\"...\", \"...\"]}"
+}
+
+PROJECT DATA:
+${JSON.stringify(data, null, 2)}
+`;
+
+    const raw = await generateAI("gemini", [prompt], {
+        responseMimeType: "application/json",
+    });
+
+    const cleaned = raw
+        .replace(/```json/g, "")
+        .replace(/```/g, "")
+        .trim();
 
     try {
-        const stream = fs.createWriteStream(pdfPath);
-        doc.pipe(stream);
-
-        // TITLE
-        doc.fontSize(20).text("AutoStack Project Report", { align: "center" });
-        doc.moveDown();
-
-        // PROJECT INFO
-        doc.fontSize(12).text(`Project ID: ${data.projectId}`);
-        doc.text(`Version: ${data.version}`);
-        doc.text(`Date: ${new Date().toLocaleString()}`);
-        doc.moveDown();
-
-        // PROMPT
-        doc.fontSize(14).text("User Prompt:");
-        doc.fontSize(12).text(data.prompt);
-        doc.moveDown();
-
-        // TEMPLATE / UI
-        doc.fontSize(14).text("UI Configuration:");
-        doc.fontSize(12).text(`Template: ${data.template}`);
-        doc.text(`Custom UI: ${data.ui || "None"}`);
-        doc.moveDown();
-
-        // ARCHITECTURE
-        doc.fontSize(14).text("System Architecture:");
-        doc.fontSize(12).text(
-            "User → PlannerAgent → ComponentAgent → PageAgent → RouteAgent → CodeInjector → Runner"
-        );
-        doc.moveDown();
-
-        // COMPONENTS
-        doc.fontSize(14).text("Components:");
-        data.components?.forEach((c: string) => {
-            doc.text(`- ${c}`);
-        });
-        doc.moveDown();
-
-        // PAGES
-        doc.fontSize(14).text("Pages:");
-        data.pages?.forEach((p: string) => {
-            doc.text(`- ${p}`);
-        });
-        doc.moveDown();
-
-        // BACKEND
-        doc.fontSize(14).text("Backend:");
-        doc.fontSize(12).text(
-            "Next.js API routes are used with in-memory data storage."
-        );
-        doc.moveDown();
-
-        // VERSION INFO
-        doc.fontSize(14).text("Version Info:");
-        doc.fontSize(12).text(`Current Version: ${data.version}`);
-        doc.moveDown();
-
-        // CONCLUSION
-        doc.fontSize(14).text("Conclusion:");
-        doc.fontSize(12).text(
-            "This application was generated using AutoStack AI system with modular architecture and scalable design."
-        );
-
-        doc.end();
-        console.log("PDF generated successfully at:", pdfPath);
-    } catch (error) {
-        console.error("Error generating PDF:", error);
-        throw error;
+        return JSON.parse(cleaned);
+    } catch (e) {
+        console.error("JSON parse failed in docAgent. Raw text snippet:", raw.slice(0, 200));
+        throw e;
     }
-
-    return pdfPath;
 }

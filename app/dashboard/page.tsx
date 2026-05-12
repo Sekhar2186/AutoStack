@@ -26,18 +26,44 @@ export default function CommandCenter() {
   const [projects, setProjects] = useState<any[]>([]);
 
   useEffect(() => {
-    if (activeNav === "projects") {
-      const token = localStorage.getItem("token");
-      fetch("/api/projects", {
+    const token = localStorage.getItem("token");
+    if (token && !token.startsWith("mock_")) {
+      // Fetch User Info (Credits, Plan)
+      fetch("/api/auth/me", {
         headers: { "Authorization": `Bearer ${token}` }
       })
         .then(res => res.json())
         .then(data => {
           if (data.success) {
-            setProjects(data.projects);
+            setTotalCredits(data.user.totalCredits);
+            // creditsUsed in the UI is actually (total - remaining)
+            setCreditsUsed(data.user.totalCredits - data.user.credits);
           }
         })
-        .catch(err => console.error("Failed to fetch projects:", err));
+        .catch(err => console.error("Failed to fetch user info:", err));
+
+      if (activeNav === "projects") {
+        fetch("/api/projects", {
+          headers: { "Authorization": `Bearer ${token}` }
+        })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success && data.projects.length > 0) {
+              setProjects(data.projects);
+            } else {
+              const guestProjects = JSON.parse(localStorage.getItem("guestProjects") || "[]");
+              setProjects(guestProjects);
+            }
+          })
+          .catch(err => {
+            console.error("Failed to fetch projects:", err);
+            const guestProjects = JSON.parse(localStorage.getItem("guestProjects") || "[]");
+            setProjects(guestProjects);
+          });
+      }
+    } else {
+      const guestProjects = JSON.parse(localStorage.getItem("guestProjects") || "[]");
+      setProjects(guestProjects);
     }
   }, [activeNav]);
 
@@ -69,7 +95,26 @@ export default function CommandCenter() {
 
       if (result.success) {
         setGeneratedApp(result);
+
+        // Add to recent projects
+        if (!payload.projectId) {
+          const newProject = {
+            projectId: result.projectId,
+            appName: result.blueprint?.appName || "Untitled Project",
+            description: result.blueprint?.description || payload.prompt.substring(0, 80) + "...",
+            createdAt: new Date().toISOString()
+          };
+
+          setProjects(prev => [newProject, ...prev]);
+          const guestProjects = JSON.parse(localStorage.getItem("guestProjects") || "[]");
+          guestProjects.unshift(newProject);
+          localStorage.setItem("guestProjects", JSON.stringify(guestProjects));
+        }
+
         // handleGenerationComplete will be called by IDEPanel after its internal progress is done
+        
+        // Update local credit balance immediately
+        setCreditsUsed(prev => Math.min(prev + 1, totalCredits));
       } else {
         throw new Error(result.error || "Failed to generate project");
       }
@@ -79,12 +124,7 @@ export default function CommandCenter() {
       setIsGenerating(false);
     }
 
-    // Update credits logic
-    const newCount = generationCount + 1;
-    setGenerationCount(newCount);
-    if (newCount % 10 === 0) {
-      setCreditsUsed(prev => Math.min(prev + 1, totalCredits));
-    }
+    /* Update credits handled inside try block */
   };
 
   const handleProjectClick = async (projectId: string) => {
@@ -128,7 +168,7 @@ export default function CommandCenter() {
       {/* Background ambient effects */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-cyan-500/5 blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-purple-600/5 blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-sky-600/5 blur-[120px]" />
       </div>
 
       {/* Sidebar */}
@@ -160,14 +200,15 @@ export default function CommandCenter() {
                   exit={{ opacity: 0 }}
                   className="h-full"
                 >
-                  {!showIDE && !isGenerating ? (
+                  {/* Empty welcome state - shown when IDE is hidden */}
+                  {!showIDE && !isGenerating && (
                     <motion.div
                       key="empty-state"
                       initial={{ opacity: 0, scale: 0.98 }}
                       animate={{ opacity: 1, scale: 1 }}
                       className="h-full glass rounded-2xl border border-white/5 flex flex-col items-center justify-center text-center p-8"
                     >
-                      <div className="w-20 h-20 rounded-3xl bg-linear-to-br from-cyan-500/10 to-purple-600/10 border border-white/5 flex items-center justify-center mb-6 shadow-2xl">
+                      <div className="w-20 h-20 rounded-3xl bg-linear-to-br from-cyan-500/10 to-sky-600/10 border border-white/5 flex items-center justify-center mb-6 shadow-2xl">
                         <motion.div
                           animate={{
                             rotate: [0, 10, -10, 0],
@@ -179,7 +220,7 @@ export default function CommandCenter() {
                             ease: "easeInOut"
                           }}
                         >
-                          <div className="w-10 h-10 rounded-xl bg-linear-to-br from-cyan-500 to-purple-600 flex items-center justify-center shadow-lg">
+                          <div className="w-10 h-10 rounded-xl bg-linear-to-br from-cyan-500 to-sky-600 flex items-center justify-center shadow-lg">
                             <span className="text-white text-xl font-bold">A</span>
                           </div>
                         </motion.div>
@@ -192,7 +233,7 @@ export default function CommandCenter() {
 
                       <div className="grid grid-cols-2 gap-4 mt-12 w-full max-w-lg">
                         {[
-                          { title: "Recent Projects", desc: "Access your last 5 builds", action: () => setActiveNav("projects") },
+                          generatedApp ? { title: "Resume Current Project", desc: "Return to your active IDE session", action: () => setShowIDE(true) } : { title: "Recent Projects", desc: "Access your last 5 builds", action: () => setActiveNav("projects") },
                           { title: "New Templates", desc: "Start from high-quality presets", action: () => setActiveNav("dashboard") },
                           {
                             title: "Community", desc: "Explore what others are building", action: () => window.location.href = "/"
@@ -202,29 +243,27 @@ export default function CommandCenter() {
                           <div
                             key={idx}
                             onClick={item.action}
-                            className="glass glass-hover p-4 rounded-xl border border-white/5 text-left transition-all cursor-pointer"
+                            className={`glass glass-hover p-4 rounded-xl border border-white/5 text-left transition-all cursor-pointer ${item.title === 'Resume Current Project' ? 'bg-cyan-500/10 border-cyan-500/30' : ''}`}
                           >
-                            <h4 className="text-sm font-semibold text-slate-300 mb-1">{item.title}</h4>
+                            <h4 className={`text-sm font-semibold mb-1 ${item.title === 'Resume Current Project' ? 'text-cyan-400' : 'text-slate-300'}`}>{item.title}</h4>
                             <p className="text-[11px] text-slate-600">{item.desc}</p>
                           </div>
                         ))}
                       </div>
                     </motion.div>
-                  ) : (
-                    <motion.div
-                      key="ide-panel"
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="h-full"
-                    >
-                      <IDEPanel
-                        app={generatedApp}
-                        isGenerating={isGenerating}
-                        error={error}
-                        onComplete={handleGenerationComplete}
-                      />
-                    </motion.div>
                   )}
+
+
+                  {/* IDEPanel — always mounted when app exists so tab/preview state is never lost */}
+                  <div className={`h-full transition-opacity duration-200 ${(showIDE || isGenerating) ? "block opacity-100" : "hidden opacity-0 pointer-events-none"}`}>
+                    <IDEPanel
+                      app={generatedApp}
+                      isGenerating={isGenerating}
+                      error={error}
+                      onComplete={handleGenerationComplete}
+                      onClose={() => setShowIDE(false)}
+                    />
+                  </div>
                 </motion.div>
               )}
 
@@ -243,7 +282,7 @@ export default function CommandCenter() {
                     </div>
                     <button
                       onClick={handleNewProject}
-                      className="shimmer-btn px-4 py-2 rounded-xl bg-linear-to-r from-cyan-500 to-purple-600 text-sm font-semibold text-white"
+                      className="shimmer-btn px-4 py-2 rounded-xl bg-linear-to-r from-cyan-500 to-sky-600 text-sm font-semibold text-white"
                     >
                       New Project
                     </button>

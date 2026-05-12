@@ -1,109 +1,124 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Check, Loader2, Zap } from "lucide-react";
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { Check, Loader2 } from "lucide-react";
 
-const stages = [
-  { id: "planner", label: "plannerAgent", detail: "Orchestrating project structure from prompt" },
-  { id: "component", label: "componentAgent", detail: "Generating reusable UI components and styles" },
-  { id: "page", label: "pageAgent", detail: "Assembling pages and defining layout hierarchy" },
-  { id: "coder", label: "coderAgent", detail: "Writing core business logic and API handlers" },
-  { id: "route", label: "routeAgent", detail: "Connecting agents and final code injection" },
-  { id: "sandbox", label: "sandbox", detail: "Launching live preview environment" },
-];
-
-interface Props {
+interface GenerationProgressProps {
   isGenerating: boolean;
   onComplete: () => void;
 }
 
-export default function GenerationProgress({ isGenerating, onComplete }: Props) {
-  const [currentStage, setCurrentStage] = useState(-1);
-  const [stageProgress, setStageProgress] = useState(0);
-  const [done, setDone] = useState(false);
+const steps = [
+  { label: "Analyzing Prompt", duration: 1200 },
+  { label: "Planning Architecture", duration: 1800 },
+  { label: "Generating Components", duration: 2500 },
+  { label: "Generating Pages", duration: 3000 },
+  { label: "Generating APIs", duration: 2000 },
+  { label: "Generating Documentation", duration: 1500 },
+  { label: "Injecting Code", duration: 1000 },
+  { label: "Starting Preview Server", duration: 2000 },
+];
 
-  const handleComplete = useCallback(onComplete, [onComplete]);
-
-  useEffect(() => {
-    if (!isGenerating) { setCurrentStage(-1); setStageProgress(0); setDone(false); return; }
-    setDone(false); setCurrentStage(0); setStageProgress(0);
-  }, [isGenerating]);
-
-  useEffect(() => {
-    if (currentStage < 0 || done) return;
-    const t = setInterval(() => setStageProgress((p) => Math.min(p + 2.5 + Math.random() * 2, 100)), 80);
-    return () => clearInterval(t);
-  }, [currentStage, done]);
+export default function GenerationProgress({ isGenerating, onComplete }: GenerationProgressProps) {
+  const [currentStep, setCurrentStep] = useState(0);
+  const [completed, setCompleted] = useState(false);
 
   useEffect(() => {
-    if (stageProgress < 100 || currentStage < 0) return;
-    const next = currentStage + 1;
-    if (next >= stages.length) { setDone(true); setTimeout(handleComplete, 800); return; }
-    const t = setTimeout(() => { setCurrentStage(next); setStageProgress(0); }, 350);
-    return () => clearTimeout(t);
-  }, [stageProgress, currentStage, handleComplete]);
+    if (!isGenerating) return;
 
-  const total = done ? 100 : currentStage < 0 ? 0 : Math.round(((currentStage + stageProgress / 100) / stages.length) * 100);
+    let stepIndex = 0;
+    const totalSteps = steps.length;
 
-  if (!isGenerating) return null;
+    const advance = () => {
+      if (stepIndex < totalSteps) {
+        setCurrentStep(stepIndex);
+        stepIndex++;
+        setTimeout(advance, steps[stepIndex - 1]?.duration || 1500);
+      } else {
+        setCompleted(true);
+        setTimeout(() => {
+          onComplete();
+        }, 800);
+      }
+    };
+
+    advance();
+  }, [isGenerating, onComplete]);
+
+  const progress = Math.min(((currentStep + 1) / steps.length) * 100, 100);
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        className="w-full h-full flex items-center justify-center p-4 overflow-y-auto custom-scrollbar"
-      >
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
-          className="glass rounded-2xl border border-white/8 p-8 w-full max-w-md mx-4 shadow-[0_40px_120px_rgba(0,0,0,0.7)]"
-        >
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-xl bg-linear-to-br from-cyan-500 to-purple-600 flex items-center justify-center shadow-[0_0_20px_rgba(34,211,238,0.4)]">
-              {done ? <Check size={18} className="text-white" /> : <Zap size={18} className="text-white fill-white" />}
-            </div>
-            <div>
-              <h3 className="font-bold text-slate-100 text-sm">{done ? "Generation Complete!" : "AutoStack AI is building your app"}</h3>
-              <p className="text-[11px] text-slate-500 mt-0.5">{done ? "Your app is ready to preview" : `Stage ${Math.max(currentStage + 1, 1)} of ${stages.length}`}</p>
-            </div>
-            <span className="ml-auto text-xl font-extrabold gradient-text">{total}%</span>
-          </div>
+    <div className="h-full w-full bg-[#020617]/95 backdrop-blur-xl flex items-center justify-center p-6">
+      <div className="w-full max-w-2xl rounded-3xl border border-white/10 bg-white/5 p-8 shadow-2xl">
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-white">
+            {completed ? "Generation Complete!" : "AutoStack AI Generation"}
+          </h1>
+          <p className="text-slate-400 mt-2 text-sm">
+            {completed
+              ? "Your application is ready to preview."
+              : "Multi-Agent System Building Your Application..."}
+          </p>
+        </div>
 
-          <div className="h-2 rounded-full bg-white/6 overflow-hidden mb-6">
-            <motion.div className="h-full rounded-full bg-linear-to-r from-cyan-500 to-purple-600" animate={{ width: `${total}%` }} transition={{ duration: 0.3 }} />
-          </div>
+        <div className="space-y-3">
+          {steps.map((step, index) => {
+            const isActive = index === currentStep && !completed;
+            const isDone = index < currentStep || completed;
 
-          <div className="flex flex-col gap-3">
-            {stages.map((stage, idx) => {
-              const complete = done || idx < currentStage;
-              const active = !done && idx === currentStage;
-              return (
-                <div key={stage.id} className={`flex items-start gap-3 transition-opacity ${!done && idx > currentStage ? "opacity-35" : ""}`}>
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5 border ${complete ? "bg-emerald-500/15 border-emerald-500/40" : active ? "bg-cyan-500/15 border-cyan-500/40" : "bg-white/3 border-white/7"}`}>
-                    {complete ? <Check size={11} className="text-emerald-400" /> : active ? <Loader2 size={11} className="text-cyan-400 animate-spin" /> : <span className="w-1.5 h-1.5 rounded-full bg-white/15" />}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <span className={`text-[12px] font-semibold ${complete ? "text-emerald-400" : active ? "text-cyan-300" : "text-slate-600"}`}>{stage.label}</span>
-                      {active && <span className="text-[10px] text-cyan-500 terminal-font">{Math.round(stageProgress)}%</span>}
-                    </div>
-                    {active && (
-                      <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}>
-                        <p className="text-[10px] text-slate-600 mt-0.5">{stage.detail}</p>
-                        <div className="mt-1.5 h-1 rounded-full bg-white/5 overflow-hidden">
-                          <motion.div className="h-full rounded-full bg-linear-to-r from-cyan-500 to-purple-600" animate={{ width: `${stageProgress}%` }} transition={{ duration: 0.15 }} />
-                        </div>
-                      </motion.div>
-                    )}
-                  </div>
+            return (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.08 }}
+                className={`flex items-center gap-4 rounded-2xl border p-3.5 transition-all duration-300 ${isDone
+                    ? "border-cyan-500/20 bg-cyan-500/5"
+                    : isActive
+                      ? "border-cyan-500/30 bg-cyan-500/10"
+                      : "border-white/5 bg-white/3"
+                  }`}
+              >
+                <div className="w-6 h-6 flex items-center justify-center shrink-0">
+                  {isDone ? (
+                    <Check size={14} className="text-cyan-400" />
+                  ) : isActive ? (
+                    <Loader2 size={14} className="text-cyan-400 animate-spin" />
+                  ) : (
+                    <div className="w-2 h-2 rounded-full bg-slate-700" />
+                  )}
                 </div>
-              );
-            })}
-          </div>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
+                <span
+                  className={`text-sm font-medium transition-colors ${isDone
+                      ? "text-cyan-400"
+                      : isActive
+                        ? "text-slate-200"
+                        : "text-slate-600"
+                    }`}
+                >
+                  {step.label}
+                </span>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        {/* Progress bar */}
+        <div className="mt-8 overflow-hidden rounded-full bg-white/5 h-2">
+          <motion.div
+            initial={{ width: "0%" }}
+            animate={{ width: `${completed ? 100 : progress}%` }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="h-full bg-linear-to-r from-cyan-500 via-sky-500 to-purple-500 rounded-full"
+          />
+        </div>
+
+        <div className="mt-3 flex justify-between text-xs text-slate-600">
+          <span>Step {Math.min(currentStep + 1, steps.length)} of {steps.length}</span>
+          <span>{Math.round(completed ? 100 : progress)}%</span>
+        </div>
+      </div>
+    </div>
   );
 }

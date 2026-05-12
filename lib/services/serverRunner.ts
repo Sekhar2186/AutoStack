@@ -1,4 +1,4 @@
-import { spawn } from "child_process";
+/*import { spawn } from "child_process";
 import path from "path";
 
 export function runProject(projectPath: string) {
@@ -12,4 +12,4 @@ export function runProject(projectPath: string) {
     });
 
     return `http://localhost:${port}`;
-}
+}*/

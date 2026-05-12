@@ -213,7 +213,11 @@ export default function Pricing() {
 
                 {/* CTA */}
                 <Link
-                  href={isLoggedIn ? "/dashboard" : "/auth?mode=signup"}
+                  href={
+                    plan.id === "starter"
+                      ? (isLoggedIn ? "/dashboard" : "/auth?mode=signup")
+                      : `/checkout?plan=${plan.id}&billing=${yearly ? "yearly" : "monthly"}`
+                  }
                   id={`plan-cta-${plan.id}`}
                   className={`shimmer-btn w-full py-3 rounded-xl text-sm font-semibold text-center mb-7 hover:scale-[1.02] active:scale-100 transition-transform duration-200 ${plan.ctaStyle}`}
                 >

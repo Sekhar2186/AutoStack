@@ -76,4 +76,18 @@ export async function codeInjector(projectPath: string, generatedCode: any) {
             fs.writeFileSync(pageFilePath, pageContent as string);
         }
     }
+    if (generatedCode.docs) {
+
+        for (const [fileName, content] of Object.entries(generatedCode.docs)) {
+
+            const filePath = path.join(projectPath, fileName);
+
+            fs.writeFileSync(
+                filePath,
+                content as string,
+                "utf-8"
+            );
+        }
+    }
 }
+

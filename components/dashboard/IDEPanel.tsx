@@ -7,7 +7,7 @@ import {
   Monitor, Code2, FolderTree, Terminal, GitBranch,
   RefreshCw, Globe, Smartphone, Tablet, ChevronRight,
   ChevronDown, File, Copy, Download, MessageSquare, Send,
-  Archive, RotateCcw, GitCompare, AlertCircle, Loader2, Book
+  Archive, RotateCcw, GitCompare, AlertCircle, Loader2, Book, X
 } from "lucide-react";
 
 const TABS: { id: TabId; icon: React.ElementType; label: string }[] = [
@@ -31,24 +31,56 @@ const viewports = [
 function PreviewTab({ app, isGenerating, onComplete }: { app: any, isGenerating: boolean, onComplete?: () => void }) {
   const [vp, setVp] = useState("desktop");
   const [refreshKey, setRefreshKey] = useState(0);
+  const [customUrl, setCustomUrl] = useState<string | null>(null);
+  const [isEditingUrl, setIsEditingUrl] = useState(false);
   const width = viewports.find((v) => v.id === vp)?.w ?? "100%";
 
   return (
     <div className="flex flex-col h-full">
       {/* Browser bar */}
-      <div className="flex items-center gap-2 px-3 py-2 border-b border-white/6 bg-white/2 shrink-0">
-        <div className="flex gap-1.5">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-white/6 bg-white/2 shrink-0">
+        <div className="flex gap-1.5 items-center">
           <span className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
           <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
-          <span className="text-[11px] text-slate-500 flex-1 ml-2 font-mono">localhost:3000</span>
+
+          {isEditingUrl ? (
+            <input
+              autoFocus
+              className="ml-2 bg-white/5 border border-cyan-500/30 rounded px-2 py-0.5 text-[11px] text-cyan-400 font-mono focus:outline-none w-48"
+              defaultValue={customUrl || app?.previewLink || "http://localhost:3001"}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  setCustomUrl((e.target as HTMLInputElement).value);
+                  setIsEditingUrl(false);
+                }
+                if (e.key === 'Escape') setIsEditingUrl(false);
+              }}
+              onBlur={(e) => {
+                setCustomUrl(e.target.value);
+                setIsEditingUrl(false);
+              }}
+            />
+          ) : (
+            <div className="flex items-center group">
+              <span className="text-[11px] text-slate-500 flex-1 ml-2 font-mono truncate max-w-[200px]">
+                {(customUrl || app?.previewLink || 'http://localhost:3001').replace('http://', '')}
+              </span>
+              <button
+                onClick={() => setIsEditingUrl(true)}
+                className="opacity-0 group-hover:opacity-100 p-1 ml-1 text-slate-600 hover:text-cyan-400 transition-all"
+              >
+                <Code2 size={10} />
+              </button>
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-1">
           <button
             onClick={() => setRefreshKey(k => k + 1)}
-            className="p-1.5 mr-2 rounded-lg text-slate-600 hover:text-slate-300 hover:bg-white/5 transition-all"
+            className="p-1.5 mr-2 rounded-lg text-slate-600 hover:text-cyan-400 hover:bg-cyan-500/10 transition-all"
             title="Reload Preview"
           >
-            <RefreshCw size={13} />
+            <RotateCcw size={13} className={refreshKey > 0 ? "animate-spin-once" : ""} />
           </button>
           {viewports.map(({ id, icon: Icon }) => (
             <button
@@ -73,16 +105,16 @@ function PreviewTab({ app, isGenerating, onComplete }: { app: any, isGenerating:
           ) : app?.previewLink ? (
             <iframe
               key={refreshKey}
-              src={app.previewLink}
+              src={customUrl || app.previewLink}
               className="w-full h-full border-none bg-white"
               title="Preview"
             />
           ) : (
             <div className="h-full flex items-center justify-center text-center p-12">
-               <div className="max-w-xs">
+              <div className="max-w-xs">
                 <Monitor size={32} className="text-slate-700 mx-auto mb-4" />
                 <p className="text-sm text-slate-500">Preview link will appear here after generation complete.</p>
-               </div>
+              </div>
             </div>
           )}
         </div>
@@ -126,7 +158,10 @@ function CodeTab({ app, activeFile }: { app: any, activeFile: string }) {
     const fetchFile = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/project-files?projectId=${app.projectId}&version=${app.version || "v1"}&file=${encodeURIComponent(activeFile)}`);
+        const token = localStorage.getItem("token");
+        const res = await fetch(`/api/project-files?projectId=${app.projectId}&version=${app.version || "v1"}&file=${encodeURIComponent(activeFile)}`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
         const data = await res.json();
         setContent(data.content || "// File not found");
       } catch (err) {
@@ -219,22 +254,23 @@ function FileRow({ node, activeFile, onSelect }: { node: FileNode; activeFile: s
 
 function FilesTab({ app, onSelect }: { app: any, onSelect: (f: string) => void }) {
   const [active, setActive] = useState("app/page.tsx");
-  
+  const [explorerKey, setExplorerKey] = useState(0);
+
   const generateTree = (blueprint: any) => {
     if (!blueprint) return [];
-    
+
     const root: any[] = [];
 
     const addPathToTree = (fullPath: string, isDir: boolean) => {
       const parts = fullPath.split("/");
       let currentLevel = root;
-      
+
       parts.forEach((part, index) => {
         const isLast = index === parts.length - 1;
         const depth = index;
-        
+
         let existing = currentLevel.find(item => item.name === part && item.isDir === (!isLast || isDir));
-        
+
         if (!existing) {
           const newNode: any = {
             name: part,
@@ -247,7 +283,7 @@ function FilesTab({ app, onSelect }: { app: any, onSelect: (f: string) => void }
           currentLevel.push(newNode);
           existing = newNode;
         }
-        
+
         if (existing.isDir) {
           currentLevel = existing.children;
         }
@@ -266,7 +302,7 @@ function FilesTab({ app, onSelect }: { app: any, onSelect: (f: string) => void }
     (blueprint.frontendComponents || []).forEach((c: string) => {
       addPathToTree(`components/${c}.tsx`, false);
     });
-    
+
     // Add API routes
     (blueprint.backendRoutes || []).forEach((r: string) => {
       addPathToTree(`app/api/${r}/route.ts`, false);
@@ -275,7 +311,9 @@ function FilesTab({ app, onSelect }: { app: any, onSelect: (f: string) => void }
     return root;
   };
 
-  const tree = app?.blueprint ? generateTree(app.blueprint) : [];
+  const tree = Array.isArray(app?.blueprint) 
+    ? app.blueprint 
+    : (app?.blueprint ? generateTree(app.blueprint) : []);
 
   const handleSelect = (f: string) => {
     setActive(f);
@@ -284,10 +322,26 @@ function FilesTab({ app, onSelect }: { app: any, onSelect: (f: string) => void }
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-3 py-2 border-b border-white/6 bg-white/2 shrink-0">
-        <span className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">Explorer</span>
+      <div className="px-3 py-2 border-b border-white/6 bg-white/2 shrink-0 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Explorer</span>
+          {active && (
+            <div className="flex items-center text-[9px] text-slate-600 font-mono">
+              <span className="mx-1">/</span>
+              <span className="truncate max-w-[120px]">{active.split('/').slice(0, -1).join('/')}</span>
+            </div>
+          )}
+        </div>
+        <button
+          onClick={() => setExplorerKey(k => k + 1)}
+          className="p-1 hover:bg-white/5 rounded text-slate-500 hover:text-cyan-400 transition-all flex items-center gap-1"
+          title="Collapse All / Back to Root"
+        >
+          <span className="text-[9px] font-bold">RESET</span>
+          <RotateCcw size={10} />
+        </button>
       </div>
-      <div className="flex-1 overflow-y-auto p-2 flex flex-col gap-0.5">
+      <div key={explorerKey} className="flex-1 overflow-y-auto p-2 flex flex-col gap-0.5 custom-scrollbar">
         {tree.length > 0 ? (
           tree.map((node: any) => <FileRow key={node.name} node={node} activeFile={active} onSelect={handleSelect} />)
         ) : (
@@ -446,7 +500,7 @@ function DocsTab({ app }: { app: any }) {
 }
 
 // ─── Main IDEPanel ───────────────────────────────────────────────────────────
-export default function IDEPanel({ app, isGenerating, error, onComplete }: { app: any, isGenerating: boolean, error?: string | null, onComplete: () => void }) {
+export default function IDEPanel({ app, isGenerating, error, onComplete, onClose }: { app: any, isGenerating: boolean, error?: string | null, onComplete: () => void, onClose?: () => void }) {
   const [activeTab, setActiveTab] = useState<TabId>("preview");
   const [activeFile, setActiveFile] = useState("app/page.tsx");
   const [currentApp, setCurrentApp] = useState(app);
@@ -462,6 +516,36 @@ export default function IDEPanel({ app, isGenerating, error, onComplete }: { app
   const handleVersionSwitch = (v: string) => {
     // In a real app, you'd fetch the new version data here
     setCurrentApp({ ...currentApp, version: v });
+  };
+
+  const handleDownloadZip = async () => {
+    if (!currentApp?.projectId) return;
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`/api/download?projectId=${currentApp.projectId}&version=${currentApp.version || "v1"}`, {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("API Error:", errorText);
+        alert(`Download failed: ${errorText}`);
+        return;
+      }
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${currentApp.projectId}_${currentApp.version || "v1"}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Export failed:", err);
+      alert("Failed to export project. Please ensure generation is complete.");
+    }
   };
 
   const tabContent: Record<TabId, React.ReactNode> = {
@@ -522,10 +606,15 @@ export default function IDEPanel({ app, isGenerating, error, onComplete }: { app
 
         <div className="flex items-center gap-2">
           {app?.projectId && (
-            <a href={`/api/download?projectId=${app.projectId}&version=${app.version || "v1"}`} download className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-[11px] font-bold text-slate-400 hover:text-white hover:bg-white/8 transition-all">
+            <button onClick={handleDownloadZip} className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-[11px] font-bold text-slate-400 hover:text-white hover:bg-white/8 transition-all">
               <Archive size={14} />
               Export ZIP
-            </a>
+            </button>
+          )}
+          {onClose && (
+            <button onClick={onClose} className="p-1.5 rounded-lg text-slate-500 hover:bg-white/10 hover:text-slate-300 transition-colors">
+              <X size={16} />
+            </button>
           )}
         </div>
       </div>

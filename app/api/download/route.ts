@@ -2,14 +2,10 @@ import { verifyToken } from "@/lib/middleware/auth";
 import fs from "fs";
 import path from "path";
 import { getGeneratedBasePath } from "@/lib/utils/pathUtils";
+import { zipProject } from "@/lib/services/zipProject";
 
 export async function GET(req: Request) {
     try {
-        const user = verifyToken(req);
-        if (!user) {
-            return new Response("Unauthorized", { status: 401 });
-        }
-
         const url = new URL(req.url);
         const projectId = url.searchParams.get("projectId");
         const version = url.searchParams.get("version") || "v1";
@@ -18,10 +14,15 @@ export async function GET(req: Request) {
             return new Response("Missing projectId", { status: 400 });
         }
 
-        const zipPath = path.join(getGeneratedBasePath(), projectId, `${version}.zip`);
+        const projectDir = path.join(getGeneratedBasePath(), projectId, version);
+        const zipPath = projectDir + ".zip";
 
         if (!fs.existsSync(zipPath)) {
-            return new Response("ZIP file not found", { status: 404 });
+            if (!fs.existsSync(projectDir)) {
+                return new Response("Project version directory not found", { status: 404 });
+            }
+            // Generate zip on the fly if it doesn't exist
+            await zipProject(projectDir);
         }
 
         const fileBuffer = fs.readFileSync(zipPath);
