@@ -12,6 +12,7 @@ RULES:
 - Use Tailwind CSS.
 - Create reusable components.
 - ALWAYS use 'export default function ComponentName' for the main component.
+- CRITICAL INTEGRITY: You MUST generate EVERY component listed in the blueprint's frontendComponents array. Skipping even one component will cause the entire application to crash. Do not omit any components due to length or complexity.
 - Add '"use client";' at the very top of the file if the component uses hooks (useState, useEffect, etc.) or interactive event handlers (onClick, onChange, etc.).
 - STRICT PROP RULES:
   - Prop interfaces MUST use optional '?' for all interactive/callback props (e.g., onClick?: (id: string) => void).
@@ -87,6 +88,7 @@ TYPESCRIPT TYPE SAFETY — CRITICAL:
 - When a function parameter is 'string', never pass a 'number' and vice versa.
 
 PAGE COMPLETENESS — MANDATORY:
+- NO PLACEHOLDERS: Do not use "To be implemented", "Coming Soon", or empty shells.
 - The following pages MUST ALWAYS be fully implemented if they appear in the blueprint:
   /login, /signup, /profile, /cart, /checkout, /orders, /dashboard, /settings, /forgot-password.
 - NEVER generate these as stubs or placeholders — write full, production-quality UI with forms, state, and navigation.

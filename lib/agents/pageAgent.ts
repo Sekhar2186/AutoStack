@@ -127,6 +127,7 @@ SVG RULES — CRITICAL — BREAKING BUG IF VIOLATED:
 - Use emoji (🛍️ 📊 ✅ 👥 📁 🔔) or lucide-react icons instead of inline SVG paths.
 - The AI has a known bug of hallucinating infinitely long corrupted SVG path strings.
 - A corrupt SVG path causes: "JSX element has no corresponding closing tag" compile error.
+- NO PLACEHOLDERS: Every SVG must be either a Lucide icon or a simple, short path.
 
 LAYOUT RULES — CRITICAL:
 - NEVER modify layout.tsx to add colored/gradient backgrounds.
@@ -175,11 +176,12 @@ ROUTING & NAVIGATION — CRITICAL:
 - Use router.push('/') or router.push('/dashboard') after login — NEVER redirect to a non-existent page.
 
 COMPLETE PAGE REQUIREMENT — MANDATORY:
-- Every page linked from navigation MUST be fully implemented (not a stub or placeholder).
-- Minimum 60 lines of real UI code per page. No empty shells.
-- The following pages MUST ALWAYS be fully implemented when they appear in the blueprint:
-  /login, /signup, /profile, /cart, /checkout, /orders, /dashboard, /settings, /forgot-password.
-- Each of these pages must have a working form or real UI with state, event handlers, and router.push() on submit.
+- EVERY PAGE LINKED FROM NAVIGATION MUST BE FULLY IMPLEMENTED. 
+- PLACEHOLDERS ARE BANNED: Do not use "Coming Soon", "To be implemented", or empty shells.
+- If a feature is complex, build a simplified functional version with real state and Tailwind UI.
+- Minimum 80 lines of real UI code per page. 
+- The following pages MUST ALWAYS be fully functional: /login, /signup, /profile, /cart, /dashboard, /settings.
+- Each page must have working event handlers (onClick, onSubmit) and state (useState).
 
 COMPONENT-TO-PAGE LINKING — CRITICAL:
 - You will receive a list of generated components (e.g., RestaurantCard, AuthForm, ProductCard).

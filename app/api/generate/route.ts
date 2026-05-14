@@ -153,6 +153,10 @@ export async function POST(req: Request) {
 
         await Promise.all(parallelTasks);
 
+        if (Object.keys(components || {}).length === 0 && (blueprint.frontendComponents || []).length > 0) {
+            console.error("CRITICAL: ComponentAgent returned 0 components but blueprint requested many. This will cause build failures.");
+        }
+
         // STEP 8: Pages (sequential)
         const frontendPages =
             blueprint.frontendPages || [{ name: "HomePage", route: "/" }];
@@ -242,8 +246,19 @@ export async function POST(req: Request) {
                 model: process.env.NEXT_PUBLIC_GEMINI_MODEL || "gemini"
             });
         } catch (e) {
-            console.error("Doc generation failed:", e);
-            docs = {};
+            console.error("Doc generation failed, using fallback:", e);
+            // Fallback documentation if AI fails
+            docs = {
+                "README.md": `# ${blueprint.appName || "Generated Project"}\n\n${blueprint.description || "An AI-generated Next.js application."}\n\n## Features\n${(blueprint.features || []).map((f: string) => `- ${f}`).join("\n")}\n\n## Tech Stack\n- Next.js 14\n- Tailwind CSS\n- Lucide Icons`,
+                "PROJECT_REPORT.md": `# Project Report\n\nThis project was generated using AutoStack.\n\n### Blueprint\n- App Name: ${blueprint.appName}\n- Components: ${(blueprint.frontendComponents || []).join(", ")}\n- Pages: ${(blueprint.frontendPages || []).map((p: any) => p.name).join(", ")}`,
+                "ARCHITECTURE.md": `# Architecture Overview\n\n- **Frontend**: Next.js 14 (App Router)\n- **Styling**: Tailwind CSS\n- **Components**: Atomic Design Pattern\n- **State**: React Context / Hooks`,
+                "TODO.md": `# Future Tasks\n\n- [ ] Implement database integration\n- [ ] Add advanced user analytics\n- [ ] Setup CI/CD pipeline\n- [ ] Optimize performance`,
+                "docs.json": JSON.stringify({
+                    summary: blueprint.description || "AI-generated application.",
+                    architecture: "Next.js 14 + Tailwind CSS",
+                    features: blueprint.features || []
+                })
+            };
         }
 
         // STEP 9: Merge code

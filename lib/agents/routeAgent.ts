@@ -15,6 +15,7 @@ RULES:
 - DELAY SIMULATION: Add a small artificial delay (e.g., await new Promise(res => setTimeout(res, 1000))) to simulate network latency for better UX testing.
 - No MongoDB unless required
 - No todo logic unless asked
+- NO PLACEHOLDERS: Every route MUST return a valid JSON response with realistic mock data. Never return "Coming Soon" or empty bodies.
 
 STRICT JSON RULES:
 - Escape all quotes using \"

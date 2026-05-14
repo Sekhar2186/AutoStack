@@ -1,4 +1,4 @@
-import { spawn } from "child_process";
+import { spawn, execSync } from "child_process";
 import path from "path";
 import fs from "fs-extra";
 
@@ -10,96 +10,171 @@ const runningProjects: Record<
     }
 > = {};
 
-let currentPort = 4000;
+let isExecuting = false;
 
-function getNextPort() {
-    return currentPort++;
+function killProcessOnPort(port: number) {
+    console.log(`Checking for processes on port ${port}...`);
+    try {
+        const pids = execSync(`lsof -t -i:${port}`).toString().trim().split('\n').filter(Boolean);
+        if (pids.length > 0) {
+            console.log(`Found processes on port ${port}: ${pids.join(', ')}. Killing them...`);
+            for (const pid of pids) {
+                try {
+                    execSync(`kill -9 ${pid}`);
+                } catch (e) {
+                    console.error(`Failed to kill process ${pid}:`, e);
+                }
+            }
+            // Give the OS some time to release the port
+            execSync('sleep 2');
+        } else {
+            console.log(`No processes found on port ${port}.`);
+        }
+    } catch (e) {
+        // No process or lsof failed, ignore
+    }
 }
 
-function isServerless() {
-    return !!(
-        process.env.VERCEL ||
-        process.env.AWS_LAMBDA_FUNCTION_NAME ||
-        process.env.NETLIFY
-    );
+async function waitForPortToBeFree(port: number, timeoutMs: number = 5000): Promise<boolean> {
+    const start = Date.now();
+    while (Date.now() - start < timeoutMs) {
+        try {
+            execSync(`lsof -t -i:${port}`);
+            // If lsof succeeds, it found something, so wait
+            await new Promise(resolve => setTimeout(resolve, 500));
+        } catch (e) {
+            // lsof failed, port is likely free
+            return true;
+        }
+    }
+    return false;
 }
 
 export async function startPreview(
     projectId: string,
     projectPath: string
 ) {
-    if (isServerless()) {
-        return {
-            previewLink: "",
-            port: 0
-        };
+    // Basic concurrency control
+    while (isExecuting) {
+        await new Promise(resolve => setTimeout(resolve, 100));
     }
+    isExecuting = true;
 
-    if (runningProjects[projectId]) {
-        return {
-            previewLink: `http://localhost:${runningProjects[projectId].port}`,
-            port: runningProjects[projectId].port
-        };
-    }
-
-    const port = getNextPort();
-
-    const rootNodeModules = path.join(process.cwd(), "node_modules");
-    const projectNodeModules = path.join(projectPath, "node_modules");
-
-    if (
-        fs.existsSync(rootNodeModules) &&
-        !fs.existsSync(projectNodeModules)
-    ) {
-        try {
-            fs.symlinkSync(rootNodeModules, projectNodeModules, "dir");
-        } catch (e) {
-            console.error("Symlink failed:", e);
+    try {
+        if (isServerless()) {
+            return { previewLink: "", port: 0 };
         }
-    }
-    console.log("PREVIEW PROJECT PATH:", projectPath);
 
-    // IMPORTANT
-    const child = spawn(
-        "npm",
-        ["run", "dev", "--", "-p", port.toString()],
-        {
-            cwd: projectPath,
-            shell: true,
-            detached: true,
+        const port = 4000;
+
+        // Stop ALL tracked running projects
+        const currentProjectIds = Object.keys(runningProjects);
+        for (const id of currentProjectIds) {
+            stopPreview(id);
         }
-    );
+        
+        // Forcefully kill ANYTHING on the port and wait for it to clear
+        killProcessOnPort(port);
+        const isFree = await waitForPortToBeFree(port);
+        if (!isFree) {
+            console.warn(`Port ${port} still seems occupied after killing. Proceeding anyway...`);
+        }
 
-    child.stdout?.on('data', (data) => console.log(`[PREVIEW ${port}] ${data}`));
-    child.stderr?.on('data', (data) => console.error(`[PREVIEW ${port} ERROR] ${data}`));
+        const projectNodeModules = path.join(projectPath, "node_modules");
+        const rootNodeModules = path.join(process.cwd(), "node_modules");
 
-    child.unref();
+        // Ensure projectNodeModules is a valid symlink to rootNodeModules
+        if (fs.existsSync(rootNodeModules)) {
+            try {
+                let exists = false;
+                try {
+                    fs.lstatSync(projectNodeModules);
+                    exists = true;
+                } catch (e) {
+                    // Path does not exist
+                }
 
-    runningProjects[projectId] = {
-        port,
-        process: child
-    };
+                if (exists) {
+                    // Check if it's already correct
+                    try {
+                        const stats = fs.lstatSync(projectNodeModules);
+                        if (stats.isSymbolicLink()) {
+                            const existingLink = fs.readlinkSync(projectNodeModules);
+                            if (existingLink !== rootNodeModules) {
+                                fs.removeSync(projectNodeModules);
+                            }
+                        } else {
+                            // It's a real directory or file, remove it so we can symlink
+                            fs.removeSync(projectNodeModules);
+                        }
+                    } catch (e) {
+                        fs.removeSync(projectNodeModules);
+                    }
+                }
 
-    setTimeout(() => {
-        stopPreview(projectId);
-    }, 10 * 60 * 1000);
+                if (!fs.existsSync(projectNodeModules)) {
+                    fs.ensureDirSync(path.dirname(projectNodeModules));
+                    fs.symlinkSync(rootNodeModules, projectNodeModules, "dir");
+                    console.log(`Created symlink for node_modules in ${projectId}`);
+                }
+            } catch (e) {
+                console.error("Symlink management failed:", e);
+            }
+        }
 
-    return {
-        previewLink: `http://localhost:${port}`,
-        port
-    };
+        console.log(`Starting fresh preview for ${projectId} on port ${port}`);
+
+        const child = spawn(
+            "npm",
+            ["run", "dev", "--", "-p", port.toString()],
+            {
+                cwd: projectPath,
+                shell: true,
+                detached: true,
+                stdio: 'ignore'
+            }
+        );
+
+        child.unref();
+
+        runningProjects[projectId] = {
+            port,
+            process: child
+        };
+
+        // Auto-stop after 15 mins
+        setTimeout(() => {
+            stopPreview(projectId);
+        }, 15 * 60 * 1000);
+
+        return {
+            previewLink: `http://localhost:${port}`,
+            port
+        };
+    } finally {
+        isExecuting = false;
+    }
 }
 
 export function stopPreview(projectId: string) {
     const running = runningProjects[projectId];
-
     if (!running) return;
-
-    running.process.kill();
+    
+    console.log(`Stopping preview for project: ${projectId}`);
+    
+    try {
+        if (running.process && running.process.pid) {
+            // Kill the process group
+            process.kill(-running.process.pid, 'SIGKILL'); 
+        }
+    } catch (e) {
+        console.log(`Process kill failed for ${projectId}, fallback to port kill.`);
+        killProcessOnPort(running.port);
+    }
 
     delete runningProjects[projectId];
 }
 
-export function getRunningProjects() {
-    return runningProjects;
+function isServerless() {
+    return !!(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NETLIFY);
 }

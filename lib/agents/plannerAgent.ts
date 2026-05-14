@@ -162,10 +162,13 @@ NAVIGATION RULE:
   - menus
   - or routing actions.
 
-APPLICATION FLOW RULE:
+APPLICATION FLOW RULE — CRITICAL:
 - Planner must think like a real production SaaS architecture.
+- NO PLACEHOLDERS: Do not plan for "Coming Soon" pages. Every page listed MUST be fully functional.
 - Generate complete navigation flow, not isolated pages.
 - Every app must feel fully connected and navigable.
+- If a sidebar link is planned, the destination page MUST be in the frontendPages list.
+- In interactionNotes, add: "PLACEHOLDERS ARE FORBIDDEN. All generated code must be functional, featuring real UI sections and state management."
   `;
 
   let promptParts = Instruction + "\n\nUser request: " + userQuery;

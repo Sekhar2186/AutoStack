@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Zap, Play, ArrowRight, Sparkles, Globe, Code2, Cpu } from "lucide-react";
+import { Zap, ArrowRight, Sparkles, Globe, Code2, Cpu } from "lucide-react";
 import Link from "next/link";
+import { Play } from "lucide-react";
 
 const stats = [
   { value: "10x", label: "Faster Development" },
