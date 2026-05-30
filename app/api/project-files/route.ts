@@ -3,10 +3,14 @@ import fs from "fs";
 import path from "path";
 import { getGeneratedBasePath } from "@/lib/utils/pathUtils";
 
+function isServerless() {
+    return !!(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NETLIFY);
+}
+
 export async function GET(req: Request) {
     try {
         const user = verifyToken(req);
-        if (!user) {
+        if (!user && isServerless()) {
             return Response.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
 

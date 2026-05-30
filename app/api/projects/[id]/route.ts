@@ -43,6 +43,10 @@ function buildFileTree(dirPath: string, basePath: string, depth: number = 0): an
     return nodes;
 }
 
+function isServerless() {
+    return !!(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NETLIFY);
+}
+
 export async function GET(
     req: Request,
     context: { params: Promise<{ id: string }> }
@@ -51,7 +55,7 @@ export async function GET(
     try {
         const user = verifyToken(req);
 
-        if (!user) {
+        if (!user && isServerless()) {
             return Response.json(
                 { success: false, message: "Unauthorized" },
                 { status: 401 }

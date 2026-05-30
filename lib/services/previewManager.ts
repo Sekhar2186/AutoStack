@@ -50,6 +50,24 @@ async function waitForPortToBeFree(port: number, timeoutMs: number = 5000): Prom
     return false;
 }
 
+async function findAvailablePort(startPort: number): Promise<number> {
+    let port = startPort;
+    while (true) {
+        const isPortInUseByTracked = Object.values(runningProjects).some(p => p.port === port);
+        if (!isPortInUseByTracked) {
+            try {
+                execSync(`lsof -t -i:${port}`);
+            } catch (e) {
+                return port;
+            }
+        }
+        port++;
+        if (port > 6000) {
+            throw new Error("No free ports found between 4000 and 6000");
+        }
+    }
+}
+
 export async function startPreview(
     projectId: string,
     projectPath: string
@@ -65,13 +83,13 @@ export async function startPreview(
             return { previewLink: "", port: 0 };
         }
 
-        const port = 4000;
-
-        // Stop ALL tracked running projects
-        const currentProjectIds = Object.keys(runningProjects);
-        for (const id of currentProjectIds) {
-            stopPreview(id);
+        // Stop the project if it is already running
+        if (runningProjects[projectId]) {
+            stopPreview(projectId);
         }
+
+        // Find a unique available port
+        const port = await findAvailablePort(4000);
         
         // Forcefully kill ANYTHING on the port and wait for it to clear
         killProcessOnPort(port);
