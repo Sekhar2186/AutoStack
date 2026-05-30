@@ -74,13 +74,28 @@ export async function POST(req: Request) {
 
             // Daily reset logic
             const now = new Date();
-            const last = new Date(currentUser.lastReset);
+            const last = new Date(currentUser.lastReset || 0);
             const isNewDay = now.getDate() !== last.getDate() || now.getMonth() !== last.getMonth() || now.getFullYear() !== last.getFullYear();
 
+            if (!currentUser.creditHistory) {
+                currentUser.creditHistory = [];
+            }
+
             if (isNewDay) {
-                if (currentUser.plan === "pro") currentUser.credits = 500;
-                else if (currentUser.plan === "free") currentUser.credits = 20;
+                let maxCredits = 20;
+                if (currentUser.plan === "pro") {
+                    maxCredits = 500;
+                } else if (currentUser.plan === "enterprise") {
+                    maxCredits = 1000;
+                }
+                currentUser.credits = maxCredits;
                 currentUser.lastReset = now;
+                
+                currentUser.creditHistory.unshift({
+                    action: "Daily Reset",
+                    amount: maxCredits,
+                    timestamp: now
+                });
             }
 
             // Credit check
@@ -94,6 +109,11 @@ export async function POST(req: Request) {
             // Deduct credit
             if (currentUser.plan !== "pro_plus") {
                 currentUser.credits -= 1;
+                currentUser.creditHistory.unshift({
+                    action: "App Generation",
+                    amount: -1,
+                    timestamp: now
+                });
             }
 
             await currentUser.save();

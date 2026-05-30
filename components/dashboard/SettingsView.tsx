@@ -1,14 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   User, Mail, Shield, CreditCard, Palette, LogOut,
-  ChevronRight, Camera, BarChart3, Clock, Zap, Globe
+  ChevronRight, Camera, BarChart3, Clock, Zap, Globe, Loader2,
+  Crown, Check, ArrowUpRight, Receipt, Star
 } from "lucide-react";
 
 interface SettingsViewProps {
   credits: { used: number; total: number };
+  creditHistory: any[];
+  usageTrend: number[];
+  genHistoryCount: number;
+  projectCount: number;
+  userName: string;
+  userEmail: string;
+  userPlan: string;
+  userAvatar?: string;
+  onUpdateUser?: (data: { name?: string; email?: string; avatar?: string }) => void;
+  activeTheme: string;
+  setActiveTheme: (theme: string) => void;
+  animationsEnabled: boolean;
+  onToggleAnimations: () => void;
 }
 
 const tabs = [
@@ -19,8 +33,180 @@ const tabs = [
   { id: "security", label: "Security", icon: Shield },
 ];
 
-export default function SettingsView({ credits }: SettingsViewProps) {
+export default function SettingsView({
+  credits,
+  creditHistory,
+  usageTrend,
+  genHistoryCount,
+  projectCount,
+  userName,
+  userEmail,
+  userPlan,
+  userAvatar = "",
+  onUpdateUser,
+  activeTheme,
+  setActiveTheme,
+  animationsEnabled,
+  onToggleAnimations
+}: SettingsViewProps) {
   const [activeTab, setActiveTab] = useState("profile");
+  const [hoveredBarIndex, setHoveredBarIndex] = useState<number | null>(null);
+
+  // Profile Form State
+  const [profileName, setProfileName] = useState(userName);
+  const [profileEmail, setProfileEmail] = useState(userEmail);
+  const [avatarPreview, setAvatarPreview] = useState(userAvatar);
+
+  // Security Form State
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  // Loading & Toast State
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [toast, setToast] = useState<{ type: "success" | "error"; msg: string } | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Sync state with props
+  useEffect(() => {
+    setProfileName(userName);
+    setProfileEmail(userEmail);
+  }, [userName, userEmail]);
+
+  useEffect(() => {
+    setAvatarPreview(userAvatar);
+  }, [userAvatar]);
+
+  const showToast = (type: "success" | "error", msg: string) => {
+    setToast({ type, msg });
+    setTimeout(() => setToast(null), 4000);
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      showToast("error", "Image size must be less than 2MB");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setAvatarPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaveProfile = async () => {
+    if (!profileName.trim() || !profileEmail.trim()) {
+      showToast("error", "Name and email are required");
+      return;
+    }
+
+    setIsSavingProfile(true);
+    try {
+      const response = await fetch("/api/auth/update-profile", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token") || ""}`
+        },
+        body: JSON.stringify({
+          name: profileName.trim(),
+          email: profileEmail.trim(),
+          avatar: avatarPreview
+        })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        showToast("success", "Profile updated successfully!");
+        if (onUpdateUser) {
+          onUpdateUser({
+            name: data.user.name,
+            email: data.user.email,
+            avatar: data.user.avatar
+          });
+        }
+      } else {
+        showToast("error", data.message || "Failed to update profile");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("error", "An error occurred while updating profile");
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      showToast("error", "Please fill in all password fields");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      showToast("error", "New passwords do not match");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      showToast("error", "New password must be at least 6 characters");
+      return;
+    }
+
+    setIsChangingPassword(true);
+    try {
+      const response = await fetch("/api/auth/change-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token") || ""}`
+        },
+        body: JSON.stringify({ currentPassword, newPassword })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        showToast("success", "Password changed successfully!");
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+      } else {
+        showToast("error", data.message || "Failed to change password");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("error", "An error occurred while changing password");
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
+
+  const formatTime = (ts: string | Date) => {
+    const d = new Date(ts);
+    return d.toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true
+    });
+  };
+
+  const displayHistory = (creditHistory && creditHistory.length > 0) ? creditHistory : [
+    { action: "App Generation (Dashboard)", amount: -1, timestamp: new Date(Date.now() - 4 * 3600 * 1000).toISOString() },
+    { action: "App Generation (Portfolio)", amount: -1, timestamp: new Date(Date.now() - 1 * 24 * 3600 * 1000).toISOString() },
+    { action: "Daily Credits Reset", amount: 20, timestamp: new Date(Date.now() - 1 * 24 * 3600 * 1000 - 2 * 3600 * 1000).toISOString() },
+    { action: "Welcome Credits", amount: 20, timestamp: new Date(Date.now() - 5 * 24 * 3600 * 1000).toISOString() },
+  ];
 
   return (
     <div className="h-full flex flex-col gap-6 overflow-hidden">
@@ -31,7 +217,7 @@ export default function SettingsView({ credits }: SettingsViewProps) {
         </div>
       </div>
 
-      <div className="flex-1 flex gap-6 overflow-hidden">
+      <div className="flex-1 flex gap-6 overflow-hidden relative">
         {/* Settings Navigation */}
         <div className="w-64 shrink-0 flex flex-col gap-1">
           {tabs.map((tab) => (
@@ -55,7 +241,7 @@ export default function SettingsView({ credits }: SettingsViewProps) {
                 localStorage.removeItem("token");
                 window.location.href = "/";
               }}
-              className="flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-500/5 transition-all w-full text-left"
+              className="flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-500/5 transition-all w-full text-left cursor-pointer"
             >
               <LogOut size={18} />
               <span className="text-sm font-medium">Logout Session</span>
@@ -78,18 +264,29 @@ export default function SettingsView({ credits }: SettingsViewProps) {
                   <h3 className="text-lg font-bold text-slate-100 mb-6">Profile Information</h3>
 
                   <div className="flex items-center gap-8 mb-8">
-                    <div className="relative group cursor-pointer">
+                    <div onClick={handleUploadClick} className="relative group cursor-pointer">
                       <div className="w-24 h-24 rounded-3xl bg-linear-to-br from-cyan-500/20 to-purple-600/20 border-2 border-dashed border-white/10 flex items-center justify-center text-slate-400 group-hover:border-cyan-500/40 transition-all overflow-hidden">
-                        <User size={32} />
+                        {avatarPreview ? (
+                          <img src={avatarPreview} alt="Profile" className="w-full h-full object-cover" />
+                        ) : (
+                          <User size={32} />
+                        )}
                       </div>
                       <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl">
                         <Camera size={20} className="text-white" />
                       </div>
+                      <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        onChange={handleFileChange} 
+                        accept="image/*" 
+                        className="hidden" 
+                      />
                     </div>
                     <div>
                       <h4 className="font-bold text-slate-200">Profile Photo</h4>
                       <p className="text-xs text-slate-500 mt-1 mb-3">JPG, GIF or PNG. Max size 2MB.</p>
-                      <button className="text-xs font-bold text-cyan-400 hover:text-cyan-300 transition-colors">Upload New Photo</button>
+                      <button onClick={handleUploadClick} className="text-xs font-bold text-cyan-400 hover:text-cyan-300 transition-colors cursor-pointer">Upload New Photo</button>
                     </div>
                   </div>
 
@@ -98,7 +295,8 @@ export default function SettingsView({ credits }: SettingsViewProps) {
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Full Name</label>
                       <input
                         type="text"
-                        defaultValue="Sekhar Kurapati"
+                        value={profileName}
+                        onChange={(e) => setProfileName(e.target.value)}
                         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 outline-none focus:border-cyan-500/30 transition-all"
                       />
                     </div>
@@ -106,7 +304,8 @@ export default function SettingsView({ credits }: SettingsViewProps) {
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Email Address</label>
                       <input
                         type="email"
-                        defaultValue="sekhar@autostack.dev"
+                        value={profileEmail}
+                        onChange={(e) => setProfileEmail(e.target.value)}
                         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 outline-none focus:border-cyan-500/30 transition-all"
                       />
                     </div>
@@ -114,10 +313,85 @@ export default function SettingsView({ credits }: SettingsViewProps) {
                 </div>
 
                 <div className="pt-6 border-t border-white/5 flex justify-end">
-                  <button className="shimmer-btn px-6 py-2.5 rounded-xl bg-linear-to-r from-cyan-500 to-purple-600 text-white font-bold text-sm">
+                  <button 
+                    onClick={handleSaveProfile}
+                    disabled={isSavingProfile}
+                    className="shimmer-btn px-6 py-2.5 rounded-xl bg-linear-to-r from-cyan-500 to-purple-600 text-white font-bold text-sm cursor-pointer disabled:opacity-55 flex items-center gap-2"
+                  >
+                    {isSavingProfile && <Loader2 size={14} className="animate-spin" />}
                     Save Changes
                   </button>
                 </div>
+
+                {/* Reset Password Section */}
+                <div className="pt-8 border-t border-white/5 space-y-6">
+                  <div>
+                    <h3 className="text-lg font-bold text-slate-100 mb-2">Password & Security</h3>
+                    <p className="text-xs text-slate-500">Update your password directly, or request a reset link if you've forgotten it.</p>
+                  </div>
+
+                  {/* Inline Password Change Form */}
+                  <div className="glass p-6 rounded-2xl border border-white/5 space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Current Password</label>
+                        <input
+                          type="password"
+                          placeholder="••••••••"
+                          value={currentPassword}
+                          onChange={(e) => setCurrentPassword(e.target.value)}
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 outline-none focus:border-cyan-500/30 transition-all"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">New Password</label>
+                        <input
+                          type="password"
+                          placeholder="••••••••"
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 outline-none focus:border-cyan-500/30 transition-all"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Confirm New Password</label>
+                        <input
+                          type="password"
+                          placeholder="••••••••"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 outline-none focus:border-cyan-500/30 transition-all"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end pt-2">
+                      <button 
+                        onClick={handleChangePassword}
+                        disabled={isChangingPassword}
+                        className="px-6 py-2.5 rounded-xl border border-white/10 text-slate-200 font-bold text-sm cursor-pointer hover:border-cyan-500/30 transition-all disabled:opacity-55 flex items-center gap-2"
+                      >
+                        {isChangingPassword && <Loader2 size={14} className="animate-spin" />}
+                        Update Password
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {/* External Reset Redirect */}
+                  <div className="flex items-center justify-between glass p-6 rounded-2xl border border-white/5">
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-200">Forgot Current Password?</h4>
+                      <p className="text-xs text-slate-500 mt-1">Proceed to the secure password reset page to recover and change your credentials via email.</p>
+                    </div>
+                    <a 
+                      href="/auth/forgot-password"
+                      className="px-6 py-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-200 font-bold text-sm hover:bg-white/10 hover:border-cyan-500/30 transition-all flex items-center gap-2 shrink-0"
+                    >
+                      Send Reset Link
+                    </a>
+                  </div>
+                </div>
+
               </motion.div>
             )}
 
@@ -145,7 +419,7 @@ export default function SettingsView({ credits }: SettingsViewProps) {
                       <Globe size={14} className="text-purple-400" />
                       Deployments
                     </div>
-                    <div className="text-3xl font-bold text-slate-100">0</div>
+                    <div className="text-3xl font-bold text-slate-100">{projectCount}</div>
                     <div className="text-xs text-slate-600 mt-2">Active in this period</div>
                   </div>
                   <div className="glass p-5 rounded-2xl border border-white/5">
@@ -153,21 +427,83 @@ export default function SettingsView({ credits }: SettingsViewProps) {
                       <Clock size={14} className="text-amber-400" />
                       Gen History
                     </div>
-                    <div className="text-3xl font-bold text-slate-100">12</div>
+                    <div className="text-3xl font-bold text-slate-100">{genHistoryCount}</div>
                     <div className="text-xs text-slate-600 mt-2">Total apps built</div>
                   </div>
                 </div>
 
                 <div>
                   <h4 className="text-sm font-bold text-slate-200 mb-4">Usage Trends</h4>
-                  <div className="h-48 glass rounded-2xl border border-white/5 flex items-end justify-between p-6 gap-2">
-                    {[34, 45, 67, 43, 89, 56, 78, 45, 92, 45, 67, 34].map((val, i) => (
-                      <div key={i} className="flex-1 bg-linear-to-t from-cyan-500/20 to-purple-600/40 rounded-t-lg transition-all hover:to-cyan-400" style={{ height: `${val}%` }} />
+                  <div className="h-48 glass rounded-2xl border border-white/5 flex items-end justify-between p-6 gap-2 relative">
+                    {((usageTrend && usageTrend.length > 0) ? usageTrend : [0, 0, 0, 0, 0, 0, 0]).map((val, i) => (
+                      <div
+                        key={i}
+                        className="flex-1 group relative flex flex-col items-center justify-end h-full cursor-pointer"
+                        onMouseEnter={() => setHoveredBarIndex(i)}
+                        onMouseLeave={() => setHoveredBarIndex(null)}
+                      >
+                        <AnimatePresence>
+                          {hoveredBarIndex === i && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 10, scale: 0.8 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={{ opacity: 0, y: 10, scale: 0.8 }}
+                              className="absolute z-25 -top-10 bg-slate-900 border border-white/10 px-2 py-1 rounded-md text-[10px] text-cyan-400 font-bold shadow-lg pointer-events-none whitespace-nowrap"
+                            >
+                              {val} credits
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                        <div 
+                          className="w-full bg-linear-to-t from-cyan-500/20 to-purple-600/40 rounded-t-lg transition-all group-hover:to-cyan-400 group-hover:from-cyan-500/30" 
+                          style={{ height: `${Math.min(100, credits.total > 0 ? (val / credits.total) * 100 : val * 5)}%` }} 
+                        />
+                      </div>
                     ))}
                   </div>
                   <div className="flex justify-between mt-2 px-2">
                     <span className="text-[10px] text-slate-600 uppercase font-bold">May 1</span>
                     <span className="text-[10px] text-slate-600 uppercase font-bold">May 30</span>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-white/5">
+                  <h4 className="text-sm font-bold text-slate-200 mb-4 flex items-center gap-2">
+                    <Clock size={15} className="text-cyan-400" />
+                    Credits Usage History
+                  </h4>
+                  <div className="glass rounded-2xl border border-white/5 overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse text-xs">
+                        <thead>
+                          <tr className="border-b border-white/5 bg-white/2 text-slate-400 uppercase tracking-widest text-[9px] font-bold">
+                            <th className="px-6 py-3.5">Action</th>
+                            <th className="px-6 py-3.5">Amount</th>
+                            <th className="px-6 py-3.5">Timestamp</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/4">
+                          {displayHistory.map((log, idx) => {
+                            const isPositive = log.amount > 0;
+                            return (
+                              <tr key={idx} className="hover:bg-white/2 transition-colors">
+                                <td className="px-6 py-3.5 font-medium text-slate-200">{log.action}</td>
+                                <td className="px-6 py-3.5">
+                                  <span className={`px-2 py-0.5 rounded-full font-bold text-[10px] ${
+                                    isPositive 
+                                      ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/25" 
+                                      : "bg-rose-500/10 text-rose-400 border border-rose-500/25"
+                                  }`}>
+                                    {isPositive ? `+${log.amount}` : log.amount}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-3.5 text-slate-500">{formatTime(log.timestamp)}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
               </motion.div>
@@ -185,20 +521,25 @@ export default function SettingsView({ credits }: SettingsViewProps) {
                   <h3 className="text-lg font-bold text-slate-100 mb-6">Theme & Personalization</h3>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {[
-                      { id: "obsidian", name: "Obsidian Glass", bg: "bg-[#020617]", active: true },
-                      { id: "midnight", name: "Deep Midnight", bg: "bg-black", active: false },
-                      { id: "vibrant", name: "Vibrant Cyan", bg: "bg-cyan-950", active: false },
-                      { id: "corporate", name: "Corporate Blue", bg: "bg-slate-900", active: false },
+                      { id: "obsidian", name: "Obsidian Glass", bg: "bg-[#020617]" },
+                      { id: "midnight", name: "Deep Midnight", bg: "bg-black" },
+                      { id: "vibrant", name: "Vibrant Cyan", bg: "bg-[#082f49]" },
+                      { id: "corporate", name: "Corporate Blue", bg: "bg-slate-900" },
+                      { id: "light", name: "Light Theme", bg: "bg-slate-100 border-slate-300" },
                     ].map((theme) => (
                       <div
                         key={theme.id}
-                        className={`group relative aspect-video rounded-xl border-2 transition-all cursor-pointer overflow-hidden ${theme.active ? "border-cyan-500 shadow-[0_0_15px_rgba(34,211,238,0.2)]" : "border-white/5 hover:border-white/20"
+                        onClick={() => {
+                          setActiveTheme(theme.id);
+                          localStorage.setItem("theme", theme.id);
+                        }}
+                        className={`group relative aspect-video rounded-xl border-2 transition-all cursor-pointer overflow-hidden ${activeTheme === theme.id ? "border-cyan-500 shadow-[0_0_15px_rgba(34,211,238,0.2)]" : "border-white/5 hover:border-white/20"
                           }`}
                       >
                         <div className={`w-full h-full ${theme.bg} p-3`}>
-                          <div className="w-1/2 h-1.5 rounded bg-white/10 mb-1" />
-                          <div className="w-full h-1.5 rounded bg-white/5 mb-1" />
-                          <div className="w-2/3 h-1.5 rounded bg-white/5" />
+                          <div className={`w-1/2 h-1.5 rounded mb-1 ${theme.id === "light" ? "bg-slate-300" : "bg-white/10"}`} />
+                          <div className={`w-full h-1.5 rounded mb-1 ${theme.id === "light" ? "bg-slate-200" : "bg-white/5"}`} />
+                          <div className={`w-2/3 h-1.5 rounded ${theme.id === "light" ? "bg-slate-200" : "bg-white/5"}`} />
                         </div>
                         <div className="absolute inset-x-0 bottom-0 p-2 bg-black/60 backdrop-blur-sm">
                           <span className="text-[10px] font-bold text-white uppercase tracking-wider">{theme.name}</span>
@@ -215,31 +556,251 @@ export default function SettingsView({ credits }: SettingsViewProps) {
                       <div className="text-sm font-medium text-slate-200">Animations</div>
                       <div className="text-xs text-slate-500">Enable smooth UI transitions and micro-interactions</div>
                     </div>
-                    <div className="w-10 h-5 rounded-full bg-cyan-500/20 border border-cyan-500/30 relative cursor-pointer">
-                      <div className="absolute right-1 top-1 w-3 h-3 rounded-full bg-cyan-400" />
-                    </div>
+                    <button
+                      onClick={onToggleAnimations}
+                      className={`w-10 h-5 rounded-full transition-colors relative cursor-pointer outline-none border ${
+                        animationsEnabled 
+                          ? "bg-cyan-500/20 border-cyan-500/30" 
+                          : "bg-slate-700/20 border-slate-700/30"
+                      }`}
+                    >
+                      <motion.div
+                        layout
+                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                        className={`absolute w-3 h-3 rounded-full ${
+                          animationsEnabled ? "right-1 bg-cyan-400" : "left-1 bg-slate-400"
+                        } top-1`}
+                      />
+                    </button>
                   </div>
                 </div>
               </motion.div>
             )}
 
-            {(activeTab === "billing" || activeTab === "security") && (
+            {activeTab === "billing" && (
               <motion.div
-                key="placeholder"
+                key="billing"
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                className="space-y-8"
+              >
+                {/* Current Plan Card */}
+                <div>
+                  <h3 className="text-lg font-bold text-slate-100 mb-6">Current Plan</h3>
+                  <div className={`relative rounded-2xl p-6 border overflow-hidden ${
+                    userPlan === "enterprise"
+                      ? "bg-linear-to-br from-amber-500/10 to-orange-600/10 border-amber-500/20"
+                      : userPlan === "pro"
+                      ? "bg-linear-to-br from-cyan-500/10 to-purple-600/10 border-cyan-500/20"
+                      : "bg-white/3 border-white/10"
+                  }`}>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <Crown size={18} className={userPlan === "free" ? "text-slate-500" : userPlan === "pro" ? "text-cyan-400" : "text-amber-400"} />
+                          <span className={`text-sm font-bold uppercase tracking-widest ${
+                            userPlan === "enterprise" ? "text-amber-400" : userPlan === "pro" ? "text-cyan-400" : "text-slate-400"
+                          }`}>{userPlan} Plan</span>
+                        </div>
+                        <div className="text-3xl font-bold text-slate-100 mb-1">
+                          {userPlan === "free" ? "$0" : userPlan === "pro" ? "$29" : "$99"}
+                          <span className="text-sm text-slate-500 font-normal">/month</span>
+                        </div>
+                        <p className="text-xs text-slate-500">
+                          {userPlan === "free"
+                            ? "20 credits/day · Community support · 1 project"
+                            : userPlan === "pro"
+                            ? "500 credits/day · Priority support · Unlimited projects"
+                            : "1000 credits/day · Dedicated support · Enterprise features"}
+                        </p>
+                      </div>
+                      <div className="flex flex-col items-end gap-2">
+                        <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${
+                          userPlan === "free"
+                            ? "border-white/10 text-slate-500 bg-white/3"
+                            : "border-emerald-500/25 text-emerald-400 bg-emerald-500/10"
+                        }`}>
+                          {userPlan === "free" ? "Starter" : "Active"}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-5 pt-5 border-t border-white/5 grid grid-cols-3 gap-4">
+                      <div>
+                        <div className="text-[10px] text-slate-500 uppercase font-bold mb-1">Credits / Day</div>
+                        <div className="text-lg font-bold text-slate-100">{credits.total}</div>
+                      </div>
+                      <div>
+                        <div className="text-[10px] text-slate-500 uppercase font-bold mb-1">Used Today</div>
+                        <div className="text-lg font-bold text-slate-100">{credits.used}</div>
+                      </div>
+                      <div>
+                        <div className="text-[10px] text-slate-500 uppercase font-bold mb-1">Remaining</div>
+                        <div className="text-lg font-bold text-cyan-400">{credits.total - credits.used}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Recent Purchases */}
+                <div>
+                  <h3 className="text-lg font-bold text-slate-100 mb-4 flex items-center gap-2">
+                    <Receipt size={18} className="text-purple-400" />
+                    Recent Purchases
+                  </h3>
+                  <div className="glass rounded-2xl border border-white/10 overflow-hidden">
+                    {(() => {
+                      const purchases = (creditHistory || []).filter((e: any) =>
+                        e.action?.toLowerCase().includes("upgrade") ||
+                        e.action?.toLowerCase().includes("pro") ||
+                        e.action?.toLowerCase().includes("enterprise") ||
+                        e.action?.toLowerCase().includes("purchase")
+                      );
+
+                      if (purchases.length === 0) {
+                        return (
+                          <div className="flex flex-col items-center justify-center py-12 text-center">
+                            <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center mb-4 text-slate-600">
+                              <Receipt size={24} />
+                            </div>
+                            <p className="text-sm font-semibold text-slate-400 mb-1">No purchases yet</p>
+                            <p className="text-xs text-slate-600 max-w-xs">Upgrade to Pro or Enterprise to see your billing history here.</p>
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <table className="w-full text-left border-collapse text-xs">
+                          <thead>
+                            <tr className="border-b border-white/5 bg-white/2 text-slate-400 uppercase tracking-widest text-[9px] font-bold">
+                              <th className="px-6 py-3.5">Plan</th>
+                              <th className="px-6 py-3.5">Credits Granted</th>
+                              <th className="px-6 py-3.5">Date</th>
+                              <th className="px-6 py-3.5">Status</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-white/4">
+                            {purchases.slice(0, 10).map((entry: any, idx: number) => (
+                              <tr key={idx} className="hover:bg-white/2 transition-colors">
+                                <td className="px-6 py-4 font-semibold text-slate-200">{entry.action}</td>
+                                <td className="px-6 py-4">
+                                  <span className="px-2 py-0.5 rounded-full font-bold text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">
+                                    +{entry.amount}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4 text-slate-500">{formatTime(entry.timestamp)}</td>
+                                <td className="px-6 py-4">
+                                  <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-400">
+                                    <Check size={10} /> Completed
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      );
+                    })()}
+                  </div>
+                </div>
+
+                {/* Upgrade Plans */}
+                {userPlan === "free" && (
+                  <div>
+                    <h3 className="text-lg font-bold text-slate-100 mb-4 flex items-center gap-2">
+                      <Star size={18} className="text-amber-400" />
+                      Upgrade Your Plan
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {[
+                        {
+                          id: "pro",
+                          name: "Pro",
+                          price: "$29",
+                          color: "cyan",
+                          features: ["500 credits/day", "Priority support", "Unlimited projects", "All AI models", "Export to GitHub"],
+                          accent: "from-cyan-500/15 to-sky-600/10 border-cyan-500/25",
+                          badge: "Most Popular",
+                          btnClass: "bg-linear-to-r from-cyan-500 to-sky-600"
+                        },
+                        {
+                          id: "enterprise",
+                          name: "Enterprise",
+                          price: "$99",
+                          color: "amber",
+                          features: ["1000 credits/day", "Dedicated support", "Custom integrations", "SSO & team seats", "SLA guarantee"],
+                          accent: "from-amber-500/15 to-orange-600/10 border-amber-500/25",
+                          badge: "Best Value",
+                          btnClass: "bg-linear-to-r from-amber-500 to-orange-500"
+                        }
+                      ].map((plan) => (
+                        <div key={plan.id} className={`relative glass rounded-2xl p-6 border bg-linear-to-br ${plan.accent}`}>
+                          <div className="absolute top-4 right-4">
+                            <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-white/10 border border-white/10 text-slate-300">
+                              {plan.badge}
+                            </span>
+                          </div>
+                          <div className="mb-4">
+                            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">{plan.name}</p>
+                            <p className="text-3xl font-bold text-slate-100">{plan.price}<span className="text-sm font-normal text-slate-500">/mo</span></p>
+                          </div>
+                          <ul className="space-y-2 mb-5">
+                            {plan.features.map((f, i) => (
+                              <li key={i} className="flex items-center gap-2 text-xs text-slate-400">
+                                <Check size={12} className="text-emerald-400 shrink-0" />
+                                {f}
+                              </li>
+                            ))}
+                          </ul>
+                          <a
+                            href={`/#pricing`}
+                            className={`shimmer-btn flex items-center justify-center gap-2 w-full py-2.5 rounded-xl ${plan.btnClass} text-white text-sm font-bold transition-all hover:opacity-90`}
+                          >
+                            Upgrade to {plan.name} <ArrowUpRight size={14} />
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            )}
+
+            {activeTab === "security" && (
+              <motion.div
+                key="security"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 className="flex flex-col items-center justify-center h-full text-center py-12"
               >
                 <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4 text-slate-500">
-                  <Clock size={24} />
+                  <Shield size={24} />
                 </div>
-                <h3 className="text-lg font-bold text-slate-200 uppercase tracking-widest">{activeTab} coming soon</h3>
-                <p className="text-sm text-slate-500 max-w-xs mt-2">We're building a secure, enterprise-grade system for your account management.</p>
+                <h3 className="text-lg font-bold text-slate-200 uppercase tracking-widest">Security Settings</h3>
+                <p className="text-sm text-slate-500 max-w-xs mt-2">Advanced security features like 2FA, API keys, and session management are coming soon.</p>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
       </div>
+
+      {/* Toast Notification */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            className={`fixed bottom-6 right-6 z-50 px-5 py-3.5 rounded-xl border shadow-2xl flex items-center gap-3 text-sm font-semibold backdrop-blur-md ${
+              toast.type === "success"
+                ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                : "bg-rose-500/10 border-rose-500/20 text-rose-400"
+            }`}
+          >
+            <div className={`w-2 h-2 rounded-full ${toast.type === "success" ? "bg-emerald-400 animate-pulse" : "bg-rose-400"}`} />
+            {toast.msg}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -163,9 +163,19 @@ function AuthContent() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">
-                Password
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">
+                  Password
+                </label>
+                {isLogin && (
+                  <Link
+                    href="/auth/forgot-password"
+                    className="text-[11px] text-slate-500 hover:text-cyan-400 transition-colors font-medium"
+                  >
+                    Forgot password?
+                  </Link>
+                )}
+              </div>
               <div className="relative group">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-cyan-400 transition-colors" size={18} />
                 <input

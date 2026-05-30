@@ -160,10 +160,10 @@ body {
 
 /* Utility classes */
 .glass {
-  background: rgba(2, 6, 23, 0.7);
+  background: var(--glass-bg, rgba(2, 6, 23, 0.7));
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
 }
 
 .glass-hover {
@@ -171,8 +171,8 @@ body {
 }
 
 .glass-hover:hover {
-  background: rgba(2, 6, 23, 0.8);
-  border-color: rgba(34, 211, 238, 0.35);
+  background: var(--glass-hover-bg, rgba(2, 6, 23, 0.8));
+  border-color: var(--glass-hover-border, rgba(34, 211, 238, 0.35));
 }
 
 .gradient-text {
@@ -281,4 +281,201 @@ body {
 ::selection {
   background: rgba(34, 211, 238, 0.2);
   color: inherit;
+}
+
+/* Animations Toggle Overrides */
+.no-animations *,
+.no-animations *::before,
+.no-animations *::after {
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0s !important;
+  transition-delay: 0s !important;
+  scroll-behavior: auto !important;
+}
+
+/* Light Theme Variables & Overrides */
+.theme-light {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  --glass-bg: #ffffff;
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --glass-hover-bg: #f8fafc;
+  --glass-hover-border: rgba(0, 0, 0, 0.12);
+
+  /* Redefine Tailwind v4 slate colors to be dark/readable under theme-light */
+  --color-slate-50: #0f172a;
+  --color-slate-100: #0f172a;
+  --color-slate-200: #0f172a;
+  --color-slate-300: #1e293b;
+  --color-slate-400: #334155;
+  --color-slate-500: #475569;
+  --color-slate-600: #64748b;
+  --color-slate-700: #94a3b8;
+  --color-slate-800: #cbd5e1;
+  --color-slate-900: #f1f5f9;
+  --color-slate-950: #ffffff;
+
+  /* Fallback without prefix */
+  --slate-50: #0f172a;
+  --slate-100: #0f172a;
+  --slate-200: #0f172a;
+  --slate-300: #1e293b;
+  --slate-400: #334155;
+  --slate-500: #475569;
+  --slate-600: #64748b;
+  --slate-700: #94a3b8;
+  --slate-800: #cbd5e1;
+  --slate-900: #f1f5f9;
+  --slate-950: #ffffff;
+}
+
+/* Glass overrides */
+.theme-light .glass {
+  background: var(--glass-bg) !important;
+  border-color: var(--glass-border) !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 8px -1px rgba(0, 0, 0, 0.03) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.theme-light .glass-hover:hover {
+  background: var(--glass-hover-bg) !important;
+  border-color: var(--glass-hover-border) !important;
+}
+
+/* Sidebar specifically */
+.theme-light aside,
+.theme-light .sidebar {
+  background-color: #ffffff !important;
+  border-right-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Left panel and other borders */
+.theme-light section {
+  border-right-color: rgba(0, 0, 0, 0.08) !important;
+  border-left-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Overriding white borders/backgrounds to light theme grays */
+.theme-light [class*="border-white/5"],
+.theme-light [class*="border-white/6"],
+.theme-light [class*="border-white/7"],
+.theme-light [class*="border-white/8"],
+.theme-light [class*="border-white/10"],
+.theme-light [class*="border-white/[0.07]"],
+.theme-light [class*="border-white/15"] {
+  border-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+.theme-light [class*="border-white/20"] {
+  border-color: rgba(15, 23, 42, 0.15) !important;
+}
+
+.theme-light [class*="bg-white/2"],
+.theme-light [class*="bg-white/4"],
+.theme-light [class*="bg-white/5"],
+.theme-light [class*="bg-white/6"] {
+  background-color: rgba(15, 23, 42, 0.03) !important;
+}
+
+.theme-light [class*="bg-white/10"] {
+  background-color: rgba(15, 23, 42, 0.06) !important;
+}
+
+/* Override text-slate colors to dark/readable shades under theme-light */
+.theme-light .text-slate-50,
+.theme-light .text-slate-100,
+.theme-light .text-slate-200,
+.theme-light .text-slate-300 {
+  color: #0f172a !important;
+}
+
+.theme-light .text-slate-400 {
+  color: #334155 !important;
+}
+
+.theme-light .text-slate-500 {
+  color: #475569 !important;
+}
+
+.theme-light .text-slate-600 {
+  color: #64748b !important;
+}
+
+.theme-light .text-slate-700 {
+  color: #94a3b8 !important;
+}
+
+/* Maintain bright theme colors/gradients */
+.theme-light .text-white,
+.theme-light .fill-white {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+}
+
+/* Special IDE panel backgrounds */
+.theme-light .bg-\[\#010410\] {
+  background-color: #f1f5f9 !important;
+}
+
+.theme-light .bg-\[\#020617\],
+.theme-light .bg-\[\#0a0f1e\]\/95 {
+  background-color: #ffffff !important;
+}
+
+.theme-light .bg-slate-800 {
+  background-color: #e2e8f0 !important;
+}
+
+.theme-light .border-slate-700 {
+  border-color: #cbd5e1 !important;
+}
+
+/* Form inputs & textareas styling under light theme */
+.theme-light textarea,
+.theme-light input {
+  color: #0f172a !important;
+  background-color: rgba(15, 23, 42, 0.03) !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
+}
+
+.theme-light textarea::placeholder,
+.theme-light input::placeholder {
+  color: #94a3b8 !important;
+}
+
+.theme-light textarea:focus,
+.theme-light input:focus {
+  border-color: #22d3ee !important;
+  background-color: #ffffff !important;
+}
+
+/* Light Theme Code Syntax Highlight Colors */
+.theme-light .tok-kw { color: #d73a49 !important; font-weight: bold; }
+.theme-light .tok-str { color: #032f62 !important; }
+.theme-light .tok-cmt { color: #6a737d !important; font-style: italic; }
+.theme-light .tok-fn { color: #6f42c1 !important; }
+.theme-light .tok-var { color: #24292e !important; }
+.theme-light .tok-num { color: #005cc5 !important; }
+.theme-light .tok-typ { color: #22863a !important; }
+.theme-light .tok-tag { color: #22863a !important; }
+.theme-light .tok-atr { color: #6f42c1 !important; }
+.theme-light .tok-pun { color: #24292e !important; }
+
+/* Keep buttons white text on gradient backgrounds */
+.theme-light .bg-linear-to-r,
+.theme-light .shimmer-btn,
+.theme-light .shimmer-btn * {
+  color: #ffffff !important;
+}
+
+/* Scrollbar overrides for Light Theme */
+.theme-light ::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.12) !important;
+}
+
+.theme-light ::-webkit-scrollbar-thumb:hover {
+  background: rgba(6, 182, 212, 0.4) !important;
 }

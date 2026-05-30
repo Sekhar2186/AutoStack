@@ -1,31 +1,55 @@
 import { verifyToken } from "@/lib/middleware/auth";
 import { getOffer } from "@/lib/services/priceService";
-import { getUsers, saveUsers } from "@/lib/services/userService";
+import { connectDB } from "@/lib/db/connect";
+import { User } from "@/lib/db/models/User";
 
 export async function POST(req: Request) {
     try {
         const user = verifyToken(req);
         if (!user) {
-            return Response.json({ success: false, message: "Unauthorized" });
+            return Response.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
 
         const body = await req.json();
-        const { plan, duration } = body;
+        const { plan, duration } = body; // e.g. plan = "pro" | "enterprise", duration = 1 | 12
 
-        const users = getUsers();
-        const currentUser = users.find((u: any) => u.id === user.id);
+        await connectDB();
+        const dbUser = await User.findById((user as any).id);
+        if (!dbUser) {
+            return Response.json({ success: false, message: "User not found" }, { status: 404 });
+        }
 
         const offer = getOffer(plan, duration);
 
         //  APPLY PLAN
-        currentUser.plan = plan;
+        dbUser.plan = plan;
+
+        // Reset and grant credits corresponding to the plan
+        let newCredits = 20;
+        if (plan === "pro") {
+            newCredits = 500;
+        } else if (plan === "enterprise") {
+            newCredits = 1000;
+        }
+        dbUser.credits = newCredits;
+        dbUser.lastReset = new Date();
 
         //  SET PLAN EXPIRY
-        currentUser.planExpiresAt = new Date(
+        dbUser.planExpiresAt = new Date(
             Date.now() + duration * 30 * 24 * 60 * 60 * 1000
-        ).toISOString();
+        );
 
-        saveUsers(users);
+        // Log to credit history
+        if (!dbUser.creditHistory) {
+            dbUser.creditHistory = [];
+        }
+        dbUser.creditHistory.unshift({
+            action: `Upgrade to ${plan === "pro" ? "Pro" : "Enterprise"}`,
+            amount: newCredits,
+            timestamp: new Date()
+        });
+
+        await dbUser.save();
 
         return Response.json({
             success: true,
@@ -34,7 +58,7 @@ export async function POST(req: Request) {
         });
 
     } catch (err) {
-        console.error(err);
-        return Response.json({ success: false });
+        console.error("Error in upgrade route:", err);
+        return Response.json({ success: false, message: "Internal server error" }, { status: 500 });
     }
 }

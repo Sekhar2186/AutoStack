@@ -3,11 +3,22 @@ import mongoose from "mongoose";
 const UserSchema = new mongoose.Schema({
     name: { type: String },
     email: { type: String, required: true, unique: true },
+    avatar: { type: String },
     password: { type: String, required: true },
     plan: { type: String, default: "free" },
     credits: { type: Number, default: 20 },
     trialEndsAt: { type: Date },
     lastReset: { type: Date, default: Date.now },
+    planExpiresAt: { type: Date },
+    resetPasswordToken: { type: String },
+    resetPasswordExpires: { type: Date },
+    creditHistory: [
+        {
+            action: { type: String },
+            amount: { type: Number },
+            timestamp: { type: Date, default: Date.now }
+        }
+    ],
     projects: [
         {
             projectId: String,

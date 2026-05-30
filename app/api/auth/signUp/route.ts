@@ -40,7 +40,14 @@ export async function POST(req: Request) {
                 Date.now() + 60 * 24 * 60 * 60 * 1000
             ),
 
-            lastReset: new Date()
+            lastReset: new Date(),
+            creditHistory: [
+                {
+                    action: "Welcome Credits",
+                    amount: 20,
+                    timestamp: new Date()
+                }
+            ]
         });
 
         return Response.json({

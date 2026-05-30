@@ -34,9 +34,10 @@ interface SidebarProps {
   activeNav: string;
   onNavChange: (id: string) => void;
   credits: { used: number; total: number };
+  userPlan?: string;
 }
 
-export default function Sidebar({ collapsed, onToggle, activeNav, onNavChange, credits }: SidebarProps) {
+export default function Sidebar({ collapsed, onToggle, activeNav, onNavChange, credits, userPlan = "free" }: SidebarProps) {
   const [modelOpen, setModelOpen] = useState(false);
 
   return (
@@ -210,8 +211,8 @@ export default function Sidebar({ collapsed, onToggle, activeNav, onNavChange, c
           </div>
         )}
 
-        {/* Upgrade prompt */}
-        {!collapsed && (
+        {/* Upgrade prompt — only for free users */}
+        {!collapsed && userPlan === "free" && (
           <Link
             href="/#pricing"
             id="sidebar-upgrade-btn"
@@ -220,6 +221,14 @@ export default function Sidebar({ collapsed, onToggle, activeNav, onNavChange, c
             <Crown size={13} className="text-amber-400" />
             <span className="text-[12px] font-semibold text-amber-400">Upgrade to Pro</span>
           </Link>
+        )}
+
+        {/* Plan badge — for paid users */}
+        {!collapsed && userPlan !== "free" && (
+          <div className="flex items-center justify-center gap-2 py-2 rounded-xl bg-linear-to-r from-cyan-500/10 to-purple-600/10 border border-cyan-500/20">
+            <Crown size={13} className="text-cyan-400" />
+            <span className="text-[12px] font-semibold text-cyan-400 capitalize">{userPlan} Plan</span>
+          </div>
         )}
 
         {/* Bottom nav icons */}
