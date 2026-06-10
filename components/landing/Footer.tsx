@@ -17,8 +17,8 @@ const links = {
     { label: "Examples", href: "#" },
   ],
   Company: [
-    { label: "About", href: "#" },
-    { label: "Blog", href: "#" },
+    { label: "About", href: "#about" },
+    { label: "Blog", href: "#blog" },
     { label: "Careers", href: "#" },
     { label: "Press Kit", href: "#" },
   ],
