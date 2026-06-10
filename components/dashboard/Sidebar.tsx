@@ -48,8 +48,8 @@ export default function Sidebar({ collapsed, onToggle, activeNav, onNavChange, c
     >
       {/* Logo */}
       <div className="flex items-center gap-3 px-4 h-14 border-b border-white/6 shrink-0">
-        <div className="w-8 h-8 rounded-xl bg-linear-to-br from-cyan-500 to-purple-600 flex items-center justify-center shrink-0 shadow-[0_0_14px_rgba(34,211,238,0.3)]">
-          <Zap size={15} className="text-white fill-white" />
+        <div className="w-8 h-8 rounded-xl bg-linear-to-br from-white to-white flex items-center justify-center shrink-0 shadow-[0_0_14px_rgba(34,211,238,0.3)]">
+          <Zap size={15} className="text-black fill-black" />
         </div>
         <AnimatePresence>
           {!collapsed && (
@@ -58,7 +58,7 @@ export default function Sidebar({ collapsed, onToggle, activeNav, onNavChange, c
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -10 }}
               transition={{ duration: 0.2 }}
-              className="font-bold text-[15px] gradient-text whitespace-nowrap"
+              className="font-bold text-[15px] text-white whitespace-nowrap"
             >
               AutoStack
             </motion.span>

@@ -39,7 +39,7 @@ export default function Navbar() {
           <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="w-8 h-8 rounded-xl bg-linear-to-br from-white to-white flex items-center justify-center shadow-[0_0_16px_rgba(34,211,238,0.4)] group-hover:shadow-[0_0_24px_rgba(34,211,238,0.6)] transition-shadow duration-300">
+              <div className="w-8 h-8 rounded-xl bg-linear-to-br from-slate-200 to-slate-200 flex items-center justify-center shadow-[0_0_16px_rgba(34,211,238,0.4)] group-hover:shadow-[0_0_24px_rgba(34,211,238,0.6)] transition-shadow duration-300">
                 <Zap size={15} className="text-black fill-black" />
               </div>
               <span className="font-bold text-[17px] tracking-tight ">AutoStack</span>
@@ -63,7 +63,7 @@ export default function Navbar() {
               {isLoggedIn ? (
                 <Link
                   href="/dashboard"
-                  className="shimmer-btn flex items-center gap-2 px-5 py-2.5 rounded-xl bg-linear-to-r from-white to-white text-black font-semibold text-sm shadow-[0_0_20px_rgba(34,211,238,0.3)]"
+                  className="shimmer-btn flex items-center gap-2 px-5 py-2.5 rounded-xl bg-linear-to-r from-slate-200 to-slate-200 text-black font-semibold text-sm shadow-[0_0_20px_rgba(34,211,238,0.3)]"
                 >
                   Go to Dashboard
                   <ChevronRight size={14} />
