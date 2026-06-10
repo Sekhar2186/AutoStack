@@ -4,10 +4,29 @@ import { Zap, GitBranch, Send, Globe, Heart } from "lucide-react";
 import Link from "next/link";
 
 const links = {
-  Product: ["Features", "Pricing", "Changelog", "Roadmap"],
-  Developers: ["Documentation", "API Reference", "Templates", "Examples"],
-  Company: ["About", "Blog", "Careers", "Press Kit"],
-  Legal: ["Privacy Policy", "Terms of Service", "Cookie Policy"],
+  Product: [
+    { label: "Features", href: "#features" },
+    { label: "Pricing", href: "#pricing" },
+    { label: "Changelog", href: "/changelog" },
+    { label: "Roadmap", href: "/roadmap" },
+  ],
+  Developers: [
+    { label: "Documentation", href: "#" },
+    { label: "API Reference", href: "#" },
+    { label: "Templates", href: "#" },
+    { label: "Examples", href: "#" },
+  ],
+  Company: [
+    { label: "About", href: "#" },
+    { label: "Blog", href: "#" },
+    { label: "Careers", href: "#" },
+    { label: "Press Kit", href: "#" },
+  ],
+  Legal: [
+    { label: "Privacy Policy", href: "#" },
+    { label: "Terms of Service", href: "#" },
+    { label: "Cookie Policy", href: "#" },
+  ],
 };
 
 const socials = [
@@ -27,10 +46,10 @@ export default function Footer() {
           {/* Brand */}
           <div className="col-span-2">
             <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-8 h-8 rounded-xl bg-linear-to-br from-cyan-500 to-purple-600 flex items-center justify-center shadow-[0_0_12px_rgba(34,211,238,0.3)]">
-                <Zap size={15} className="text-white fill-white" />
+              <div className="w-8 h-8 rounded-xl bg-linear-to-br from-slate-100 to-slate-100 flex items-center justify-center shadow-[0_0_12px_rgba(34,211,238,0.3)]">
+                <Zap size={15} className="text-black fill-black" />
               </div>
-              <span className="font-bold text-[17px] gradient-text">AutoStack</span>
+              <span className="font-bold text-[17px] ">AutoStack</span>
             </div>
             <p className="text-sm text-slate-500 leading-relaxed mb-5 max-w-xs">
               The AI-powered platform for building full-stack web applications from a single prompt.
@@ -55,10 +74,10 @@ export default function Footer() {
               <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">{cat}</h4>
               <ul className="flex flex-col gap-2.5">
                 {items.map((item) => (
-                  <li key={item}>
-                    <a href="#" className="text-sm text-slate-500 hover:text-slate-200 transition-colors duration-200">
-                      {item}
-                    </a>
+                  <li key={item.label}>
+                    <Link href={item.href} className="text-sm text-slate-500 hover:text-slate-200 transition-colors duration-200">
+                      {item.label}
+                    </Link>
                   </li>
                 ))}
               </ul>
