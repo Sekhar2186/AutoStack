@@ -32,71 +32,73 @@ export default function Navbar() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? "glass border-b border-white/6 shadow-[0_8px_32px_rgba(0,0,0,0.4)]" : "bg-transparent"
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 rounded-b-3xl ${scrolled ? "glass border-b border-white/6 shadow-[0_8px_32px_rgba(0,0,0,0.4)] rounded-b-4xl" : "bg-transparent"
           }`}
       >
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-xl bg-linear-to-br from-cyan-500 to-purple-600 flex items-center justify-center shadow-[0_0_16px_rgba(34,211,238,0.4)] group-hover:shadow-[0_0_24px_rgba(34,211,238,0.6)] transition-shadow duration-300">
-              <Zap size={15} className="text-white fill-white" />
+        <header className="max-w-7xl mx-auto my-3 rounded-full">
+          <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            {/* Logo */}
+            <Link href="/" className="flex items-center gap-2.5 group">
+              <div className="w-8 h-8 rounded-xl bg-linear-to-br from-white to-white flex items-center justify-center shadow-[0_0_16px_rgba(34,211,238,0.4)] group-hover:shadow-[0_0_24px_rgba(34,211,238,0.6)] transition-shadow duration-300">
+                <Zap size={15} className="text-black fill-black" />
+              </div>
+              <span className="font-bold text-[17px] tracking-tight ">AutoStack</span>
+            </Link>
+
+            {/* Desktop links */}
+            <div className="hidden md:flex items-center gap-7">
+              {navLinks.map((l) => (
+                <a
+                  key={l.label}
+                  href={l.href}
+                  className="text-sm text-slate-200 hover:text-slate-100 transition-colors duration-200 font-medium"
+                >
+                  {l.label}
+                </a>
+              ))}
             </div>
-            <span className="font-bold text-[17px] tracking-tight gradient-text">AutoStack</span>
-          </Link>
 
-          {/* Desktop links */}
-          <div className="hidden md:flex items-center gap-7">
-            {navLinks.map((l) => (
-              <a
-                key={l.label}
-                href={l.href}
-                className="text-sm text-slate-400 hover:text-slate-100 transition-colors duration-200 font-medium"
-              >
-                {l.label}
-              </a>
-            ))}
-          </div>
-
-          {/* Desktop actions */}
-          <div className="hidden md:flex items-center gap-3">
-            {isLoggedIn ? (
-              <Link
-                href="/dashboard"
-                className="shimmer-btn flex items-center gap-2 px-5 py-2.5 rounded-xl bg-linear-to-r from-cyan-500 to-purple-600 text-white font-semibold text-sm shadow-[0_0_20px_rgba(34,211,238,0.3)]"
-              >
-                Go to Dashboard
-                <ChevronRight size={14} />
-              </Link>
-            ) : (
-              <>
+            {/* Desktop actions */}
+            <div className="hidden md:flex items-center gap-3">
+              {isLoggedIn ? (
                 <Link
-                  href="/auth?mode=login"
-                  className="text-sm text-slate-400 hover:text-white transition-colors font-medium px-4 py-2"
+                  href="/dashboard"
+                  className="shimmer-btn flex items-center gap-2 px-5 py-2.5 rounded-xl bg-linear-to-r from-white to-white text-black font-semibold text-sm shadow-[0_0_20px_rgba(34,211,238,0.3)]"
                 >
-                  Sign In
-                </Link>
-                <Link
-                  href="/auth?mode=signup"
-                  id="navbar-cta"
-                  className="shimmer-btn flex items-center gap-1.5 text-sm font-semibold px-5 py-2.5 rounded-xl bg-linear-to-r from-cyan-500 to-purple-600 text-white hover:scale-105 active:scale-100 transition-transform duration-200 shadow-[0_0_20px_rgba(34,211,238,0.3)]"
-                >
-                  Get Started Free
+                  Go to Dashboard
                   <ChevronRight size={14} />
                 </Link>
-              </>
-            )}
-          </div>
+              ) : (
+                <>
+                  <Link
+                    href="/auth?mode=login"
+                    className="text-sm text-slate-400 hover:text-white transition-colors font-medium px-4 py-2"
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    href="/auth?mode=signup"
+                    id="navbar-cta"
+                    className="shimmer-btn flex items-center gap-1.5 text-sm font-semibold px-5 py-2.5 rounded-xl bg-linear-to-r from-white to-white text-black hover:scale-105 active:scale-100 transition-transform duration-200 shadow-[0_0_20px_rgba(34,211,238,0.3)]"
+                  >
+                    Get Started Free
+                    <ChevronRight size={14} />
+                  </Link>
+                </>
+              )}
+            </div>
 
-          {/* Mobile hamburger */}
-          <button
-            id="mobile-menu-toggle"
-            className="md:hidden p-2 rounded-xl glass"
-            onClick={() => setMobileOpen((v) => !v)}
-            aria-label="Toggle menu"
-          >
-            {mobileOpen ? <X size={18} /> : <Menu size={18} />}
-          </button>
-        </div>
+            {/* Mobile hamburger */}
+            <button
+              id="mobile-menu-toggle"
+              className="md:hidden p-2 rounded-xl glass"
+              onClick={() => setMobileOpen((v) => !v)}
+              aria-label="Toggle menu"
+            >
+              {mobileOpen ? <X size={18} /> : <Menu size={18} />}
+            </button>
+          </div>
+        </header>
       </motion.nav>
 
       {/* Mobile drawer */}
@@ -122,7 +124,7 @@ export default function Navbar() {
             {isLoggedIn ? (
               <Link
                 href="/dashboard"
-                className="shimmer-btn mt-1 text-sm font-semibold px-5 py-3 rounded-xl bg-linear-to-r from-cyan-500 to-purple-600 text-white text-center"
+                className="shimmer-btn mt-1 text-sm font-semibold px-5 py-3 rounded-xl bg-linear-to-r from-white to-white text-black text-center"
                 onClick={() => setMobileOpen(false)}
               >
                 Go to Dashboard
@@ -130,7 +132,7 @@ export default function Navbar() {
             ) : (
               <Link
                 href="/auth?mode=signup"
-                className="shimmer-btn mt-1 text-sm font-semibold px-5 py-3 rounded-xl bg-linear-to-r from-cyan-500 to-purple-600 text-white text-center"
+                className="shimmer-btn mt-1 text-sm font-semibold px-5 py-3 rounded-xl bg-linear-to-r from-white to-white text-black text-center"
                 onClick={() => setMobileOpen(false)}
               >
                 Get Started Free

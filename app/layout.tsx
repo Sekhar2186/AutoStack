@@ -26,7 +26,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           rel="stylesheet"
         />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#020617] text-slate-50`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black text-slate-50`}>
         {children}
       </body>
     </html>

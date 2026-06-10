@@ -97,7 +97,7 @@ const item = {
 
 export default function Features() {
   return (
-    <section id="features" className="relative py-28 overflow-hidden">
+    <section id="features" className="relative py-1 overflow-hidden">
       {/* Section glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] rounded-full bg-purple-600/5 blur-[120px] pointer-events-none" />
 
@@ -115,7 +115,7 @@ export default function Features() {
           </span>
           <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-50 mb-4">
             Everything you need to{" "}
-            <span className="gradient-text">ship faster</span>
+            <span className="text-white">ship faster</span>
           </h2>
           <p className="text-slate-400 text-lg max-w-2xl mx-auto">
             AutoStack combines AI code generation with a professional IDE experience, live preview, and deployment tools in one unified platform.

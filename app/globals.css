@@ -1,13 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --bg-primary: #020617;
+  --bg-primary: #000000;
   --border-default: rgba(255, 255, 255, 0.08);
   --border-accent: rgba(34, 211, 238, 0.5);
   --cyan: #06b6d4;
   --purple: #9333ea;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --glass-bg: rgba(0, 0, 0, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-hover-bg: rgba(10, 10, 10, 0.75);
 }
 
 * {
@@ -19,7 +22,7 @@ html {
 }
 
 body {
-  background: #020617;
+  background: #000000;
   color: #f8fafc;
   font-family: var(--font-geist-sans), 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -130,8 +133,13 @@ body {
 }
 
 @keyframes spin-once {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .animate-spin-once {
@@ -453,16 +461,47 @@ body {
 }
 
 /* Light Theme Code Syntax Highlight Colors */
-.theme-light .tok-kw { color: #d73a49 !important; font-weight: bold; }
-.theme-light .tok-str { color: #032f62 !important; }
-.theme-light .tok-cmt { color: #6a737d !important; font-style: italic; }
-.theme-light .tok-fn { color: #6f42c1 !important; }
-.theme-light .tok-var { color: #24292e !important; }
-.theme-light .tok-num { color: #005cc5 !important; }
-.theme-light .tok-typ { color: #22863a !important; }
-.theme-light .tok-tag { color: #22863a !important; }
-.theme-light .tok-atr { color: #6f42c1 !important; }
-.theme-light .tok-pun { color: #24292e !important; }
+.theme-light .tok-kw {
+  color: #d73a49 !important;
+  font-weight: bold;
+}
+
+.theme-light .tok-str {
+  color: #032f62 !important;
+}
+
+.theme-light .tok-cmt {
+  color: #6a737d !important;
+  font-style: italic;
+}
+
+.theme-light .tok-fn {
+  color: #6f42c1 !important;
+}
+
+.theme-light .tok-var {
+  color: #24292e !important;
+}
+
+.theme-light .tok-num {
+  color: #005cc5 !important;
+}
+
+.theme-light .tok-typ {
+  color: #22863a !important;
+}
+
+.theme-light .tok-tag {
+  color: #22863a !important;
+}
+
+.theme-light .tok-atr {
+  color: #6f42c1 !important;
+}
+
+.theme-light .tok-pun {
+  color: #24292e !important;
+}
 
 /* Keep buttons white text on gradient backgrounds */
 .theme-light .bg-linear-to-r,

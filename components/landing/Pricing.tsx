@@ -114,7 +114,7 @@ export default function Pricing() {
             💳 Simple Pricing
           </span>
           <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-50 mb-4">
-            Choose your <span className="gradient-text">power level</span>
+            Choose your <span className="text-gray-500">power level</span>
           </h2>
           <p className="text-slate-400 text-lg max-w-xl mx-auto">
             Start free. Scale as you grow. No hidden fees.
@@ -142,7 +142,7 @@ export default function Pricing() {
                 initial={{ opacity: 0, x: -6 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -6 }}
-                className="text-xs font-semibold text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-2.5 py-1 rounded-full"
+                className="text-xs font-semibold text-green-100 bg-cyan-500/10 border border-cyan-500/20 px-2.5 py-1 rounded-full"
               >
                 Save up to 75%
               </motion.span>

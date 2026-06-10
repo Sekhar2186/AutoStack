@@ -71,7 +71,7 @@ function AuthContent() {
   };
 
   return (
-    <main className="min-h-screen w-full bg-[#020617] text-slate-50 flex items-center justify-center p-6 relative overflow-hidden font-sans">
+    <main className="min-h-screen w-full bg-[#000000] text-slate-50 flex items-center justify-center p-6 relative overflow-hidden font-sans">
       {/* Background Orbs */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-cyan-500/5 blur-[120px]" />
