@@ -7,10 +7,19 @@ export async function codeInjector(projectPath: string, generatedCode: any) {
         // We still ensure the base compDir exists
         fs.mkdirSync(compDir, { recursive: true });
         for (const fileName in generatedCode.components) {
-            const filePath = path.join(compDir, fileName);
-            // Ensure any component subdirectories (e.g. "ui/button.tsx") exist
-            fs.mkdirSync(path.dirname(filePath), { recursive: true });
-            fs.writeFileSync(filePath, generatedCode.components[fileName]);
+            let cleanFileName = fileName.replace(/^(\.\/)?\/?/, ""); // Remove leading ./ or /
+            let targetPath = path.join(compDir, cleanFileName);
+            
+            // If the AI included root-level directories in the filename, resolve from project root instead
+            if (cleanFileName.startsWith("components/") || 
+                cleanFileName.startsWith("lib/") || 
+                cleanFileName.startsWith("app/") || 
+                cleanFileName.startsWith("hooks/")) {
+                targetPath = path.join(projectPath, cleanFileName);
+            }
+
+            fs.mkdirSync(path.dirname(targetPath), { recursive: true });
+            fs.writeFileSync(targetPath, generatedCode.components[fileName]);
         }
     }
     if (generatedCode.routes) {

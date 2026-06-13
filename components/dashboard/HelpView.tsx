@@ -4,7 +4,8 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   HelpCircle, Book, MessageSquare, ExternalLink,
-  ChevronRight, Mail, GitBranch, Globe, Loader2, Check
+  ChevronRight, Mail, GitBranch, Globe, Loader2, Check,
+  Link
 } from "lucide-react";
 
 export default function HelpView() {
@@ -90,7 +91,7 @@ export default function HelpView() {
           </div>
 
           <div
-            onClick={() => openResource("https://discord.com")}
+            onClick={() => openResource("")}
             className="glass glass-hover p-6 rounded-2xl border border-white/10 flex items-start gap-4 transition-all group cursor-pointer"
           >
             <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 shrink-0">
@@ -192,17 +193,17 @@ export default function HelpView() {
 
       {/* Social Links */}
       <div className="mt-auto pt-8 flex items-center justify-center gap-8 border-t border-white/5">
-        <a href="#" className="flex items-center gap-2 text-slate-500 hover:text-slate-200 transition-colors">
+        <a href="https://github.com/Sekhar2186" className="flex items-center gap-2 text-slate-500 hover:text-slate-200 transition-colors">
           <GitBranch size={18} />
           <span className="text-xs font-medium">GitHub</span>
         </a>
-        <a href="#" className="flex items-center gap-2 text-slate-500 hover:text-slate-200 transition-colors">
+        <a href="https://sekhar-kurapati-six.vercel.app/" className="flex items-center gap-2 text-slate-500 hover:text-slate-200 transition-colors">
           <Globe size={18} />
-          <span className="text-xs font-medium">Twitter</span>
+          <span className="text-xs font-medium">About</span>
         </a>
-        <a href="mailto:support@autostack.dev" className="flex items-center gap-2 text-slate-500 hover:text-slate-200 transition-colors">
+        <a href="mailto:somasekharkurapati6423@gmail.com" className="flex items-center gap-2 text-slate-500 hover:text-slate-200 transition-colors">
           <Mail size={18} />
-          <span className="text-xs font-medium">support@autostack.dev</span>
+          <span className="text-xs font-medium">Support</span>
         </a>
       </div>
 
@@ -214,8 +215,8 @@ export default function HelpView() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.9 }}
             className={`fixed bottom-6 right-6 z-50 px-5 py-3.5 rounded-xl border shadow-2xl flex items-center gap-3 text-sm font-semibold backdrop-blur-md ${toast.type === "success"
-                ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
-                : "bg-rose-500/10 border-rose-500/20 text-rose-400"
+              ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+              : "bg-rose-500/10 border-rose-500/20 text-rose-400"
               }`}
           >
             <div className={`w-2 h-2 rounded-full ${toast.type === "success" ? "bg-emerald-400 animate-pulse" : "bg-rose-400"}`} />

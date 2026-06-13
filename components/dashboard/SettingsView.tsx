@@ -435,35 +435,61 @@ export default function SettingsView({
                 <div>
                   <h4 className="text-sm font-bold text-slate-200 mb-4">Usage Trends</h4>
                   <div className="h-48 glass rounded-2xl border border-white/5 flex items-end justify-between p-6 gap-2 relative">
-                    {((usageTrend && usageTrend.length > 0) ? usageTrend : [0, 0, 0, 0, 0, 0, 0]).map((val, i) => (
-                      <div
-                        key={i}
-                        className="flex-1 group relative flex flex-col items-center justify-end h-full cursor-pointer"
-                        onMouseEnter={() => setHoveredBarIndex(i)}
-                        onMouseLeave={() => setHoveredBarIndex(null)}
-                      >
-                        <AnimatePresence>
-                          {hoveredBarIndex === i && (
-                            <motion.div
-                              initial={{ opacity: 0, y: 10, scale: 0.8 }}
-                              animate={{ opacity: 1, y: 0, scale: 1 }}
-                              exit={{ opacity: 0, y: 10, scale: 0.8 }}
-                              className="absolute z-25 -top-10 bg-slate-900 border border-white/10 px-2 py-1 rounded-md text-[10px] text-cyan-400 font-bold shadow-lg pointer-events-none whitespace-nowrap"
-                            >
-                              {val} credits
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                        <div 
-                          className="w-full bg-linear-to-t from-cyan-500/20 to-purple-600/40 rounded-t-lg transition-all group-hover:to-cyan-400 group-hover:from-cyan-500/30" 
-                          style={{ height: `${Math.min(100, credits.total > 0 ? (val / credits.total) * 100 : val * 5)}%` }} 
-                        />
-                      </div>
-                    ))}
+                    {(() => {
+                      const trendData = (usageTrend && usageTrend.length > 0) ? usageTrend : [0, 0, 0, 0, 0, 0, 0];
+                      const maxTrendVal = Math.max(...trendData, 10);
+                      
+                      return trendData.map((val, i, arr) => {
+                        const d = new Date();
+                        d.setDate(d.getDate() - (arr.length - 1 - i));
+                        const dateStr = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+                        
+                        return (
+                          <div
+                            key={i}
+                            className="flex-1 group relative flex flex-col items-center justify-end h-full cursor-pointer"
+                            onMouseEnter={() => setHoveredBarIndex(i)}
+                            onMouseLeave={() => setHoveredBarIndex(null)}
+                          >
+                            <AnimatePresence>
+                              {hoveredBarIndex === i && (
+                                <motion.div
+                                  initial={{ opacity: 0, y: 10, scale: 0.8 }}
+                                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                                  exit={{ opacity: 0, y: 10, scale: 0.8 }}
+                                  className="absolute z-25 -top-12 flex flex-col items-center bg-slate-900 border border-white/10 px-3 py-1.5 rounded-lg shadow-xl pointer-events-none whitespace-nowrap"
+                                >
+                                  <span className="text-[10px] text-slate-400 font-bold mb-0.5 uppercase tracking-wider">{dateStr}</span>
+                                  <span className="text-[11px] text-cyan-400 font-bold">{val} credits used</span>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                            <div 
+                              className="w-full bg-linear-to-t from-cyan-500/20 to-purple-600/40 rounded-t-lg transition-all group-hover:to-cyan-400 group-hover:from-cyan-500/30" 
+                              style={{ height: `${val === 0 ? 0 : Math.max(4, (val / maxTrendVal) * 100)}%` }} 
+                            />
+                          </div>
+                        );
+                      });
+                    })()}
                   </div>
                   <div className="flex justify-between mt-2 px-2">
-                    <span className="text-[10px] text-slate-600 uppercase font-bold">May 1</span>
-                    <span className="text-[10px] text-slate-600 uppercase font-bold">May 30</span>
+                    {(() => {
+                      const arrLength = (usageTrend && usageTrend.length > 0) ? usageTrend.length : 7;
+                      const startDate = new Date();
+                      startDate.setDate(startDate.getDate() - (arrLength - 1));
+                      const endDate = new Date();
+                      return (
+                        <>
+                          <span className="text-[10px] text-slate-600 uppercase font-bold">
+                            {startDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                          </span>
+                          <span className="text-[10px] text-slate-600 uppercase font-bold">
+                            {endDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                          </span>
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
 

@@ -133,6 +133,7 @@ LAYOUT RULES — CRITICAL:
 - NEVER modify layout.tsx to add colored/gradient backgrounds.
 - layout.tsx body MUST stay: className="bg-gray-50 min-h-screen" or "bg-white min-h-screen".
 - Put page-specific backgrounds and gradients inside the page's own container div.
+- NEVER import or use the <Layout>, <Navbar>, or <Sidebar> components in your generated page files! The root layout.tsx ALREADY wraps all pages in <Layout> which includes the Navbar and Sidebar globally. If you include them in page.tsx, they will be duplicated on the screen. Just return the main content of the page.
 
 STATE MANAGEMENT — CART/WISHLIST/ORDERS — CRITICAL:
 - NEVER use a hardcoded initialCart/initialOrders static array for persistent features.
