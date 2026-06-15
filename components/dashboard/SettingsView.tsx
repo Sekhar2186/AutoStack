@@ -5,10 +5,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   User, Mail, Shield, CreditCard, Palette, LogOut,
   ChevronRight, Camera, BarChart3, Clock, Zap, Globe, Loader2,
-  Crown, Check, ArrowUpRight, Receipt, Star
+  Crown, Check, ArrowUpRight, Receipt, Star, ArrowLeft
 } from "lucide-react";
 
 interface SettingsViewProps {
+  onBack?: () => void;
   credits: { used: number; total: number };
   creditHistory: any[];
   usageTrend: number[];
@@ -47,7 +48,8 @@ export default function SettingsView({
   activeTheme,
   setActiveTheme,
   animationsEnabled,
-  onToggleAnimations
+  onToggleAnimations,
+  onBack
 }: SettingsViewProps) {
   const [activeTab, setActiveTab] = useState("profile");
   const [hoveredBarIndex, setHoveredBarIndex] = useState<number | null>(null);
@@ -211,9 +213,19 @@ export default function SettingsView({
   return (
     <div className="h-full flex flex-col gap-6 overflow-hidden">
       <div className="flex items-center justify-between shrink-0">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-100">Settings</h2>
-          <p className="text-slate-500 text-sm">Manage your account, preferences, and billing</p>
+        <div className="flex items-center gap-4">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+            >
+              <ArrowLeft size={20} />
+            </button>
+          )}
+          <div>
+            <h2 className="text-2xl font-bold text-slate-100">Settings</h2>
+            <p className="text-slate-500 text-sm">Manage your account, preferences, and billing</p>
+          </div>
         </div>
       </div>
 

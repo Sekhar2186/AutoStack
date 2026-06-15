@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence, MotionConfig } from "framer-motion";
-import { Cpu, GitBranch, Clock, ArrowUpRight, Check, Lock, Crown, Server } from "lucide-react";
+import { Cpu, GitBranch, Clock, ArrowUpRight, Check, Lock, Crown, Server, ArrowLeft } from "lucide-react";
 import Sidebar from "@/components/dashboard/Sidebar";
 import PromptEngine from "@/components/dashboard/PromptEngine";
 import IDEPanel from "@/components/dashboard/IDEPanel";
@@ -384,9 +384,17 @@ export default function CommandCenter() {
                     className="h-full glass rounded-2xl border border-white/5 p-8 overflow-y-auto"
                   >
                     <div className="flex items-center justify-between mb-8">
-                      <div>
-                        <h2 className="text-2xl font-bold text-slate-100">Your Projects</h2>
-                        <p className="text-slate-500 text-sm">Manage and scale your AI-generated applications</p>
+                      <div className="flex items-center gap-4">
+                        <button
+                          onClick={() => setActiveNav("dashboard")}
+                          className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+                        >
+                          <ArrowLeft size={20} />
+                        </button>
+                        <div>
+                          <h2 className="text-2xl font-bold text-slate-100">Your Projects</h2>
+                          <p className="text-slate-500 text-sm">Manage and scale your AI-generated applications</p>
+                        </div>
                       </div>
                       <button
                         onClick={handleNewProject}
@@ -456,6 +464,7 @@ export default function CommandCenter() {
                       setActiveTheme={setActiveTheme}
                       animationsEnabled={animationsEnabled}
                       onToggleAnimations={handleToggleAnimations}
+                      onBack={() => setActiveNav("dashboard")}
                     />
                   </motion.div>
                 )}
@@ -468,7 +477,7 @@ export default function CommandCenter() {
                     exit={{ opacity: 0, y: -10 }}
                     className="h-full"
                   >
-                    <HelpView />
+                    <HelpView onBack={() => setActiveNav("dashboard")} />
                   </motion.div>
                 )}
 
@@ -481,6 +490,12 @@ export default function CommandCenter() {
                     className="h-full glass rounded-2xl border border-white/5 p-8 overflow-y-auto"
                   >
                     <div className="flex items-center gap-3 mb-8">
+                      <button
+                        onClick={() => setActiveNav("dashboard")}
+                        className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+                      >
+                        <ArrowLeft size={20} />
+                      </button>
                       <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
                         <Cpu size={20} />
                       </div>
@@ -549,6 +564,12 @@ export default function CommandCenter() {
                     className="h-full glass rounded-2xl border border-white/5 p-8 overflow-y-auto"
                   >
                     <div className="flex items-center gap-3 mb-8">
+                      <button
+                        onClick={() => setActiveNav("dashboard")}
+                        className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+                      >
+                        <ArrowLeft size={20} />
+                      </button>
                       <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
                         <GitBranch size={20} />
                       </div>

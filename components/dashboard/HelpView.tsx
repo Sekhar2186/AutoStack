@@ -5,10 +5,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   HelpCircle, Book, MessageSquare, ExternalLink,
   ChevronRight, Mail, GitBranch, Globe, Loader2, Check,
-  Link
+  Link, ArrowLeft
 } from "lucide-react";
 
-export default function HelpView() {
+interface HelpViewProps {
+  onBack?: () => void;
+}
+
+export default function HelpView({ onBack }: HelpViewProps = {}) {
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
@@ -66,9 +70,19 @@ export default function HelpView() {
 
   return (
     <div className="h-full flex flex-col gap-6 overflow-y-auto custom-scrollbar pr-4 pb-8">
-      <div>
-        <h2 className="text-2xl font-bold text-slate-100">Help & Support</h2>
-        <p className="text-slate-500 text-sm">Find answers, learn the platform, or contact our team</p>
+      <div className="flex items-center gap-4">
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+          >
+            <ArrowLeft size={20} />
+          </button>
+        )}
+        <div>
+          <h2 className="text-2xl font-bold text-slate-100">Help & Support</h2>
+          <p className="text-slate-500 text-sm">Find answers, learn the platform, or contact our team</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
