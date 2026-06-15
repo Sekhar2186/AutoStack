@@ -306,13 +306,16 @@ export default function CommandCenter() {
 
         {/* ── Top Header ── */}
         <header className="relative z-20 shrink-0 flex items-center justify-between px-4 h-14 glass border-b border-white/[0.07]">
-          {/* logo */}
-          <div className="flex items-center gap-2">
+          {/* logo — tap to go home (dashboard tab) */}
+          <button
+            onClick={() => setMobileTab("dashboard")}
+            className="flex items-center gap-2 active:opacity-70 transition-opacity"
+          >
             <div className="w-7 h-7 rounded-lg bg-white flex items-center justify-center shadow-[0_0_14px_rgba(34,211,238,0.4)]">
               <Zap size={13} className="text-black fill-black" />
             </div>
             <span className="font-bold text-[15px] text-white">AutoStack</span>
-          </div>
+          </button>
 
           {/* right-side status */}
           <div className="flex items-center gap-2">
@@ -511,8 +514,8 @@ export default function CommandCenter() {
                     <motion.div
                       whileTap={{ scale: 0.88 }}
                       className={`-mt-5 w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-200 shadow-[0_6px_24px_rgba(34,211,238,0.45)] ${isActive
-                        ? "bg-gradient-to-br from-cyan-400 to-sky-500 scale-105"
-                        : "bg-gradient-to-br from-cyan-500 to-sky-600"
+                        ? "bg-linear-to-br from-cyan-400 to-sky-500 scale-105"
+                        : "bg-linear-to-br from-cyan-500 to-sky-600"
                         }`}
                     >
                       <Icon size={22} className="text-white" />
