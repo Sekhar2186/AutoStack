@@ -211,27 +211,59 @@ export default function SettingsView({
   ];
 
   return (
-    <div className="h-full flex flex-col gap-6 overflow-hidden">
-      <div className="flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-4">
-          {onBack && (
-            <button
-              onClick={onBack}
-              className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
-            >
-              <ArrowLeft size={20} />
-            </button>
-          )}
-          <div>
-            <h2 className="text-2xl font-bold text-slate-100">Settings</h2>
-            <p className="text-slate-500 text-sm">Manage your account, preferences, and billing</p>
-          </div>
+    <div className="h-full flex flex-col overflow-hidden">
+      {/* ── Header row ── */}
+      <div className="flex items-center gap-4 shrink-0 px-4 pt-4 md:px-0 md:pt-0 mb-4 md:mb-6">
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-colors shrink-0"
+          >
+            <ArrowLeft size={18} />
+          </button>
+        )}
+        <div>
+          <h2 className="text-xl md:text-2xl font-bold text-slate-100">Settings</h2>
+          <p className="text-slate-500 text-xs md:text-sm">Manage your account, preferences, and billing</p>
         </div>
       </div>
 
-      <div className="flex-1 flex gap-6 overflow-hidden relative">
-        {/* Settings Navigation */}
-        <div className="w-64 shrink-0 flex flex-col gap-1">
+      {/* ── MOBILE: horizontal tab strip ── */}
+      <div className="md:hidden shrink-0 px-4 mb-3">
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none" style={{ scrollbarWidth: "none" }}>
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap shrink-0 transition-all duration-200 border ${isActive
+                    ? "bg-white/8 border-cyan-500/30 text-cyan-400"
+                    : "border-white/5 text-slate-500 bg-white/3"
+                  }`}
+              >
+                <Icon size={13} />
+                {tab.label}
+              </button>
+            );
+          })}
+          {/* Logout inline on mobile */}
+          <button
+            onClick={() => { localStorage.removeItem("token"); window.location.href = "/"; }}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap shrink-0 border border-red-500/15 text-red-400 bg-red-500/5 transition-all"
+          >
+            <LogOut size={13} />
+            Logout
+          </button>
+        </div>
+      </div>
+
+      {/* ── Main body: desktop = 2-col, mobile = single col ── */}
+      <div className="flex-1 flex gap-6 overflow-hidden">
+
+        {/* DESKTOP sidebar nav (hidden on mobile) */}
+        <div className="hidden md:flex w-64 shrink-0 flex-col gap-1">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -249,10 +281,7 @@ export default function SettingsView({
 
           <div className="mt-auto pt-4 border-t border-white/5">
             <button
-              onClick={() => {
-                localStorage.removeItem("token");
-                window.location.href = "/";
-              }}
+              onClick={() => { localStorage.removeItem("token"); window.location.href = "/"; }}
               className="flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-500/5 transition-all w-full text-left cursor-pointer"
             >
               <LogOut size={18} />
@@ -261,8 +290,8 @@ export default function SettingsView({
           </div>
         </div>
 
-        {/* Settings Content */}
-        <div className="flex-1 glass rounded-2xl border border-white/10 p-8 overflow-y-auto custom-scrollbar">
+        {/* Settings Content — full width on mobile, flex-1 on desktop */}
+        <div className="flex-1 min-w-0 md:glass md:rounded-2xl md:border md:border-white/10 px-4 pb-4 md:p-8 overflow-y-auto custom-scrollbar">
           <AnimatePresence mode="wait">
             {activeTab === "profile" && (
               <motion.div
@@ -275,29 +304,29 @@ export default function SettingsView({
                 <div>
                   <h3 className="text-lg font-bold text-slate-100 mb-6">Profile Information</h3>
 
-                  <div className="flex items-center gap-8 mb-8">
-                    <div onClick={handleUploadClick} className="relative group cursor-pointer">
-                      <div className="w-24 h-24 rounded-3xl bg-linear-to-br from-cyan-500/20 to-purple-600/20 border-2 border-dashed border-white/10 flex items-center justify-center text-slate-400 group-hover:border-cyan-500/40 transition-all overflow-hidden">
+                  <div className="flex items-center gap-4 md:gap-8 mb-6 md:mb-8">
+                    <div onClick={handleUploadClick} className="relative group cursor-pointer shrink-0">
+                      <div className="w-16 h-16 md:w-24 md:h-24 rounded-2xl md:rounded-3xl bg-linear-to-br from-cyan-500/20 to-purple-600/20 border-2 border-dashed border-white/10 flex items-center justify-center text-slate-400 group-hover:border-cyan-500/40 transition-all overflow-hidden">
                         {avatarPreview ? (
                           <img src={avatarPreview} alt="Profile" className="w-full h-full object-cover" />
                         ) : (
-                          <User size={32} />
+                          <User size={24} />
                         )}
                       </div>
-                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl">
-                        <Camera size={20} className="text-white" />
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl md:rounded-3xl">
+                        <Camera size={16} className="text-white" />
                       </div>
-                      <input 
-                        type="file" 
-                        ref={fileInputRef} 
-                        onChange={handleFileChange} 
-                        accept="image/*" 
-                        className="hidden" 
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileChange}
+                        accept="image/*"
+                        className="hidden"
                       />
                     </div>
                     <div>
-                      <h4 className="font-bold text-slate-200">Profile Photo</h4>
-                      <p className="text-xs text-slate-500 mt-1 mb-3">JPG, GIF or PNG. Max size 2MB.</p>
+                      <h4 className="font-bold text-slate-200 text-sm md:text-base">Profile Photo</h4>
+                      <p className="text-xs text-slate-500 mt-1 mb-2 md:mb-3">JPG, GIF or PNG. Max 2MB.</p>
                       <button onClick={handleUploadClick} className="text-xs font-bold text-cyan-400 hover:text-cyan-300 transition-colors cursor-pointer">Upload New Photo</button>
                     </div>
                   </div>
@@ -325,7 +354,7 @@ export default function SettingsView({
                 </div>
 
                 <div className="pt-6 border-t border-white/5 flex justify-end">
-                  <button 
+                  <button
                     onClick={handleSaveProfile}
                     disabled={isSavingProfile}
                     className="shimmer-btn px-6 py-2.5 rounded-xl bg-linear-to-r from-cyan-500 to-purple-600 text-white font-bold text-sm cursor-pointer disabled:opacity-55 flex items-center gap-2"
@@ -343,8 +372,8 @@ export default function SettingsView({
                   </div>
 
                   {/* Inline Password Change Form */}
-                  <div className="glass p-6 rounded-2xl border border-white/5 space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="glass p-4 md:p-6 rounded-2xl border border-white/5 space-y-4 md:space-y-6">
+                    <div className="grid grid-cols-1 gap-4">
                       <div className="space-y-2">
                         <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Current Password</label>
                         <input
@@ -355,49 +384,51 @@ export default function SettingsView({
                           className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 outline-none focus:border-cyan-500/30 transition-all"
                         />
                       </div>
-                      <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">New Password</label>
-                        <input
-                          type="password"
-                          placeholder="••••••••"
-                          value={newPassword}
-                          onChange={(e) => setNewPassword(e.target.value)}
-                          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 outline-none focus:border-cyan-500/30 transition-all"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Confirm New Password</label>
-                        <input
-                          type="password"
-                          placeholder="••••••••"
-                          value={confirmPassword}
-                          onChange={(e) => setConfirmPassword(e.target.value)}
-                          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 outline-none focus:border-cyan-500/30 transition-all"
-                        />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">New Password</label>
+                          <input
+                            type="password"
+                            placeholder="••••••••"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 outline-none focus:border-cyan-500/30 transition-all"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Confirm New Password</label>
+                          <input
+                            type="password"
+                            placeholder="••••••••"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 outline-none focus:border-cyan-500/30 transition-all"
+                          />
+                        </div>
                       </div>
                     </div>
 
-                    <div className="flex justify-end pt-2">
-                      <button 
+                    <div className="flex justify-end">
+                      <button
                         onClick={handleChangePassword}
                         disabled={isChangingPassword}
-                        className="px-6 py-2.5 rounded-xl border border-white/10 text-slate-200 font-bold text-sm cursor-pointer hover:border-cyan-500/30 transition-all disabled:opacity-55 flex items-center gap-2"
+                        className="w-full md:w-auto px-6 py-2.5 rounded-xl border border-white/10 text-slate-200 font-bold text-sm cursor-pointer hover:border-cyan-500/30 transition-all disabled:opacity-55 flex items-center justify-center gap-2"
                       >
                         {isChangingPassword && <Loader2 size={14} className="animate-spin" />}
                         Update Password
                       </button>
                     </div>
                   </div>
-                  
+
                   {/* External Reset Redirect */}
-                  <div className="flex items-center justify-between glass p-6 rounded-2xl border border-white/5">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 glass p-4 md:p-6 rounded-2xl border border-white/5">
                     <div>
                       <h4 className="text-sm font-bold text-slate-200">Forgot Current Password?</h4>
                       <p className="text-xs text-slate-500 mt-1">Proceed to the secure password reset page to recover and change your credentials via email.</p>
                     </div>
-                    <a 
+                    <a
                       href="/auth/forgot-password"
-                      className="px-6 py-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-200 font-bold text-sm hover:bg-white/10 hover:border-cyan-500/30 transition-all flex items-center gap-2 shrink-0"
+                      className="w-full md:w-auto px-5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-200 font-bold text-sm hover:bg-white/10 hover:border-cyan-500/30 transition-all flex items-center justify-center gap-2 shrink-0"
                     >
                       Send Reset Link
                     </a>
@@ -450,12 +481,12 @@ export default function SettingsView({
                     {(() => {
                       const trendData = (usageTrend && usageTrend.length > 0) ? usageTrend : [0, 0, 0, 0, 0, 0, 0];
                       const maxTrendVal = Math.max(...trendData, 10);
-                      
+
                       return trendData.map((val, i, arr) => {
                         const d = new Date();
                         d.setDate(d.getDate() - (arr.length - 1 - i));
                         const dateStr = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-                        
+
                         return (
                           <div
                             key={i}
@@ -476,9 +507,9 @@ export default function SettingsView({
                                 </motion.div>
                               )}
                             </AnimatePresence>
-                            <div 
-                              className="w-full bg-linear-to-t from-cyan-500/20 to-purple-600/40 rounded-t-lg transition-all group-hover:to-cyan-400 group-hover:from-cyan-500/30" 
-                              style={{ height: `${val === 0 ? 0 : Math.max(4, (val / maxTrendVal) * 100)}%` }} 
+                            <div
+                              className="w-full bg-linear-to-t from-cyan-500/20 to-purple-600/40 rounded-t-lg transition-all group-hover:to-cyan-400 group-hover:from-cyan-500/30"
+                              style={{ height: `${val === 0 ? 0 : Math.max(4, (val / maxTrendVal) * 100)}%` }}
                             />
                           </div>
                         );
@@ -527,11 +558,10 @@ export default function SettingsView({
                               <tr key={idx} className="hover:bg-white/2 transition-colors">
                                 <td className="px-6 py-3.5 font-medium text-slate-200">{log.action}</td>
                                 <td className="px-6 py-3.5">
-                                  <span className={`px-2 py-0.5 rounded-full font-bold text-[10px] ${
-                                    isPositive 
-                                      ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/25" 
+                                  <span className={`px-2 py-0.5 rounded-full font-bold text-[10px] ${isPositive
+                                      ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/25"
                                       : "bg-rose-500/10 text-rose-400 border border-rose-500/25"
-                                  }`}>
+                                    }`}>
                                     {isPositive ? `+${log.amount}` : log.amount}
                                   </span>
                                 </td>
@@ -596,18 +626,16 @@ export default function SettingsView({
                     </div>
                     <button
                       onClick={onToggleAnimations}
-                      className={`w-10 h-5 rounded-full transition-colors relative cursor-pointer outline-none border ${
-                        animationsEnabled 
-                          ? "bg-cyan-500/20 border-cyan-500/30" 
+                      className={`w-10 h-5 rounded-full transition-colors relative cursor-pointer outline-none border ${animationsEnabled
+                          ? "bg-cyan-500/20 border-cyan-500/30"
                           : "bg-slate-700/20 border-slate-700/30"
-                      }`}
+                        }`}
                     >
                       <motion.div
                         layout
                         transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                        className={`absolute w-3 h-3 rounded-full ${
-                          animationsEnabled ? "right-1 bg-cyan-400" : "left-1 bg-slate-400"
-                        } top-1`}
+                        className={`absolute w-3 h-3 rounded-full ${animationsEnabled ? "right-1 bg-cyan-400" : "left-1 bg-slate-400"
+                          } top-1`}
                       />
                     </button>
                   </div>
@@ -626,20 +654,18 @@ export default function SettingsView({
                 {/* Current Plan Card */}
                 <div>
                   <h3 className="text-lg font-bold text-slate-100 mb-6">Current Plan</h3>
-                  <div className={`relative rounded-2xl p-6 border overflow-hidden ${
-                    userPlan === "enterprise"
+                  <div className={`relative rounded-2xl p-6 border overflow-hidden ${userPlan === "enterprise"
                       ? "bg-linear-to-br from-amber-500/10 to-orange-600/10 border-amber-500/20"
                       : userPlan === "pro"
-                      ? "bg-linear-to-br from-cyan-500/10 to-purple-600/10 border-cyan-500/20"
-                      : "bg-white/3 border-white/10"
-                  }`}>
+                        ? "bg-linear-to-br from-cyan-500/10 to-purple-600/10 border-cyan-500/20"
+                        : "bg-white/3 border-white/10"
+                    }`}>
                     <div className="flex items-start justify-between">
                       <div>
                         <div className="flex items-center gap-2 mb-2">
                           <Crown size={18} className={userPlan === "free" ? "text-slate-500" : userPlan === "pro" ? "text-cyan-400" : "text-amber-400"} />
-                          <span className={`text-sm font-bold uppercase tracking-widest ${
-                            userPlan === "enterprise" ? "text-amber-400" : userPlan === "pro" ? "text-cyan-400" : "text-slate-400"
-                          }`}>{userPlan} Plan</span>
+                          <span className={`text-sm font-bold uppercase tracking-widest ${userPlan === "enterprise" ? "text-amber-400" : userPlan === "pro" ? "text-cyan-400" : "text-slate-400"
+                            }`}>{userPlan} Plan</span>
                         </div>
                         <div className="text-3xl font-bold text-slate-100 mb-1">
                           {userPlan === "free" ? "$0" : userPlan === "pro" ? "$29" : "$99"}
@@ -649,16 +675,15 @@ export default function SettingsView({
                           {userPlan === "free"
                             ? "20 credits/day · Community support · 1 project"
                             : userPlan === "pro"
-                            ? "500 credits/day · Priority support · Unlimited projects"
-                            : "1000 credits/day · Dedicated support · Enterprise features"}
+                              ? "500 credits/day · Priority support · Unlimited projects"
+                              : "1000 credits/day · Dedicated support · Enterprise features"}
                         </p>
                       </div>
                       <div className="flex flex-col items-end gap-2">
-                        <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${
-                          userPlan === "free"
+                        <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${userPlan === "free"
                             ? "border-white/10 text-slate-500 bg-white/3"
                             : "border-emerald-500/25 text-emerald-400 bg-emerald-500/10"
-                        }`}>
+                          }`}>
                           {userPlan === "free" ? "Starter" : "Active"}
                         </div>
                       </div>
@@ -821,20 +846,19 @@ export default function SettingsView({
         </div>
       </div>
 
-      {/* Toast Notification */}
+      {/* Toast Notification — shifted up on mobile to clear bottom nav */}
       <AnimatePresence>
         {toast && (
           <motion.div
             initial={{ opacity: 0, y: 50, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.9 }}
-            className={`fixed bottom-6 right-6 z-50 px-5 py-3.5 rounded-xl border shadow-2xl flex items-center gap-3 text-sm font-semibold backdrop-blur-md ${
-              toast.type === "success"
+            className={`fixed bottom-20 md:bottom-6 right-4 md:right-6 z-50 px-4 md:px-5 py-3 md:py-3.5 rounded-xl border shadow-2xl flex items-center gap-3 text-sm font-semibold backdrop-blur-md max-w-[calc(100vw-2rem)] ${toast.type === "success"
                 ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
                 : "bg-rose-500/10 border-rose-500/20 text-rose-400"
-            }`}
+              }`}
           >
-            <div className={`w-2 h-2 rounded-full ${toast.type === "success" ? "bg-emerald-400 animate-pulse" : "bg-rose-400"}`} />
+            <div className={`w-2 h-2 rounded-full shrink-0 ${toast.type === "success" ? "bg-emerald-400 animate-pulse" : "bg-rose-400"}`} />
             {toast.msg}
           </motion.div>
         )}
