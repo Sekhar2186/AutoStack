@@ -87,8 +87,8 @@ export default function PromptEngine({ onGenerate, isGenerating }: PromptEngineP
       </div>
 
       {/* Prompt textarea */}
-      <div className="relative flex-1 min-h-0">
-        <div className={`relative h-full glass rounded-xl border transition-all duration-300 ${prompt ? "border-cyan-500/25 shadow-[0_0_20px_rgba(34,211,238,0.08)]" : "border-white/7"
+      <div className="relative flex flex-col min-h-[230px] shrink-0">
+        <div className={`relative flex-1 flex flex-col glass rounded-xl border transition-all duration-300 ${prompt ? "border-cyan-500/25 shadow-[0_0_20px_rgba(34,211,238,0.08)]" : "border-white/7"
           }`}>
           <textarea
             ref={textareaRef}
@@ -100,7 +100,7 @@ export default function PromptEngine({ onGenerate, isGenerating }: PromptEngineP
 
 e.g. Build a SaaS analytics dashboard with dark mode, user authentication, real-time charts, and a subscription billing page using Stripe."
             disabled={isGenerating}
-            className="w-full h-full min-h-[200px] resize-none bg-transparent p-4 text-sm text-slate-200 placeholder-slate-600 outline-none leading-relaxed terminal-font rounded-xl"
+            className="flex-1 w-full resize-none bg-transparent p-4 pb-8 text-sm text-slate-200 placeholder-slate-600 outline-none leading-relaxed terminal-font rounded-xl"
           />
           {/* Char count */}
           <div className="absolute bottom-3 right-3 text-[10px] text-slate-700">
