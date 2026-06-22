@@ -9,6 +9,8 @@ import {
   ChevronDown, File, Copy, Download, MessageSquare, Send,
   Archive, RotateCcw, GitCompare, AlertCircle, Loader2, Book, X
 } from "lucide-react";
+import { getWebContainer } from "@/lib/webcontainer/webcontainer";
+import { runProject } from "@/lib/webcontainer/runProject";
 
 const TABS: { id: TabId; icon: React.ElementType; label: string }[] = [
   { id: "preview", icon: Monitor, label: "Preview" },
@@ -27,13 +29,13 @@ const viewports = [
   { id: "tablet", icon: Tablet, w: "768px" },
   { id: "mobile", icon: Smartphone, w: "390px" },
 ];
-
 function PreviewTab({ app, isGenerating, onComplete }: { app: any, isGenerating: boolean, onComplete?: () => void }) {
   const [vp, setVp] = useState("desktop");
   const [refreshKey, setRefreshKey] = useState(0);
   const [customUrl, setCustomUrl] = useState<string | null>(null);
   const [isEditingUrl, setIsEditingUrl] = useState(false);
   const width = viewports.find((v) => v.id === vp)?.w ?? "100%";
+
 
   return (
     <div className="flex flex-col h-full">
@@ -311,8 +313,8 @@ function FilesTab({ app, onSelect }: { app: any, onSelect: (f: string) => void }
     return root;
   };
 
-  const tree = Array.isArray(app?.blueprint) 
-    ? app.blueprint 
+  const tree = Array.isArray(app?.blueprint)
+    ? app.blueprint
     : (app?.blueprint ? generateTree(app.blueprint) : []);
 
   const handleSelect = (f: string) => {
@@ -504,6 +506,8 @@ export default function IDEPanel({ app, isGenerating, error, onComplete, onClose
   const [activeTab, setActiveTab] = useState<TabId>("preview");
   const [activeFile, setActiveFile] = useState("app/page.tsx");
   const [currentApp, setCurrentApp] = useState(app);
+  const [wcUrl, setWcUrl] = useState("");
+  const [startingWC, setStartingWC] = useState(false);
 
   useEffect(() => {
     setCurrentApp(app);
@@ -559,7 +563,14 @@ export default function IDEPanel({ app, isGenerating, error, onComplete, onClose
         </div>
       </div>
     ) : (
-      <PreviewTab app={currentApp} isGenerating={isGenerating} onComplete={onComplete} />
+      <PreviewTab
+        app={{
+          ...currentApp,
+          previewLink: wcUrl || currentApp?.previewLink,
+        }}
+        isGenerating={isGenerating}
+        onComplete={onComplete}
+      />
     ),
     code: <CodeTab app={currentApp} activeFile={activeFile} />,
     files: <FilesTab app={currentApp} onSelect={(f) => { setActiveFile(f); setActiveTab("code"); }} />,
@@ -611,6 +622,40 @@ export default function IDEPanel({ app, isGenerating, error, onComplete, onClose
               Export ZIP
             </button>
           )}
+          {/* Test WC Button */}
+          {app?.projectId && (
+            <button
+              onClick={async () => {
+                if (startingWC) return;
+
+                setStartingWC(true);
+
+                try {
+                  console.log("Starting project in WebContainer...");
+
+                  if (!currentApp?.files) {
+                    alert("No files found");
+                    return;
+                  }
+
+                  const url = await runProject(currentApp.files);
+
+                  setWcUrl(url);
+
+                  setActiveTab("preview");
+                } catch (err) {
+                  console.error(err);
+                  alert("Failed to start project");
+                } finally {
+                  setStartingWC(false);
+                }
+              }}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-[11px] font-bold text-cyan-400"
+            >
+              Test WC
+            </button>
+          )}
+
           {onClose && (
             <button onClick={onClose} className="p-1.5 rounded-lg text-slate-500 hover:bg-white/10 hover:text-slate-300 transition-colors">
               <X size={16} />

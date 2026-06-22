@@ -162,6 +162,12 @@ NAVIGATION RULE:
   - menus
   - or routing actions.
 
+IMAGE SAFETY:
+- Never use next/image for AI-generated placeholder images.
+- Use standard HTML <img> tags for mock/demo images.
+- Use https://placehold.co/ instead of via.placeholder.com.
+- Only use next/image when images come from local /public assets.
+
 APPLICATION FLOW RULE — CRITICAL:
 - Planner must think like a real production SaaS architecture.
 - NO PLACEHOLDERS: Do not plan for "Coming Soon" pages. Every page listed MUST be fully functional.

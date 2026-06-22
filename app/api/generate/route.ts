@@ -27,6 +27,8 @@ import pLimit from "p-limit";
 
 import { connectDB } from "@/lib/db/connect";
 import { User } from "@/lib/db/models/User";
+import { buildVirtualFileTree } from "@/lib/services/fileTreeBuilder";
+import { Project } from "@/lib/db/models/ProjectFiles";
 
 export async function POST(req: Request) {
     try {
@@ -90,7 +92,7 @@ export async function POST(req: Request) {
                 }
                 currentUser.credits = maxCredits;
                 currentUser.lastReset = now;
-                
+
                 currentUser.creditHistory.unshift({
                     action: "Daily Reset",
                     amount: maxCredits,
@@ -153,7 +155,14 @@ export async function POST(req: Request) {
 
         parallelTasks.push(
             componentAgent(blueprint, previousPath)
-                .then(res => { components = res; })
+                .then(res => {
+                    components = res;
+
+                    console.log(
+                        "COMPONENT FILES:",
+                        Object.keys(components || {})
+                    );
+                })
                 .catch(e => {
                     console.error("ComponentAgent failed:", e);
                     components = {};
@@ -282,17 +291,129 @@ export async function POST(req: Request) {
         }
 
         // STEP 9: Merge code
+        // STEP 9: Merge code
         const code = {
             components: components || {},
             routes: routes || {},
             pages: generatedPages,
-            docs: docs || {}
+            docs: docs || {},
+
+            configFiles: {
+                "package.json": JSON.stringify(
+                    {
+                        name: blueprint?.appName || "generated-app",
+                        private: true,
+                        scripts: {
+                            dev: "next dev"
+                        },
+                        dependencies: {
+                            "next": "14.2.3",
+                            "react": "^18.2.0",
+                            "react-dom": "^18.2.0",
+                            "lucide-react": "^0.471.1",
+                            "framer-motion": "^12.38.0",
+                            "react-icons": "^5.4.0"
+                        },
+                        devDependencies: {
+                            "tailwindcss": "^4.2.2",
+                            "@tailwindcss/postcss": "^4",
+                            "postcss": "^8.5.8",
+                            "autoprefixer": "^10.4.27"
+                        }
+                    },
+                    null,
+                    2
+                ),
+
+                "next.config.js": `
+module.exports = {};
+`,
+
+                "tsconfig.json": JSON.stringify(
+                    {
+                        compilerOptions: {
+                            target: "es5",
+                            lib: ["dom", "dom.iterable", "esnext"],
+                            allowJs: true,
+                            skipLibCheck: true,
+                            strict: false,
+                            noEmit: true,
+                            esModuleInterop: true,
+                            module: "esnext",
+                            moduleResolution: "node",
+                            resolveJsonModule: true,
+                            isolatedModules: true,
+                            jsx: "preserve"
+                        },
+                        include: ["**/*"]
+                    },
+                    null,
+                    2
+                ),
+
+                "postcss.config.mjs": `
+export default {
+  plugins: {}
+};
+`,
+
+                "next-env.d.ts": `
+/// <reference types="next" />
+/// <reference types="next/image-types/global" />
+`
+            }
         };
+        const virtualFiles = buildVirtualFileTree(code);
+
+        const templateAppDir = path.join(process.cwd(), "ui-templates", templateType, "app");
+        const layoutPath = path.join(templateAppDir, "layout.tsx");
+        const globalsPath = path.join(templateAppDir, "globals.css");
+        const globalPath = path.join(templateAppDir, "global.css");
+
+        if (fs.existsSync(layoutPath) && !virtualFiles["app/layout.tsx"]) {
+            virtualFiles["app/layout.tsx"] = fs.readFileSync(layoutPath, "utf-8");
+        }
+        if (fs.existsSync(globalsPath) && !virtualFiles["app/globals.css"]) {
+            virtualFiles["app/globals.css"] = fs.readFileSync(globalsPath, "utf-8");
+        } else if (fs.existsSync(globalPath) && !virtualFiles["app/global.css"]) {
+            virtualFiles["app/global.css"] = fs.readFileSync(globalPath, "utf-8");
+        }
+
+        console.log("CODE OBJECT:");
+        console.log(Object.keys(code));
+        console.log(
+            "CONFIG FILES:",
+            Object.keys(code.configFiles || {})
+        );
+
+        await Project.findOneAndUpdate(
+            {
+                projectId,
+                version
+            },
+            {
+                projectId,
+                version,
+                appName: blueprint?.appName,
+                blueprint,
+                files: virtualFiles,
+                userId: currentUser?._id?.toString()
+            },
+            {
+                upsert: true,
+                new: true
+            }
+        );
 
         // STEP 10: Template (only first version)
         if (version === "v1") {
             await templateLoader(projectPath, templateType);
         }
+
+        console.log(
+            "[Virtual Files]",
+            Object.keys(virtualFiles)
+        );
 
         // STEP 11: Inject code
         await codeInjector(projectPath, code);
@@ -324,6 +445,7 @@ export async function POST(req: Request) {
             projectId,
             version,
             blueprint,
+            files: virtualFiles,
             zipPath,
             pdfPath,
             previewLink,

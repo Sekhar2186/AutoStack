@@ -1,4 +1,4 @@
-import { verifyToken } from "@/lib/middleware/auth";
+/*import { verifyToken } from "@/lib/middleware/auth";
 import fs from "fs";
 import path from "path";
 import { getGeneratedBasePath } from "@/lib/utils/pathUtils";
@@ -146,3 +146,115 @@ export async function GET(
         );
     }
 };
+*/
+
+import { verifyToken } from "@/lib/middleware/auth";
+import { connectDB } from "@/lib/db/connect";
+import { Project } from "@/lib/db/models/ProjectFiles";
+
+export async function GET(
+    req: Request,
+    context: { params: Promise<{ id: string }> }
+) {
+    try {
+        const user = verifyToken(req);
+
+        if (!user) {
+            return Response.json(
+                {
+                    success: false,
+                    message: "Unauthorized"
+                },
+                {
+                    status: 401
+                }
+            );
+        }
+
+        await connectDB();
+
+        const { id: projectId } = await context.params;
+
+        const project = await Project.findOne({
+            projectId
+        });
+        console.log(
+            "FILES COUNT:",
+            Object.keys(project?.files || {}).length
+        );
+
+        console.log(
+            "FIRST FILES:",
+            Object.keys(project?.files || {}).slice(0, 10)
+        );
+
+        if (!project) {
+            return Response.json(
+                {
+                    success: false,
+                    message: "Project not found"
+                },
+                {
+                    status: 404
+                }
+            );
+        }
+
+        let projectDocs = {
+            summary:
+                "Professional AI-generated application based on your prompt.",
+            architecture:
+                "Next.js + Tailwind CSS + React",
+            features: []
+        };
+
+        try {
+            if (project.files?.["docs.json"]) {
+                const parsedDocs = JSON.parse(
+                    project.files["docs.json"]
+                );
+
+                projectDocs = {
+                    ...projectDocs,
+                    ...parsedDocs
+                };
+            }
+        } catch (err) {
+            console.error(
+                "Failed to parse docs.json:",
+                err
+            );
+        }
+
+        return Response.json({
+            success: true,
+            project: {
+                projectId: project.projectId,
+                appName: project.appName,
+                version: project.version,
+                blueprint: project.blueprint,
+                files: project.files,
+                docs: projectDocs,
+                createdAt: project.createdAt,
+                updatedAt: project.updatedAt,
+                zipPath: `/api/download?projectId=${project.projectId}&version=${project.version}`
+            }
+        });
+    } catch (error) {
+        console.error(
+            "Project fetch error:",
+            error
+        );
+
+        return Response.json(
+            {
+                success: false,
+                message:
+                    "Failed to fetch project"
+            },
+            {
+                status: 500
+            }
+        );
+    }
+}

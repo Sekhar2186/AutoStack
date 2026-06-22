@@ -122,6 +122,13 @@ RULES:
 - COMPONENT MODULARITY: Available Components should be treated as modular units. If a component (like a Form) already includes a title or a submit button, do NOT duplicate those elements on the parent page. Avoid double-wrapping components in unnecessary Cards or Containers.
 - Maintain logical UI order and spacing with Tailwind CSS.
 
+PLACEHOLDER IMAGE RULES — CRITICAL:
+- Never use next/image for generated placeholder content.
+- Use standard HTML img tags.
+- Use https://placehold.co/ for demo images.
+- Never use via.placeholder.com.
+- Only use next/image when referencing local files from /public.
+
 SVG RULES — CRITICAL — BREAKING BUG IF VIOLATED:
 - NEVER generate SVG <path d="..."> attributes longer than 200 characters.
 - Use emoji (🛍️ 📊 ✅ 👥 📁 🔔) or lucide-react icons instead of inline SVG paths.

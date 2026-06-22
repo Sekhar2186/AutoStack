@@ -112,6 +112,30 @@ STRICT JSON RULES:
 - DO NOT escape single quotes.
 - Return ONLY valid parseable JSON. No conversational text.
 
+CRITICAL:
+Generate ONLY reusable React components.
+
+NEVER generate:
+- page.tsx
+- HomePage
+- AboutPage
+- ContactPage
+- DashboardPage
+- LoginPage
+- SignupPage
+
+Pages belong ONLY to PageAgent.
+
+If a file represents a route or page, do NOT generate it.
+
+IMAGE RULES:
+- Do NOT import Image from "next/image" for placeholder or mock images.
+- Use standard <img> tags instead.
+- Placeholder images must use:
+  https://placehold.co/400x250
+- Never use:
+  https://via.placeholder.com
+
 Return JSON:
 {
   "ComponentName.tsx": "code"
@@ -130,9 +154,9 @@ Return JSON:
     });
 
     const cleaned = raw
-        .replace(/```json/g, "")
-        .replace(/```/g, "")
-        .trim();
+      .replace(/```json/g, "")
+      .replace(/```/g, "")
+      .trim();
 
     return safeJsonParse(cleaned);
   } catch (error: any) {
