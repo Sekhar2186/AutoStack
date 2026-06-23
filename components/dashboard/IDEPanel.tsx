@@ -40,15 +40,15 @@ function PreviewTab({ app, isGenerating, onComplete }: { app: any, isGenerating:
   return (
     <div className="flex flex-col h-full">
       {/* Browser bar */}
-      <div className="flex items-center justify-between px-3 py-2 border-b border-white/6 bg-white/2 shrink-0">
-        <div className="flex gap-1.5 items-center">
-          <span className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
-          <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
+      <div className="flex items-center justify-between px-3 py-2 border-b border-white/6 bg-white/2 shrink-0 gap-2">
+        <div className="flex gap-1.5 items-center flex-1 min-w-0">
+          <span className="w-2.5 h-2.5 rounded-full bg-red-500/60 shrink-0" />
+          <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/60 shrink-0" />
 
           {isEditingUrl ? (
             <input
               autoFocus
-              className="ml-2 bg-white/5 border border-cyan-500/30 rounded px-2 py-0.5 text-[11px] text-cyan-400 font-mono focus:outline-none w-48"
+              className="ml-2 bg-white/5 border border-cyan-500/30 rounded px-2 py-0.5 text-[11px] text-cyan-400 font-mono focus:outline-none w-48 max-w-full"
               defaultValue={customUrl || app?.previewLink || "http://localhost:3001"}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
@@ -63,20 +63,20 @@ function PreviewTab({ app, isGenerating, onComplete }: { app: any, isGenerating:
               }}
             />
           ) : (
-            <div className="flex items-center group">
-              <span className="text-[11px] text-slate-500 flex-1 ml-2 font-mono truncate max-w-[200px]">
+            <div className="flex items-center group flex-1 min-w-0">
+              <span className="text-[11px] text-slate-500 flex-1 ml-2 font-mono truncate">
                 {(customUrl || app?.previewLink || 'http://localhost:3001').replace('http://', '')}
               </span>
               <button
                 onClick={() => setIsEditingUrl(true)}
-                className="opacity-0 group-hover:opacity-100 p-1 ml-1 text-slate-600 hover:text-cyan-400 transition-all"
+                className="opacity-0 group-hover:opacity-100 p-1 ml-1 text-slate-600 hover:text-cyan-400 transition-all shrink-0"
               >
                 <Code2 size={10} />
               </button>
             </div>
           )}
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 shrink-0">
           <button
             onClick={() => setRefreshKey(k => k + 1)}
             className="p-1.5 mr-2 rounded-lg text-slate-600 hover:text-cyan-400 hover:bg-cyan-500/10 transition-all"
@@ -596,26 +596,27 @@ export default function IDEPanel({ app, isGenerating, error, onComplete, onClose
 
   return (
     <div className="flex flex-col h-full glass border border-white/[0.07] rounded-2xl overflow-hidden">
-      <div className="flex items-center justify-between px-3 py-2 border-b border-white/6 bg-white/2 shrink-0">
-        <div className="flex items-center gap-1">
+      <div className="flex flex-wrap sm:flex-nowrap items-center justify-between px-3 py-2 border-b border-white/6 bg-white/2 shrink-0 gap-2">
+        <div className="flex items-center gap-1 overflow-x-auto custom-scrollbar max-w-full sm:flex-1 sm:min-w-0">
           {TABS.map(({ id, icon: Icon, label }) => (
             <button
               key={id}
               id={`tab-${id}`}
               onClick={() => setActiveTab(id)}
-              className={`relative flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[12px] font-medium transition-all duration-200 ${activeTab === id
+              className={`relative flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[12px] font-medium transition-all duration-200 shrink-0 ${activeTab === id
                 ? "bg-linear-to-r from-cyan-500/15 to-purple-600/10 text-slate-100 border border-cyan-500/20"
                 : "text-slate-500 hover:text-slate-300 hover:bg-white/4"
                 }`}
             >
               <Icon size={13} className={activeTab === id ? "text-cyan-400" : ""} />
-              {label}
+              <span className="hidden sm:inline">{label}</span>
+              <span className="sm:hidden">{label}</span>
               {activeTab === id && <motion.span layoutId="activeTab" className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-px bg-linear-to-r from-cyan-500 to-purple-600 rounded-full" />}
             </button>
           ))}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 ml-auto shrink-0">
           {app?.projectId && (
             <button onClick={handleDownloadZip} className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-[11px] font-bold text-slate-400 hover:text-white hover:bg-white/8 transition-all">
               <Archive size={14} />
