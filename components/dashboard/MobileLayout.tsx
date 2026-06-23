@@ -69,20 +69,20 @@ export default function MobileLayout({
   handleProjectClick,
   settingsProps
 }: MobileLayoutProps) {
-  
+
   /* themes logic duplicated for independence */
   const themes: Record<string, { bg: string; glow1: string; glow2: string }> = {
-    obsidian:  { bg: "bg-[#020617]",  glow1: "bg-cyan-500/5",   glow2: "bg-sky-600/5" },
-    midnight:  { bg: "bg-[#000000]",  glow1: "bg-purple-500/5", glow2: "bg-fuchsia-600/5" },
-    vibrant:   { bg: "bg-[#082f49]",  glow1: "bg-cyan-400/10",  glow2: "bg-teal-500/10" },
-    corporate: { bg: "bg-[#0f172a]",  glow1: "bg-blue-500/5",   glow2: "bg-indigo-600/5" },
-    light:     { bg: "bg-slate-50",   glow1: "bg-cyan-500/10",  glow2: "bg-purple-500/10" },
+    obsidian: { bg: "bg-[#020617]", glow1: "bg-cyan-500/5", glow2: "bg-sky-600/5" },
+    midnight: { bg: "bg-[#000000]", glow1: "bg-purple-500/5", glow2: "bg-fuchsia-600/5" },
+    vibrant: { bg: "bg-[#082f49]", glow1: "bg-cyan-400/10", glow2: "bg-teal-500/10" },
+    corporate: { bg: "bg-[#0f172a]", glow1: "bg-blue-500/5", glow2: "bg-indigo-600/5" },
+    light: { bg: "bg-slate-50", glow1: "bg-cyan-500/10", glow2: "bg-purple-500/10" },
   };
   const t = themes[activeTheme] || themes.obsidian;
   const themeBase = `${t.bg} font-sans transition-colors duration-500${activeTheme === "light" ? " theme-light text-slate-900" : " text-slate-50"}${!animationsEnabled ? " no-animations" : ""}`;
 
   return (
-    <div className={`flex md:hidden flex-col h-screen w-full overflow-hidden ${themeBase}`}>
+    <div className={`fixed inset-0 z-50 flex md:hidden flex-col h-dvh w-full overflow-hidden ${themeBase}`}>
       {/* ambient blobs */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className={`absolute -top-20 -left-20 w-72 h-72 rounded-full ${t.glow1} blur-[90px]`} />
