@@ -43,5 +43,3 @@ next-env.d.ts
 # generated projects
 /generated
 
-#scripts
-/scripts
