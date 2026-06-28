@@ -1,8 +1,10 @@
 import { verifyToken } from "@/lib/middleware/auth";
 import fs from "fs";
 import path from "path";
-import { getGeneratedBasePath } from "@/lib/utils/pathUtils";
+import os from "os";
 import { zipProject } from "@/lib/services/zipProject";
+import { connectDB } from "@/lib/db/connect";
+import { Project } from "@/lib/db/models/ProjectFiles";
 
 export async function GET(req: Request) {
     try {
@@ -14,18 +16,32 @@ export async function GET(req: Request) {
             return new Response("Missing projectId", { status: 400 });
         }
 
-        const projectDir = path.join(getGeneratedBasePath(), projectId, version);
-        const zipPath = projectDir + ".zip";
+        await connectDB();
+        const project = await Project.findOne({ projectId, version });
 
-        if (!fs.existsSync(zipPath)) {
-            if (!fs.existsSync(projectDir)) {
-                return new Response("Project version directory not found", { status: 404 });
-            }
-            // Generate zip on the fly if it doesn't exist
-            await zipProject(projectDir);
+        if (!project || !project.files) {
+            return new Response("Project version not found", { status: 404 });
         }
 
+        const projectDir = path.join(os.tmpdir(), `${projectId}_${version}_${Date.now()}`);
+        fs.mkdirSync(projectDir, { recursive: true });
+
+        for (const [filePath, content] of Object.entries(project.files)) {
+            if (typeof content === 'string') {
+                const fullPath = path.join(projectDir, filePath);
+                const dir = path.dirname(fullPath);
+                fs.mkdirSync(dir, { recursive: true });
+                fs.writeFileSync(fullPath, content, "utf-8");
+            }
+        }
+
+        await zipProject(projectDir);
+        const zipPath = projectDir + ".zip";
+
         const fileBuffer = fs.readFileSync(zipPath);
+
+        fs.rmSync(projectDir, { recursive: true, force: true });
+        fs.unlinkSync(zipPath);
 
         return new Response(fileBuffer, {
             headers: {

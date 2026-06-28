@@ -1,7 +1,6 @@
 import { verifyToken } from "@/lib/middleware/auth";
-import fs from "fs";
-import path from "path";
-import { getGeneratedBasePath } from "@/lib/utils/pathUtils";
+import { connectDB } from "@/lib/db/connect";
+import { Project } from "@/lib/db/models/ProjectFiles";
 
 function isServerless() {
     return !!(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NETLIFY);
@@ -23,13 +22,14 @@ export async function GET(req: Request) {
             return Response.json({ success: false, message: "Missing required parameters" }, { status: 400 });
         }
 
-        const filePath = path.join(getGeneratedBasePath(), projectId, version, file);
+        await connectDB();
+        const project = await Project.findOne({ projectId, version });
 
-        if (!fs.existsSync(filePath)) {
+        if (!project || !project.files || typeof project.files[file] !== 'string') {
             return Response.json({ success: false, message: "File not found" }, { status: 404 });
         }
 
-        const content = fs.readFileSync(filePath, "utf-8");
+        const content = project.files[file];
 
         return Response.json({
             success: true,
