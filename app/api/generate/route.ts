@@ -6,7 +6,9 @@ import { componentAgent } from "@/lib/agents/componentAgent";
 import { routeAgent } from "@/lib/agents/routeAgent";
 import { pageAgent } from "@/lib/agents/pageAgent";
 import { docAgent } from "@/lib/agents/docAgent";
+import { fixAgent } from "@/lib/agents/fixAgent";
 import { generatePDF } from "@/lib/services/generatePDF";
+import { validateGeneratedCode } from "@/lib/services/validator";
 
 import { versionManager } from "@/lib/services/versionManager";
 import { templateLoader } from "@/lib/services/templateLoader";
@@ -340,6 +342,41 @@ export async function POST(req: Request) {
             virtualFiles["app/globals.css"] = fs.readFileSync(globalsPath, "utf-8");
         } else if (fs.existsSync(globalPath) && !virtualFiles["app/global.css"]) {
             virtualFiles["app/global.css"] = fs.readFileSync(globalPath, "utf-8");
+        }
+
+        // STEP 9.5: Static Validation & Auto-Fix Loop
+        console.log(`[Generate] Starting Validation Phase...`);
+        let validationPasses = 0;
+        const maxPasses = 2;
+        let validationResult = validateGeneratedCode(virtualFiles);
+
+        while (!validationResult.isValid && validationPasses < maxPasses) {
+            console.log(`[Generate] Validator found issues in pass ${validationPasses + 1}:`, JSON.stringify(validationResult.errors));
+            
+            const fixPromises = validationResult.errors.map(async (err) => {
+                if (err.file === "PROJECT_ROOT") return; // Cannot fix root issues automatically right now
+                
+                console.log(`[FixAgent] Fixing ${err.file}...`);
+                const fixedCode = await fixAgent({
+                    fileName: err.file,
+                    fileCode: virtualFiles[err.file],
+                    issues: err.issues
+                });
+                
+                virtualFiles[err.file] = fixedCode;
+            });
+            
+            await Promise.all(fixPromises);
+            
+            validationPasses++;
+            validationResult = validateGeneratedCode(virtualFiles);
+        }
+
+        if (!validationResult.isValid) {
+            console.error(`[Generate] Validation failed after ${maxPasses} attempts:`, JSON.stringify(validationResult.errors, null, 2));
+            virtualFiles['diagnostics.json'] = JSON.stringify(validationResult.errors, null, 2);
+        } else {
+            console.log(`[Generate] Validation ✓ Passed`);
         }
 
         console.log("CODE OBJECT:");
