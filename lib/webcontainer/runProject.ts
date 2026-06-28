@@ -175,22 +175,38 @@ export async function runProject(
         })
     );
 
-    const installCode =
-        await install.exit;
+    const installCode = await install.exit;
 
-    console.log(
-        "INSTALL EXIT:",
-        installCode
+    console.log("INSTALL EXIT:", installCode);
+
+    const nextList = await wc.spawn("npm", ["list", "next"]);
+
+    nextList.output.pipeTo(
+        new WritableStream({
+            write(data) {
+                console.log(data);
+            },
+        })
     );
+
+    await nextList.exit;
+
+    const swcList = await wc.spawn("npm", ["list", "@next/swc-wasm-nodejs"]);
+
+    swcList.output.pipeTo(
+        new WritableStream({
+            write(data) {
+                console.log(data);
+            },
+        })
+    );
+
+    await swcList.exit;
 
     // =========================
     // VERIFY LUCIDE INSTALLED
     // =========================
-    const check =
-        await wc.spawn(
-            "npm",
-            ["list", "lucide-react"]
-        );
+    const check = await wc.spawn("npm", ["list", "lucide-react"]);
 
     check.output.pipeTo(
         new WritableStream({
@@ -202,13 +218,7 @@ export async function runProject(
     // =========================
     // START DEV SERVER
     // =========================
-    const dev = await wc.spawn(
-        "npx",
-        [
-            "next",
-            "dev"
-        ]
-    );
+    const dev = await wc.spawn("npx", ["next", "dev"]);
 
     dev.output.pipeTo(
         new WritableStream({
