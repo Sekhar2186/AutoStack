@@ -10,6 +10,14 @@ import { generatePDF } from "@/lib/services/generatePDF";
 
 import { versionManager } from "@/lib/services/versionManager";
 import { templateLoader } from "@/lib/services/templateLoader";
+import {
+    buildPackageJson,
+    TSCONFIG_TEMPLATE,
+    NEXTCONFIG_TEMPLATE,
+    POSTCSS_TEMPLATE,
+    NEXT_ENV_DTS,
+    validateTypeScriptDeps,
+} from "@/lib/services/packageTemplate";
 
 import { codeInjector } from "@/lib/services/codeInjector";
 import { zipProject } from "@/lib/services/zipProject";
@@ -290,8 +298,8 @@ export async function POST(req: Request) {
             };
         }
 
-        // STEP 9: Merge code
-        // STEP 9: Merge code
+        // STEP 9: Merge code — all config files come from the canonical
+        // packageTemplate.ts. Never construct package.json inline.
         const code = {
             components: components || {},
             routes: routes || {},
@@ -299,71 +307,26 @@ export async function POST(req: Request) {
             docs: docs || {},
 
             configFiles: {
-                "package.json": JSON.stringify(
-                    {
-                        name: blueprint?.appName || "generated-app",
-                        private: true,
-                        scripts: {
-                            dev: "next dev"
-                        },
-                        dependencies: {
-                            "next": "14.2.3",
-                            "react": "^18.2.0",
-                            "react-dom": "^18.2.0",
-                            "lucide-react": "^0.471.1",
-                            "framer-motion": "^12.38.0",
-                            "react-icons": "^5.4.0"
-                        },
-                        devDependencies: {
-                            "tailwindcss": "^4.2.2",
-                            "@tailwindcss/postcss": "^4",
-                            "postcss": "^8.5.8",
-                            "autoprefixer": "^10.4.27"
-                        }
-                    },
-                    null,
-                    2
-                ),
+                // ── Single source of truth for all config files ──────────────
+                // Framework versions are locked in packageTemplate.ts.
+                // The LLM must never choose these values.
+                "package.json": buildPackageJson(blueprint?.appName),
 
-                "next.config.js": `
-module.exports = {};
-`,
+                "tsconfig.json": JSON.stringify(TSCONFIG_TEMPLATE, null, 2),
 
-                "tsconfig.json": JSON.stringify(
-                    {
-                        compilerOptions: {
-                            target: "es5",
-                            lib: ["dom", "dom.iterable", "esnext"],
-                            allowJs: true,
-                            skipLibCheck: true,
-                            strict: false,
-                            noEmit: true,
-                            esModuleInterop: true,
-                            module: "esnext",
-                            moduleResolution: "node",
-                            resolveJsonModule: true,
-                            isolatedModules: true,
-                            jsx: "preserve"
-                        },
-                        include: ["**/*"]
-                    },
-                    null,
-                    2
-                ),
+                "next.config.js": NEXTCONFIG_TEMPLATE,
 
-                "postcss.config.mjs": `
-export default {
-  plugins: {}
-};
-`,
+                "postcss.config.mjs": POSTCSS_TEMPLATE,
 
-                "next-env.d.ts": `
-/// <reference types="next" />
-/// <reference types="next/image-types/global" />
-`
+                "next-env.d.ts": NEXT_ENV_DTS,
             }
         };
         const virtualFiles = buildVirtualFileTree(code);
+
+        // Validate that all TypeScript dependencies are present when
+        // the generated project contains .ts/.tsx files.
+        const parsedPkg = JSON.parse(code.configFiles["package.json"]);
+        validateTypeScriptDeps(virtualFiles, parsedPkg);
 
         const templateAppDir = path.join(process.cwd(), "ui-templates", templateType, "app");
         const layoutPath = path.join(templateAppDir, "layout.tsx");
