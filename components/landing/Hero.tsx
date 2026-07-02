@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Zap, ArrowRight, Sparkles, Globe, Code2, Cpu } from "lucide-react";
+import { Zap, ArrowRight, Sparkles, Globe, Code2, Cpu, MessageSquare, Network, Database, Rocket, LayoutTemplate } from "lucide-react";
 import Link from "next/link";
 import { Play } from "lucide-react";
 import Ferrofluid from "@/components/Ferrofluid";
 import TextType from "@/components/TextType";
+import LogoLoop from "@/components/LogoLoop";
 
 const stats = [
   { value: "10x", label: "Faster Development" },
@@ -15,6 +16,74 @@ const stats = [
 ];
 
 const techBadges = ["Next.js", "React", "TypeScript", "Tailwind", "PostgreSQL", "Prisma"];
+
+const processSteps = [
+  {
+    node: (
+      <div className="flex items-center gap-4 px-6 py-4 glass rounded-2xl border border-white/10 min-w-[280px]">
+        <div className="w-12 h-12 rounded-full bg-cyan-500/20 flex items-center justify-center shrink-0">
+          <MessageSquare size={20} className="text-cyan-400" />
+        </div>
+        <div>
+          <h3 className="text-white font-semibold text-sm">Describe</h3>
+          <p className="text-slate-400 text-xs">Plain English prompt</p>
+        </div>
+      </div>
+    )
+  },
+  {
+    node: (
+      <div className="flex items-center gap-4 px-6 py-4 glass rounded-2xl border border-white/10 min-w-[280px]">
+        <div className="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center shrink-0">
+          <Network size={20} className="text-purple-400" />
+        </div>
+        <div>
+          <h3 className="text-white font-semibold text-sm">Architecture</h3>
+          <p className="text-slate-400 text-xs">AI plans the stack</p>
+        </div>
+      </div>
+    )
+  },
+  {
+    node: (
+      <div className="flex items-center gap-4 px-6 py-4 glass rounded-2xl border border-white/10 min-w-[280px]">
+        <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0">
+          <LayoutTemplate size={20} className="text-blue-400" />
+        </div>
+        <div>
+          <h3 className="text-white font-semibold text-sm">Scaffold</h3>
+          <p className="text-slate-400 text-xs">Next.js & UI setup</p>
+        </div>
+      </div>
+    )
+  },
+  {
+    node: (
+      <div className="flex items-center gap-4 px-6 py-4 glass rounded-2xl border border-white/10 min-w-[280px]">
+        <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center shrink-0">
+          <Database size={20} className="text-green-400" />
+        </div>
+        <div>
+          <h3 className="text-white font-semibold text-sm">Database</h3>
+          <p className="text-slate-400 text-xs">Prisma schemas generated</p>
+        </div>
+      </div>
+    )
+  },
+  {
+    node: (
+      <div className="flex items-center gap-4 px-6 py-4 glass rounded-2xl border border-white/10 min-w-[280px]">
+        <div className="w-12 h-12 rounded-full bg-orange-500/20 flex items-center justify-center shrink-0">
+          <Rocket size={20} className="text-orange-400" />
+        </div>
+        <div>
+          <h3 className="text-white font-semibold text-sm">Deploy</h3>
+          <p className="text-slate-400 text-xs">Instant Vercel deployment</p>
+        </div>
+      </div>
+    )
+  }
+];
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 28 },
@@ -199,6 +268,26 @@ export default function Hero() {
             ))}
           </motion.div>
         </div>
+
+        {/* Generation Process Loop */}
+        <motion.div {...fadeUp(0.6)} className="mt-24 w-full relative z-20">
+          <div className="text-center mb-8">
+            <h2 className="text-sm font-semibold tracking-widest text-slate-500 uppercase">The AutoStack Generation Process</h2>
+          </div>
+          <div className="w-screen relative left-1/2 -translate-x-1/2">
+            {/* @ts-ignore */}
+            <LogoLoop
+              logos={processSteps}
+              speed={40}
+              direction="left"
+              gap={24}
+              logoHeight={80}
+              pauseOnHover={true}
+              fadeOut={true}
+              fadeOutColor="#020617" // Using a dark slate color that matches the vibe
+            />
+          </div>
+        </motion.div>
 
         {/* Scroll hint */}
         <motion.div {...fadeUp(1.0)} className="mt-16 flex flex-col items-center gap-2">
