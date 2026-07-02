@@ -5,6 +5,8 @@ import { motion } from "framer-motion";
 import { Zap, ArrowRight, Sparkles, Globe, Code2, Cpu } from "lucide-react";
 import Link from "next/link";
 import { Play } from "lucide-react";
+import Ferrofluid from "@/components/Ferrofluid";
+import TextType from "@/components/TextType";
 
 const stats = [
   { value: "10x", label: "Faster Development" },
@@ -30,18 +32,31 @@ export default function Hero() {
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Ambient background */}
-      <div className="absolute inset-0 grid-pattern" />
+      {/* Ambient Ferrofluid background */}
+      <div className="absolute inset-0 z-0">
+        <Ferrofluid
+          colors={['#06B6D4', '#9333EA', '#0ea5e9']}
+          speed={0.5}
+          scale={1.2}
+          turbulence={0.8}
+          fluidity={0.2}
+          mouseInteraction={true}
+          opacity={0.6}
+          className=""
+          dpr={undefined}
+          mixBlendMode={undefined}
+        />
+      </div>
 
       {/* Radial glow center */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
         <div className="w-[700px] h-[700px] rounded-full bg-gradient-radial from-cyan-500/10 via-purple-600/5 to-transparent blur-3xl" />
       </div>
 
       {/* Floating orbs */}
-      <div className="orb absolute top-24 left-[12%] w-72 h-72 rounded-full bg-cyan-500/10 blur-[80px] pointer-events-none" />
-      <div className="orb-delay absolute bottom-32 right-[10%] w-96 h-96 rounded-full bg-purple-600/10 blur-[100px] pointer-events-none" />
-      <div className="orb absolute top-1/2 right-[20%] w-48 h-48 rounded-full bg-cyan-400/5 blur-[60px] pointer-events-none" />
+      <div className="orb absolute top-24 left-[12%] w-72 h-72 rounded-full bg-cyan-500/10 blur-[80px] pointer-events-none z-0" />
+      <div className="orb-delay absolute bottom-32 right-[10%] w-96 h-96 rounded-full bg-purple-600/10 blur-[100px] pointer-events-none z-0" />
+      <div className="orb absolute top-1/2 right-[20%] w-48 h-48 rounded-full bg-cyan-400/5 blur-[60px] pointer-events-none z-0" />
 
       {/* Content */}
       <div className="relative z-10 max-w-7xl mx-auto px-6 pt-32 pb-20">
@@ -132,10 +147,16 @@ export default function Hero() {
                     <Code2 size={12} className="text-white" />
                   </div>
                   <div className="flex-1 glass rounded-xl px-3.5 py-4.5 text-[15px] text-left font-sans">
-                    <span className="text-purple-400 font-semibold">AutoStack AI:</span>
-                    <span className="text-slate-300"> Generating your SaaS application</span>
-                    <span className="text-slate-500"> — Planning architecture, scaffolding Next.js 14, setting up Prisma + Auth.js, creating Stripe webhooks, and live chart components</span>
-                    <span className="cursor" />
+                    <span className="text-purple-400 font-semibold mr-1">AutoStack AI:</span>
+                    <TextType
+                      text="Generating your SaaS application — Planning architecture, scaffolding Next.js 14, setting up Prisma + Auth.js, creating Stripe webhooks, and live chart components"
+                      typingSpeed={30}
+                      className="text-slate-300 inline"
+                      cursorClassName="text-cyan-400"
+                      loop={false}
+                      variableSpeed={undefined}
+                      onSentenceComplete={undefined}
+                    />
                   </div>
                 </div>
                 {/* Progress bar */}
