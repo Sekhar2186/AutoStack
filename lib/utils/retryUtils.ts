@@ -1,3 +1,16 @@
+import {
+    getStatusCode,
+    isRetryableError,
+    isAuthError,
+} from "@/lib/services/ai/errorUtils";
+
+/**
+ * Retries `fn` up to `maxRetries` times using exponential backoff with jitter.
+ *
+ * - Auth/permanent errors are thrown immediately without retrying.
+ * - Retryable errors (quota, 5xx, network) are retried with backoff.
+ * - Unknown errors are retried up to the last attempt, then thrown.
+ */
 export async function withRetry<T>(
     fn: () => Promise<T>,
     maxRetries: number = 3,
@@ -5,31 +18,49 @@ export async function withRetry<T>(
 ): Promise<T> {
     let lastError: any;
 
-    for (let i = 0; i < maxRetries; i++) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
             return await fn();
         } catch (error: any) {
             lastError = error;
+            const status = getStatusCode(error);
+            const statusLabel = status !== null ? ` (${status})` : "";
 
-            // Check if it's a rate limit error (429)
-            const isRateLimit =
-                error.message?.includes("429") ||
-                error.status === 429 ||
-                error.response?.status === 429;
+            // Auth/config errors must never be retried.
+            if (isAuthError(error)) {
+                console.error(
+                    `[Retry] Non-retryable error detected${statusLabel}. Aborting retries.`
+                );
+                console.error(`[Retry] Reason: ${error?.message ?? "Unknown"}`);
+                throw error;
+            }
 
-            if (!isRateLimit && i === maxRetries - 1) {
+            const retryable = isRetryableError(error);
+
+            // Unknown error on the final attempt — give up.
+            if (!retryable && attempt === maxRetries) {
+                console.warn(
+                    `[Retry] Unrecognised error${statusLabel} on final attempt. Giving up.`
+                );
                 break;
             }
 
-            // Exponential backoff with jitter
-            const delay = initialDelay * Math.pow(2, i) + Math.random() * 1000;
+            if (retryable) {
+                console.warn(`[Retry] Retryable error detected${statusLabel}`);
+            } else {
+                console.warn(`[Retry] Error${statusLabel} — will retry anyway.`);
+            }
 
-            // If it's a rate limit error, we might want to wait longer
-            const waitTime = isRateLimit ? Math.max(delay, 5000) : delay;
+            if (attempt < maxRetries) {
+                const base =
+                    initialDelay * Math.pow(2, attempt - 1) + Math.random() * 1000;
+                // Rate-limit errors warrant a longer minimum wait.
+                const waitTime = status === 429 ? Math.max(base, 5000) : base;
 
-            console.warn(`[Retry] Attempt ${i + 1} failed. Retrying in ${Math.round(waitTime)}ms...`, error.message);
-
-            await new Promise(resolve => setTimeout(resolve, waitTime));
+                console.warn(`[Retry] Waiting ${Math.round(waitTime / 1000)}s before retry...`);
+                await new Promise((resolve) => setTimeout(resolve, waitTime));
+                console.log(`[Retry] Attempt ${attempt + 1}/${maxRetries}`);
+            }
         }
     }
 

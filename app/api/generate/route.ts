@@ -1,6 +1,7 @@
 import path from "path";
 import fs from "fs";
 
+import { resetProviderSession } from "@/lib/services/ai/modelRouter";
 import { plannerAgent } from "@/lib/agents/plannerAgent";
 import { componentAgent } from "@/lib/agents/componentAgent";
 import { routeAgent } from "@/lib/agents/routeAgent";
@@ -144,6 +145,8 @@ export async function POST(req: Request) {
             await versionManager(existingProjectId, currentUser);
 
         // STEP 5: AI planning
+        // Reset provider session so every new generation starts with Gemini.
+        resetProviderSession();
         const blueprint = await plannerAgent(prompt, previousPath);
 
         // Save new project to user history
