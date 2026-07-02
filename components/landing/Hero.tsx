@@ -141,7 +141,7 @@ export default function Hero() {
             </motion.div>
 
             {/* Headline */}
-            <motion.h1 {...fadeUp(0.1)} className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold tracking-tight leading-[1.06] mb-6">
+            <motion.h1 {...fadeUp(0.1)} className="text-5xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold tracking-tight leading-[1.06] mb-6">
               <span className="text-slate-50">AutoStack</span>
               <br />
               <span className="text-slate-400">The Future of</span>
