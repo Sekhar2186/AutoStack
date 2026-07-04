@@ -7,6 +7,7 @@ import {
   ChevronRight, Camera, BarChart3, Clock, Zap, Globe, Loader2,
   Crown, Check, ArrowUpRight, Receipt, Star, ArrowLeft
 } from "lucide-react";
+import AISettingsPage from "@/app/dashboard/settings/ai/page";
 
 interface SettingsViewProps {
   onBack?: () => void;
@@ -32,6 +33,7 @@ const tabs = [
   { id: "appearance", label: "Appearance", icon: Palette },
   { id: "billing", label: "Billing & Plan", icon: CreditCard },
   { id: "security", label: "Security", icon: Shield },
+  { id: "ai", label: "AI Providers", icon: Zap },
 ];
 
 export default function SettingsView({
@@ -239,8 +241,8 @@ export default function SettingsView({
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap shrink-0 transition-all duration-200 border ${isActive
-                    ? "bg-white/8 border-cyan-500/30 text-cyan-400"
-                    : "border-white/5 text-slate-500 bg-white/3"
+                  ? "bg-white/8 border-cyan-500/30 text-cyan-400"
+                  : "border-white/5 text-slate-500 bg-white/3"
                   }`}
               >
                 <Icon size={13} />
@@ -269,8 +271,8 @@ export default function SettingsView({
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-left ${activeTab === tab.id
-                  ? "bg-white/5 text-slate-100 border border-white/10"
-                  : "text-slate-500 hover:text-slate-300 hover:bg-white/4"
+                ? "bg-white/5 text-slate-100 border border-white/10"
+                : "text-slate-500 hover:text-slate-300 hover:bg-white/4"
                 }`}
             >
               <tab.icon size={18} />
@@ -559,8 +561,8 @@ export default function SettingsView({
                                 <td className="px-6 py-3.5 font-medium text-slate-200">{log.action}</td>
                                 <td className="px-6 py-3.5">
                                   <span className={`px-2 py-0.5 rounded-full font-bold text-[10px] ${isPositive
-                                      ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/25"
-                                      : "bg-rose-500/10 text-rose-400 border border-rose-500/25"
+                                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/25"
+                                    : "bg-rose-500/10 text-rose-400 border border-rose-500/25"
                                     }`}>
                                     {isPositive ? `+${log.amount}` : log.amount}
                                   </span>
@@ -627,8 +629,8 @@ export default function SettingsView({
                     <button
                       onClick={onToggleAnimations}
                       className={`w-10 h-5 rounded-full transition-colors relative cursor-pointer outline-none border ${animationsEnabled
-                          ? "bg-cyan-500/20 border-cyan-500/30"
-                          : "bg-slate-700/20 border-slate-700/30"
+                        ? "bg-cyan-500/20 border-cyan-500/30"
+                        : "bg-slate-700/20 border-slate-700/30"
                         }`}
                     >
                       <motion.div
@@ -655,10 +657,10 @@ export default function SettingsView({
                 <div>
                   <h3 className="text-lg font-bold text-slate-100 mb-6">Current Plan</h3>
                   <div className={`relative rounded-2xl p-6 border overflow-hidden ${userPlan === "enterprise"
-                      ? "bg-linear-to-br from-amber-500/10 to-orange-600/10 border-amber-500/20"
-                      : userPlan === "pro"
-                        ? "bg-linear-to-br from-cyan-500/10 to-purple-600/10 border-cyan-500/20"
-                        : "bg-white/3 border-white/10"
+                    ? "bg-linear-to-br from-amber-500/10 to-orange-600/10 border-amber-500/20"
+                    : userPlan === "pro"
+                      ? "bg-linear-to-br from-cyan-500/10 to-purple-600/10 border-cyan-500/20"
+                      : "bg-white/3 border-white/10"
                     }`}>
                     <div className="flex items-start justify-between">
                       <div>
@@ -681,8 +683,8 @@ export default function SettingsView({
                       </div>
                       <div className="flex flex-col items-end gap-2">
                         <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${userPlan === "free"
-                            ? "border-white/10 text-slate-500 bg-white/3"
-                            : "border-emerald-500/25 text-emerald-400 bg-emerald-500/10"
+                          ? "border-white/10 text-slate-500 bg-white/3"
+                          : "border-emerald-500/25 text-emerald-400 bg-emerald-500/10"
                           }`}>
                           {userPlan === "free" ? "Starter" : "Active"}
                         </div>
@@ -842,6 +844,17 @@ export default function SettingsView({
                 <p className="text-sm text-slate-500 max-w-xs mt-2">Advanced security features like 2FA, API keys, and session management are coming soon.</p>
               </motion.div>
             )}
+
+            {activeTab === "ai" && (
+              <motion.div
+                key="ai"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="h-full overflow-y-auto pb-10"
+              >
+                <AISettingsPage />
+              </motion.div>
+            )}
           </AnimatePresence>
         </div>
       </div>
@@ -854,8 +867,8 @@ export default function SettingsView({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.9 }}
             className={`fixed bottom-20 md:bottom-6 right-4 md:right-6 z-50 px-4 md:px-5 py-3 md:py-3.5 rounded-xl border shadow-2xl flex items-center gap-3 text-sm font-semibold backdrop-blur-md max-w-[calc(100vw-2rem)] ${toast.type === "success"
-                ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
-                : "bg-rose-500/10 border-rose-500/20 text-rose-400"
+              ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+              : "bg-rose-500/10 border-rose-500/20 text-rose-400"
               }`}
           >
             <div className={`w-2 h-2 rounded-full shrink-0 ${toast.type === "success" ? "bg-emerald-400 animate-pulse" : "bg-rose-400"}`} />
