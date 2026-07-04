@@ -447,53 +447,115 @@ function VersionsTab({ app, onSwitch }: { app: any, onSwitch: (v: string) => voi
   );
 }
 
-function DocsTab({ app }: { app: any }) {
+function DocsTab({ app, onDocsGenerated }: { app: any, onDocsGenerated: (docs: any) => void }) {
   const [downloading, setDownloading] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  
+  const hasDocs = app?.docs && Object.keys(app.docs).length > 0;
+
   const downloadPDF = () => {
     setDownloading(true);
     setTimeout(() => setDownloading(false), 2000);
   };
 
+  const generateDocs = async () => {
+    if (!app?.projectId || generating) return;
+    setGenerating(true);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`/api/projects/${app.projectId}/generate-docs`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ version: app.version || "v1" })
+      });
+      const data = await res.json();
+      if (data.success && data.docs) {
+         onDocsGenerated(data.docs);
+      } else {
+         alert("Documentation generation failed.\nPlease try again.");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Documentation generation failed.\nPlease try again.");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  if (!hasDocs) {
+    return (
+      <div className="flex flex-col h-full p-8 overflow-y-auto items-center justify-center text-center">
+         <Book size={48} className="text-slate-700 mb-4" />
+         <h2 className="text-xl font-bold text-slate-200 mb-2">Documentation</h2>
+         <p className="text-slate-500 max-w-sm mb-6">Documentation has not been generated yet.</p>
+         
+         <button 
+           onClick={generateDocs} 
+           disabled={generating} 
+           className="flex items-center justify-center gap-2 px-6 py-2 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 font-bold hover:bg-cyan-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+         >
+           {generating && <Loader2 size={16} className="animate-spin" />}
+           {generating ? "Generating Documentation..." : "Generate Documentation"}
+         </button>
+
+         {generating && (
+           <div className="mt-8 flex flex-col gap-3 text-sm text-slate-400 text-left bg-white/5 p-5 rounded-xl border border-white/10 w-full max-w-xs shadow-lg">
+             <div className="flex items-center gap-3"><Loader2 size={14} className="animate-spin text-cyan-400"/> README</div>
+             <div className="flex items-center gap-3"><Loader2 size={14} className="animate-spin text-cyan-400"/> Architecture</div>
+             <div className="flex items-center gap-3"><Loader2 size={14} className="animate-spin text-cyan-400"/> Project Report</div>
+             <div className="flex items-center gap-3"><Loader2 size={14} className="animate-spin text-cyan-400"/> TODO</div>
+             <div className="flex items-center gap-3"><Loader2 size={14} className="animate-spin text-cyan-400"/> PDF</div>
+           </div>
+         )}
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-full p-8 overflow-y-auto custom-scrollbar">
-      <div className="max-w-2xl mx-auto w-full">
+      <div className="max-w-3xl mx-auto w-full">
         <div className="flex items-center justify-between mb-2">
-          <h2 className="text-2xl font-bold text-slate-100">Project Documentation</h2>
+          <h2 className="text-2xl font-bold text-slate-100">Documentation</h2>
           <button
             onClick={downloadPDF}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-[11px] font-bold text-cyan-400 hover:bg-cyan-500/20 transition-all"
           >
             <Download size={14} />
-            {downloading ? "Generating PDF..." : "Export as PDF"}
+            {downloading ? "Generating PDF..." : "Download PDF"}
           </button>
         </div>
-        <p className="text-slate-500 mb-8 pb-8 border-b border-white/5">Auto-generated technical overview based on your prompt.</p>
+        <p className="text-slate-500 mb-8 pb-8 border-b border-white/5">Auto-generated technical documentation based on your prompt.</p>
 
         <div className="space-y-10">
           <section>
-            <h3 className="text-sm font-bold text-cyan-400 uppercase tracking-widest mb-4">Project Summary</h3>
-            <p className="text-sm text-slate-400 leading-relaxed italic">
-              "{app?.docs?.summary || "No summary available."}"
-            </p>
+            <h3 className="text-sm font-bold text-cyan-400 uppercase tracking-widest mb-4">README</h3>
+            <div className="text-sm text-slate-400 leading-relaxed whitespace-pre-wrap bg-black/20 p-5 rounded-xl border border-white/5 font-mono">
+              {app?.docs?.readme || app?.docs?.summary || "README content not found."}
+            </div>
           </section>
 
           <section>
-            <h3 className="text-sm font-bold text-purple-400 uppercase tracking-widest mb-4">Technical Stack</h3>
-            <p className="text-sm text-slate-400 leading-relaxed">
-              {app?.docs?.architecture || "Next.js 14 + Tailwind CSS"}
-            </p>
+            <h3 className="text-sm font-bold text-purple-400 uppercase tracking-widest mb-4">Architecture</h3>
+            <div className="text-sm text-slate-400 leading-relaxed whitespace-pre-wrap bg-black/20 p-5 rounded-xl border border-white/5 font-mono">
+              {app?.docs?.architecture || "Architecture details not found."}
+            </div>
           </section>
 
           <section>
-            <h3 className="text-sm font-bold text-slate-200 mb-4 tracking-widest">Key Features</h3>
-            <ul className="grid grid-cols-2 gap-4">
-              {(app?.docs?.features || []).map((f: string) => (
-                <li key={f} className="flex items-center gap-2 text-xs text-slate-500">
-                  <div className="w-1.5 h-1.5 rounded-full bg-cyan-500/40" />
-                  {f}
-                </li>
-              ))}
-            </ul>
+            <h3 className="text-sm font-bold text-emerald-400 uppercase tracking-widest mb-4">Project Report</h3>
+            <div className="text-sm text-slate-400 leading-relaxed whitespace-pre-wrap bg-black/20 p-5 rounded-xl border border-white/5 font-mono">
+              {app?.docs?.report || "Project report not found."}
+            </div>
+          </section>
+
+          <section>
+            <h3 className="text-sm font-bold text-amber-400 uppercase tracking-widest mb-4">TODO</h3>
+            <div className="text-sm text-slate-400 leading-relaxed whitespace-pre-wrap bg-black/20 p-5 rounded-xl border border-white/5 font-mono">
+              {app?.docs?.todo || "TODO list not found."}
+            </div>
           </section>
         </div>
       </div>
@@ -576,7 +638,7 @@ export default function IDEPanel({ app, isGenerating, error, onComplete, onClose
     files: <FilesTab app={currentApp} onSelect={(f) => { setActiveFile(f); setActiveTab("code"); }} />,
     logs: <LogsTab />,
     versions: <VersionsTab app={currentApp} onSwitch={handleVersionSwitch} />,
-    docs: <DocsTab app={currentApp} />,
+    docs: <DocsTab app={currentApp} onDocsGenerated={(docs) => setCurrentApp({ ...currentApp, docs })} />,
     chat: (
       <div className="flex flex-col h-full items-center justify-center text-center p-8">
         <div className="w-16 h-16 rounded-2xl bg-cyan-500/10 flex items-center justify-center mb-4">

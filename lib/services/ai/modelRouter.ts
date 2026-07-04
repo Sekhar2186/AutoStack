@@ -1,5 +1,32 @@
-import { generateWithGemini } from "./providers/gemini";
-import { generateWithGroq } from "./providers/groq";
+/**
+ * AI Model Router — pure orchestrator.
+ *
+ * This module is the single entry point for all AI generation in AutoStack.
+ * It orchestrates provider selection and fallback — it knows NOTHING about
+ * how individual providers work internally.
+ *
+ * Generation flow:
+ *
+ *   generateAI(model, prompt, config, userId?)
+ *       │
+ *       ├─ userId provided?
+ *       │       │
+ *       │       ├─ YES → resolveProviderForUser(userId)
+ *       │       │           │
+ *       │       │           ├─ isUserProvider → getProvider(name).generate()
+ *       │       │           │
+ *       │       │           └─ "auto"  → system fallback chain ↓
+ *       │       │
+ *       │       └─ NO  → system fallback chain ↓
+ *       │
+ *       └─ System fallback chain:
+ *               Gemini (with retry)
+ *                   │
+ *                   └─ fail → Groq (with retry)
+ *                                 │
+ *                                 └─ fail → throw
+ */
+
 import { withRetry } from "@/lib/utils/retryUtils";
 import { isAuthError, isQuotaError } from "@/lib/services/ai/errorUtils";
 import {
@@ -7,80 +34,171 @@ import {
     setActiveProvider,
     isFallbackActive,
 } from "@/lib/services/ai/providerSession";
-// import { generateWithOpenAI } from "./providers/openai";
-// import { generateWithClaude } from "./providers/claude";
+import { getProvider } from "@/lib/services/ai/providerFactory";
+import { resolveProviderForUser } from "@/lib/services/ai/providerResolver";
+import { systemProviders } from "@/lib/config/systemProviders";
 
 // Re-export so callers (e.g. the generate route) only need one import.
 export { resetProviderSession } from "@/lib/services/ai/providerSession";
 
-// ─── Internal: Run with retry, then fall back to Groq ────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-async function runWithGeminiFallback(prompt: any, config: any): Promise<any> {
-    // If a previous call already switched to Groq, skip Gemini entirely.
+interface GenerateConfig {
+    temperature?: number;
+    maxOutputTokens?: number;
+    [key: string]: unknown;
+}
+
+// ─── System Fallback Chain ────────────────────────────────────────────────────
+
+/**
+ * Runs generation with Gemini (system key).
+ * On non-auth failure, falls back to Groq (system key).
+ * Reuses the active session to skip Gemini when already in fallback mode.
+ */
+async function runSystemFallbackChain(
+    prompt: string | unknown[],
+    config: GenerateConfig
+): Promise<string> {
+    // If a previous call in this session already switched to Groq, skip Gemini.
     if (isFallbackActive()) {
-        console.log("[AI Router] Provider Session = Groq (reusing fallback from earlier in this session)");
-        return runGroq(prompt, config);
+        console.log(
+            "[AI Router] Provider Session = Groq (reusing fallback from earlier in this session)"
+        );
+        return runSystemGroq(prompt, config);
     }
 
-    console.log("[AI Router] Active Provider: Gemini");
+    console.log("[AI Router] Active Provider: Gemini (system)");
+
     try {
-        const result = await withRetry(() => generateWithGemini(prompt, config));
+        const geminiProvider = getProvider("gemini");
+        const { apiKey, model } = systemProviders.gemini;
+
+        const result = await withRetry(() =>
+            geminiProvider.generate({ prompt, model, apiKey, config })
+        );
+
         console.log("[AI Router] Gemini generation completed successfully.");
         return result;
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const err = error as { message?: string; stack?: string; status?: number };
         // Auth failures mean misconfiguration — switching providers won't help.
-        if (isAuthError(error)) {
-            console.error("[AI Router] Gemini authentication error. Check GEMINI_API_KEY.");
-            console.error(`[Gemini] Error: ${error?.message ?? "Unknown error"}`);
+        if (isAuthError(err)) {
+            console.error(
+                "[AI Router] Gemini authentication error. Check GEMINI_API_KEY."
+            );
+            console.error(`[Gemini] Error: ${err?.message ?? "Unknown error"}`);
             throw error;
         }
 
-        const reason = isQuotaError(error)
+        const reason = isQuotaError(err)
             ? "quota / rate-limit exhausted"
             : "all retries failed";
-        console.warn(`[AI Router] Gemini exhausted all retry attempts (${reason}).`);
-        console.warn(`[Gemini] Error: ${error?.message ?? "Unknown error"}`);
-        if (error?.stack) {
-            console.warn(`[Gemini] Stack trace:\n${error.stack}`);
+
+        console.warn(
+            `[AI Router] Gemini exhausted all retry attempts (${reason}).`
+        );
+        console.warn(`[Gemini] Error: ${err?.message ?? "Unknown error"}`);
+        if (err?.stack) {
+            console.warn(`[Gemini] Stack trace:\n${err.stack}`);
         }
 
-        console.log("[AI Router] Switching provider from Gemini -> Groq");
+        console.log("[AI Router] Switching provider from Gemini → Groq");
         setActiveProvider("groq");
 
-        return runGroq(prompt, config);
+        return runSystemGroq(prompt, config);
     }
 }
 
-async function runGroq(prompt: any, config: any): Promise<any> {
+/**
+ * Runs generation with Groq (system key).
+ */
+async function runSystemGroq(
+    prompt: string | unknown[],
+    config: GenerateConfig
+): Promise<string> {
     try {
-        const result = await withRetry(() => generateWithGroq(prompt, config));
+        const groqProvider = getProvider("groq");
+        const { apiKey, model } = systemProviders.groq;
+
+        const result = await withRetry(() =>
+            groqProvider.generate({ prompt, model, apiKey, config })
+        );
+
         console.log("[AI Router] Groq generation completed successfully.");
-        console.log(`[AI Router] Provider Session = ${getActiveProvider().toUpperCase()}`);
+        console.log(
+            `[AI Router] Provider Session = ${getActiveProvider().toUpperCase()}`
+        );
         return result;
-    } catch (groqError: any) {
+    } catch (groqError: unknown) {
+        const err = groqError as { message?: string; stack?: string };
         console.error("[AI Router] Groq generation failed.");
-        console.error(`[Groq] Error: ${groqError?.message ?? "Unknown error"}`);
-        if (groqError?.stack) {
-            console.error(`[Groq] Stack trace:\n${groqError.stack}`);
+        console.error(
+            `[Groq] Error: ${err?.message ?? "Unknown error"}`
+        );
+        if (err?.stack) {
+            console.error(`[Groq] Stack trace:\n${err.stack}`);
         }
         throw groqError;
     }
 }
 
+// ─── User Provider Path ───────────────────────────────────────────────────────
+
+/**
+ * Runs generation using the user's configured provider.
+ * Wraps with retry — falls through on auth errors.
+ */
+async function runUserProvider(
+    providerName: string,
+    apiKey: string,
+    model: string,
+    prompt: string | unknown[],
+    config: GenerateConfig
+): Promise<string> {
+    const provider = getProvider(providerName);
+
+    console.log(
+        `[AI Router] Using user provider: "${providerName}" (model: ${model})`
+    );
+
+    return withRetry(() =>
+        provider.generate({ prompt, model, apiKey, config })
+    );
+}
+
 // ─── Public API ───────────────────────────────────────────────────────────────
 
-export async function generateAI(model: string, prompt: any, config: any = {}) {
-    switch (model) {
-        case "gemini":
-            return runWithGeminiFallback(prompt, config);
+/**
+ * Main entry point for all AI generation in AutoStack.
+ *
+ * @param model   - Preferred model hint (e.g. "gemini"). Ignored if userId resolves a user provider.
+ * @param prompt  - Prompt string or array of parts.
+ * @param config  - Optional generation config.
+ * @param userId  - Optional user ID. When provided, attempts to resolve user's custom provider first.
+ */
+export async function generateAI(
+    model: string,
+    prompt: string | unknown[],
+    config: GenerateConfig = {},
+    userId?: string
+): Promise<string> {
+    // 1. Attempt user provider if userId is provided
+    if (userId) {
+        const resolved = await resolveProviderForUser(userId);
 
-        case "openai":
-            throw new Error("OpenAI not enabled yet");
-
-        case "claude":
-            throw new Error("Claude not enabled yet");
-
-        default:
-            return runWithGeminiFallback(prompt, config);
+        if (resolved.isUserProvider) {
+            return runUserProvider(
+                resolved.provider,
+                resolved.apiKey,
+                resolved.model,
+                prompt,
+                config
+            );
+        }
+        // else: fall through to system provider chain
     }
+
+    // 2. System fallback chain: Gemini → Groq
+    return runSystemFallbackChain(prompt, config);
 }

@@ -31,7 +31,13 @@ export async function GET(req: Request) {
                 const fullPath = path.join(projectDir, filePath);
                 const dir = path.dirname(fullPath);
                 fs.mkdirSync(dir, { recursive: true });
-                fs.writeFileSync(fullPath, content, "utf-8");
+                
+                if (content.startsWith("data:application/pdf;base64,")) {
+                    const base64Data = content.replace("data:application/pdf;base64,", "");
+                    fs.writeFileSync(fullPath, base64Data, "base64");
+                } else {
+                    fs.writeFileSync(fullPath, content, "utf-8");
+                }
             }
         }
 

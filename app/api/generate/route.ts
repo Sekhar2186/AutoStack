@@ -6,9 +6,7 @@ import { plannerAgent } from "@/lib/agents/plannerAgent";
 import { componentAgent } from "@/lib/agents/componentAgent";
 import { routeAgent } from "@/lib/agents/routeAgent";
 import { pageAgent } from "@/lib/agents/pageAgent";
-import { docAgent } from "@/lib/agents/docAgent";
 import { fixAgent } from "@/lib/agents/fixAgent";
-import { generatePDF } from "@/lib/services/generatePDF";
 import { validateGeneratedCode } from "@/lib/services/validator";
 
 import { versionManager } from "@/lib/services/versionManager";
@@ -272,36 +270,7 @@ export async function POST(req: Request) {
                 })
             )
         );
-        // STEP 8.5: Generate AI docs
-        let docs = {};
-        try {
-            docs = await docAgent({
-                prompt,
-                blueprint,
-                projectId,
-                version,
-                components: Object.keys(components || {}),
-                pages: Object.keys(generatedPages || {}),
-                routes: Object.keys(routes || {}),
-                ui: body.ui || "",
-                template: templateType,
-                model: process.env.NEXT_PUBLIC_GEMINI_MODEL || "gemini"
-            });
-        } catch (e) {
-            console.error("Doc generation failed, using fallback:", e);
-            // Fallback documentation if AI fails
-            docs = {
-                "README.md": `# ${blueprint.appName || "Generated Project"}\n\n${blueprint.description || "An AI-generated Next.js application."}\n\n## Features\n${(blueprint.features || []).map((f: string) => `- ${f}`).join("\n")}\n\n## Tech Stack\n- Next.js 14\n- Tailwind CSS\n- Lucide Icons`,
-                "PROJECT_REPORT.md": `# Project Report\n\nThis project was generated using AutoStack.\n\n### Blueprint\n- App Name: ${blueprint.appName}\n- Components: ${(blueprint.frontendComponents || []).join(", ")}\n- Pages: ${(blueprint.frontendPages || []).map((p: any) => p.name).join(", ")}`,
-                "ARCHITECTURE.md": `# Architecture Overview\n\n- **Frontend**: Next.js 14 (App Router)\n- **Styling**: Tailwind CSS\n- **Components**: Atomic Design Pattern\n- **State**: React Context / Hooks`,
-                "TODO.md": `# Future Tasks\n\n- [ ] Implement database integration\n- [ ] Add advanced user analytics\n- [ ] Setup CI/CD pipeline\n- [ ] Optimize performance`,
-                "docs.json": JSON.stringify({
-                    summary: blueprint.description || "AI-generated application.",
-                    architecture: "Next.js 14 + Tailwind CSS",
-                    features: blueprint.features || []
-                })
-            };
-        }
+        // STEP 8.5 removed as docs are now generated in a separate phase
 
         // STEP 9: Merge code — all config files come from the canonical
         // packageTemplate.ts. Never construct package.json inline.
@@ -309,7 +278,6 @@ export async function POST(req: Request) {
             components: components || {},
             routes: routes || {},
             pages: generatedPages,
-            docs: docs || {},
 
             configFiles: {
                 // ── Single source of truth for all config files ──────────────
@@ -421,21 +389,7 @@ export async function POST(req: Request) {
         // STEP 11: Inject code
         await codeInjector(projectPath, code);
 
-        // STEP 12: PDF
-        const pdfPath = await generatePDF(
-            {
-                projectId,
-                version,
-                prompt,
-                docs,
-                blueprint,
-                components: Object.keys(components || {}),
-                pages: Object.keys(generatedPages || {}),
-                routes: Object.keys(routes || {})
-            },
-            projectPath
-        );
-
+        // STEP 12 removed as PDF is generated in a separate phase
         // STEP 13: ZIP + PREVIEW
         const zipPath = await zipProject(projectPath);
         //const previewLink = runProject(projectPath);
@@ -450,7 +404,6 @@ export async function POST(req: Request) {
             blueprint,
             files: virtualFiles,
             zipPath,
-            pdfPath,
             previewLink,
             port
         });

@@ -15,7 +15,6 @@ const steps = [
   { label: "Generating Components", duration: 2500 },
   { label: "Generating Pages", duration: 3000 },
   { label: "Generating APIs", duration: 2000 },
-  { label: "Generating Documentation", duration: 1500 },
   { label: "Injecting Code", duration: 1000 },
   { label: "Starting Preview Server", duration: 2000 },
 ];
