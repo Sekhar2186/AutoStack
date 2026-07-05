@@ -25,7 +25,7 @@ export async function GET(req: Request) {
 
         return Response.json({
             success: true,
-            projects: user.projects || []
+            projects: (user.projects || []).filter((p: any) => !p.isDeleted)
         });
 
     } catch (error) {

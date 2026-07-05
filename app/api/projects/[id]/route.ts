@@ -151,6 +151,7 @@ export async function GET(
 import { verifyToken } from "@/lib/middleware/auth";
 import { connectDB } from "@/lib/db/connect";
 import { Project } from "@/lib/db/models/ProjectFiles";
+import { User } from "@/lib/db/models/User";
 
 export async function GET(
     req: Request,
@@ -256,5 +257,48 @@ export async function GET(
                 status: 500
             }
         );
+    }
+}
+
+export async function DELETE(
+    req: Request,
+    context: { params: Promise<{ id: string }> }
+) {
+    try {
+        const decoded = verifyToken(req);
+
+        if (!decoded) {
+            return Response.json({ success: false, message: "Unauthorized" }, { status: 401 });
+        }
+
+        await connectDB();
+
+        const { id: projectId } = await context.params;
+        const userId = (decoded as any).id;
+
+        const project = await Project.findOne({ projectId });
+
+        if (!project) {
+            return Response.json({ success: false, message: "Project not found" }, { status: 404 });
+        }
+
+        // Verify ownership
+        if (project.userId && project.userId !== userId) {
+            return Response.json({ success: false, message: "Forbidden" }, { status: 403 });
+        }
+
+        // Soft-delete: mark isDeleted on the Project document
+        await Project.updateOne({ projectId }, { $set: { isDeleted: true } });
+
+        // Soft-delete: mark isDeleted on the User's embedded project entry
+        await User.updateOne(
+            { _id: userId, "projects.projectId": projectId },
+            { $set: { "projects.$.isDeleted": true } }
+        );
+
+        return Response.json({ success: true, message: "Project deleted successfully" });
+    } catch (error) {
+        console.error("Project delete error:", error);
+        return Response.json({ success: false, message: "Failed to delete project" }, { status: 500 });
     }
 }

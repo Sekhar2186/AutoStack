@@ -33,6 +33,11 @@ const ProjectSchema = new mongoose.Schema(
         docs: {
             type: Object,
             default: {}
+        },
+
+        isDeleted: {
+            type: Boolean,
+            default: false
         }
     },
     {

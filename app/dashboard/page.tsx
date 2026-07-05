@@ -12,6 +12,8 @@ import PromptEngine from "@/components/dashboard/PromptEngine";
 import IDEPanel from "@/components/dashboard/IDEPanel";
 import SettingsView from "@/components/dashboard/SettingsView";
 import HelpView from "@/components/dashboard/HelpView";
+import { toast } from "sonner";
+import ProjectActionsMenu from "@/components/dashboard/ProjectActionsMenu";
 
 import MobileLayout, { MobileTab } from "@/components/dashboard/MobileLayout";
 
@@ -247,6 +249,15 @@ export default function CommandCenter() {
     setMobileTab("prompt");
   };
 
+  const handleDeleteSuccess = (projectId: string) => {
+    setProjects(prev => prev.filter(p => p.projectId !== projectId));
+    setProjectCount(prev => Math.max(0, prev - 1));
+    toast.success("Project deleted successfully.");
+    const guestProjects = JSON.parse(localStorage.getItem("guestProjects") || "[]");
+    const updatedGuest = guestProjects.filter((p: any) => p.projectId !== projectId);
+    localStorage.setItem("guestProjects", JSON.stringify(updatedGuest));
+  };
+
   /* themes */
   const themes: Record<string, { bg: string; glow1: string; glow2: string }> = {
     obsidian: { bg: "bg-[#020617]", glow1: "bg-cyan-500/5", glow2: "bg-sky-600/5" },
@@ -305,6 +316,7 @@ export default function CommandCenter() {
         handleNewProject={handleNewProject}
         projects={projects}
         handleProjectClick={handleProjectClick}
+        handleDeleteSuccess={handleDeleteSuccess}
         settingsProps={settingsViewProps}
       />
 
@@ -464,13 +476,26 @@ export default function CommandCenter() {
                           <div
                             key={idx}
                             onClick={() => handleProjectClick(p.projectId)}
-                            className="glass p-5 rounded-2xl border border-white/5 hover:bg-white/5 transition-all cursor-pointer"
+                            className="glass p-5 rounded-2xl border border-white/5 hover:bg-white/5 transition-all cursor-pointer relative group"
                           >
-                            <h3 className="text-xl font-bold text-slate-100">{p.appName}</h3>
-                            <p className="text-sm text-slate-400 mt-2 mb-4 line-clamp-2">{p.description}</p>
+                            <div className="flex justify-between items-start mb-2">
+                              <h3 className="text-xl font-bold text-slate-100 pr-8">{p.appName}</h3>
+                              <div className="absolute top-4 right-4 z-20">
+                                <ProjectActionsMenu
+                                  projectId={p.projectId}
+                                  projectName={p.appName}
+                                  version={p.version}
+                                  onOpenProject={() => handleProjectClick(p.projectId)}
+                                  onDeleteSuccess={() => handleDeleteSuccess(p.projectId)}
+                                />
+                              </div>
+                            </div>
+                            <p className="text-sm text-slate-400 mb-4 line-clamp-2">{p.description}</p>
                             <div className="flex justify-between items-center text-xs text-slate-500">
-                              <span>{p.projectId}</span>
-                              <span>{new Date(p.createdAt).toLocaleDateString()}</span>
+                              <span>{p.projectId.slice(0, 8)}...</span>
+                              <div className="flex items-center gap-3">
+                                <span>{new Date(p.createdAt).toLocaleDateString()}</span>
+                              </div>
                             </div>
                           </div>
                         ))}
@@ -645,6 +670,7 @@ export default function CommandCenter() {
           </div>
         </div>
       </main>
+
     </MotionConfig>
   );
 }

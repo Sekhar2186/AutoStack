@@ -10,6 +10,7 @@ import PromptEngine from "@/components/dashboard/PromptEngine";
 import IDEPanel from "@/components/dashboard/IDEPanel";
 import SettingsView from "@/components/dashboard/SettingsView";
 import HelpView from "@/components/dashboard/HelpView";
+import ProjectActionsMenu from "@/components/dashboard/ProjectActionsMenu";
 
 /* ─────────────────────────── types ──────────────────────────── */
 export type MobileTab = "dashboard" | "prompt" | "projects" | "settings" | "help";
@@ -45,6 +46,7 @@ interface MobileLayoutProps {
 
   projects: any[];
   handleProjectClick: (id: string) => void;
+  handleDeleteSuccess: (projectId: string) => void;
 
   settingsProps: any;
 }
@@ -67,6 +69,7 @@ export default function MobileLayout({
   handleNewProject,
   projects,
   handleProjectClick,
+  handleDeleteSuccess,
   settingsProps
 }: MobileLayoutProps) {
 
@@ -232,9 +235,20 @@ export default function MobileLayout({
                       <div
                         key={idx}
                         onClick={() => handleProjectClick(p.projectId)}
-                        className="glass p-4 rounded-2xl border border-white/5 active:scale-[0.98] transition-all cursor-pointer"
+                        className="glass p-4 rounded-2xl border border-white/5 active:scale-[0.98] transition-all cursor-pointer relative group"
                       >
-                        <h3 className="text-base font-bold text-slate-100 mb-1 truncate">{p.appName}</h3>
+                        <div className="flex justify-between items-start mb-1">
+                          <h3 className="text-base font-bold text-slate-100 truncate pr-8">{p.appName}</h3>
+                          <div className="absolute top-3 right-3 z-20">
+                            <ProjectActionsMenu
+                              projectId={p.projectId}
+                              projectName={p.appName}
+                              version={p.version}
+                              onOpenProject={() => handleProjectClick(p.projectId)}
+                              onDeleteSuccess={() => handleDeleteSuccess(p.projectId)}
+                            />
+                          </div>
+                        </div>
                         <p className="text-xs text-slate-400 line-clamp-2 mb-3 leading-relaxed">{p.description}</p>
                         <div className="flex justify-between items-center text-[10px] text-slate-600">
                           <span className="font-mono">{p.projectId?.slice(0, 10)}…</span>
