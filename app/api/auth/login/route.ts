@@ -4,7 +4,7 @@ import { User } from "@/lib/db/models/User";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-const SECRET = process.env.JWT_SECRET!;
+const SECRET = process.env.JWT_SECRET || "your_secret_key";
 
 export async function POST(req: Request) {
     try {

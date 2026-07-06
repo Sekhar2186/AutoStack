@@ -2,22 +2,71 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, EyeOff, Save, Trash2, CheckCircle2, XCircle, Loader2, Activity, Info } from "lucide-react";
+import { Eye, EyeOff, Save, Trash2, CheckCircle2, XCircle, Loader2, Activity, Info, ChevronDown } from "lucide-react";
 
 type SupportedProvider = "gemini" | "groq" | "openai" | "claude";
-type PreferredProvider = "auto" | SupportedProvider;
 
 interface ProviderConfig {
-    enabled: boolean;
-    apiKey: string;
     model: string;
     hasKey: boolean;
 }
 
 interface SettingsState {
-    preferredProvider: PreferredProvider;
+    generationMode: "auto" | "manual";
+    selectedProvider: SupportedProvider;
     providers: Record<SupportedProvider, ProviderConfig>;
 }
+
+const BRAND_COLORS = {
+    gemini: {
+        text: "text-blue-400",
+        border: "border-blue-500/10",
+        borderHover: "hover:border-blue-500/30",
+        bg: "bg-blue-600 hover:bg-blue-500",
+        bgLight: "bg-blue-500/10",
+        glow: "shadow-[0_0_15px_rgba(59,130,246,0.35)]",
+        cardHover: "hover:shadow-[0_0_30px_rgba(59,130,246,0.08)] hover:border-blue-500/25",
+        badge: "bg-blue-500/10 border-blue-500/20 text-blue-400",
+        iconBg: "from-blue-500/10 to-blue-500/[0.02] border-blue-500/20",
+        focus: "focus:ring-blue-500/20 focus:border-blue-500/30"
+    },
+    claude: {
+        text: "text-orange-400",
+        border: "border-orange-500/10",
+        borderHover: "hover:border-orange-500/30",
+        bg: "bg-orange-600 hover:bg-orange-500",
+        bgLight: "bg-orange-500/10",
+        glow: "shadow-[0_0_15px_rgba(249,115,22,0.35)]",
+        cardHover: "hover:shadow-[0_0_30px_rgba(249,115,22,0.08)] hover:border-orange-500/25",
+        badge: "bg-orange-500/10 border-orange-500/20 text-orange-400",
+        iconBg: "from-orange-500/10 to-orange-500/[0.02] border-orange-500/20",
+        focus: "focus:ring-orange-500/20 focus:border-orange-500/30"
+    },
+    openai: {
+        text: "text-emerald-400",
+        border: "border-emerald-500/10",
+        borderHover: "hover:border-emerald-500/30",
+        bg: "bg-emerald-600 hover:bg-emerald-500",
+        bgLight: "bg-emerald-500/10",
+        glow: "shadow-[0_0_15px_rgba(16,185,129,0.35)]",
+        cardHover: "hover:shadow-[0_0_30px_rgba(16,185,129,0.08)] hover:border-emerald-500/25",
+        badge: "bg-emerald-500/10 border-emerald-500/20 text-emerald-400",
+        iconBg: "from-emerald-500/10 to-emerald-500/[0.02] border-emerald-500/20",
+        focus: "focus:ring-emerald-500/20 focus:border-emerald-500/30"
+    },
+    groq: {
+        text: "text-purple-400",
+        border: "border-purple-500/10",
+        borderHover: "hover:border-purple-500/30",
+        bg: "bg-purple-600 hover:bg-purple-500",
+        bgLight: "bg-purple-500/10",
+        glow: "shadow-[0_0_15px_rgba(168,85,247,0.35)]",
+        cardHover: "hover:shadow-[0_0_30px_rgba(168,85,247,0.08)] hover:border-purple-500/25",
+        badge: "bg-purple-500/10 border-purple-500/20 text-purple-400",
+        iconBg: "from-purple-500/10 to-purple-500/[0.02] border-purple-500/20",
+        focus: "focus:ring-purple-500/20 focus:border-purple-500/30"
+    }
+};
 
 const PROVIDERS: { id: SupportedProvider; name: string; desc: string; defaultModels: string[]; color: string; icon: React.ReactNode }[] = [
     {
@@ -28,7 +77,7 @@ const PROVIDERS: { id: SupportedProvider; name: string; desc: string; defaultMod
         color: "text-blue-500",
         icon: (
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-blue-500">
-                <path d="M12 2C12 7.52285 16.4772 12 22 12C16.4772 12 12 16.4772 12 22C12 16.4772 7.52285 12 2 12C7.52285 12 12 7.52285 12 2Z" fill="currentColor"/>
+                <path d="M12 2C12 7.52285 16.4772 12 22 12C16.4772 12 12 16.4772 12 22C12 16.4772 7.52285 12 2 12C7.52285 12 12 7.52285 12 2Z" fill="currentColor" />
             </svg>
         ),
     },
@@ -40,7 +89,7 @@ const PROVIDERS: { id: SupportedProvider; name: string; desc: string; defaultMod
         color: "text-orange-500",
         icon: (
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-orange-500">
-                <path d="M12 2C12 7.52285 16.4772 12 22 12C16.4772 12 12 16.4772 12 22C12 16.4772 7.52285 12 2 12C7.52285 12 12 7.52285 12 2Z" fill="currentColor"/>
+                <path d="M12 2C12 7.52285 16.4772 12 22 12C16.4772 12 12 16.4772 12 22C12 16.4772 7.52285 12 2 12C7.52285 12 12 7.52285 12 2Z" fill="currentColor" />
             </svg>
         ),
     },
@@ -52,7 +101,7 @@ const PROVIDERS: { id: SupportedProvider; name: string; desc: string; defaultMod
         color: "text-green-500",
         icon: (
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-green-500">
-                <path d="M12 2C12 7.52285 16.4772 12 22 12C16.4772 12 12 16.4772 12 22C12 16.4772 7.52285 12 2 12C7.52285 12 12 7.52285 12 2Z" fill="currentColor"/>
+                <path d="M12 2C12 7.52285 16.4772 12 22 12C16.4772 12 12 16.4772 12 22C12 16.4772 7.52285 12 2 12C7.52285 12 12 7.52285 12 2Z" fill="currentColor" />
             </svg>
         ),
     },
@@ -64,32 +113,38 @@ const PROVIDERS: { id: SupportedProvider; name: string; desc: string; defaultMod
         color: "text-purple-500",
         icon: (
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-purple-500">
-                <path d="M12 2C12 7.52285 16.4772 12 22 12C16.4772 12 12 16.4772 12 22C12 16.4772 7.52285 12 2 12C7.52285 12 12 7.52285 12 2Z" fill="currentColor"/>
+                <path d="M12 2C12 7.52285 16.4772 12 22 12C16.4772 12 12 16.4772 12 22C12 16.4772 7.52285 12 2 12C7.52285 12 12 7.52285 12 2Z" fill="currentColor" />
             </svg>
         ),
     },
 ];
 
-const PREFERRED_OPTIONS: { id: PreferredProvider; name: string; desc?: string }[] = [
-    { id: "auto", name: "Auto (Recommended)", desc: "Uses AutoStack intelligent fallback. Gemini → Groq" },
-    ...PROVIDERS.map(p => ({ id: p.id as PreferredProvider, name: p.name })),
-];
+const authHeaders = () => {
+    const token = localStorage.getItem("token");
+    return {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+    };
+};
+
 
 export default function AISettingsPage() {
     const [loading, setLoading] = useState(true);
     const [settings, setSettings] = useState<SettingsState>({
-        preferredProvider: "auto",
+        generationMode: "auto",
+        selectedProvider: "gemini",
         providers: {
-            gemini: { enabled: false, apiKey: "", model: "gemini-2.5-flash", hasKey: false },
-            groq: { enabled: false, apiKey: "", model: "llama-3.3-70b-versatile", hasKey: false },
-            openai: { enabled: false, apiKey: "", model: "gpt-4o", hasKey: false },
-            claude: { enabled: false, apiKey: "", model: "claude-3-5-sonnet", hasKey: false },
+            gemini: { model: "gemini-2.5-flash", hasKey: false },
+            groq: { model: "llama-3.3-70b-versatile", hasKey: false },
+            openai: { model: "gpt-4o", hasKey: false },
+            claude: { model: "claude-3-5-sonnet", hasKey: false },
         },
     });
-    
-    // State to hold user edits before they hit save for Preferred Provider
-    const [localPreferred, setLocalPreferred] = useState<PreferredProvider>("auto");
-    const [savingPreferred, setSavingPreferred] = useState(false);
+
+    // State to hold user edits before they hit save for Generation Mode
+    const [localMode, setLocalMode] = useState<"auto" | "manual">("auto");
+    const [localProvider, setLocalProvider] = useState<SupportedProvider>("gemini");
+    const [savingMode, setSavingMode] = useState(false);
 
     // Toast state
     const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
@@ -101,12 +156,15 @@ export default function AISettingsPage() {
     const fetchSettings = async () => {
         setLoading(true);
         try {
-            const res = await fetch("/api/user/ai-settings");
+            const res = await fetch("/api/user/ai-settings", {
+                headers: authHeaders(),
+            });
             if (res.ok) {
                 const data = await res.json();
                 if (data.success && data.settings) {
                     setSettings(data.settings);
-                    setLocalPreferred(data.settings.preferredProvider || "auto");
+                    setLocalMode(data.settings.generationMode || "auto");
+                    setLocalProvider(data.settings.selectedProvider || "gemini");
                 }
             }
         } catch (error) {
@@ -122,22 +180,18 @@ export default function AISettingsPage() {
         setTimeout(() => setToast(null), 3000);
     };
 
-    const savePreferredProvider = async () => {
-        setSavingPreferred(true);
+    const saveGenerationMode = async () => {
+        setSavingMode(true);
         try {
-            // Pick any provider just to hit the POST endpoint for preferredProvider change.
-            // The API supports changing preferredProvider regardless of the 'provider' field, but it requires 'provider', 'model', 'enabled'.
-            // Let's just update the preferredProvider along with the first supported provider data safely.
-            const pData = settings.providers["gemini"];
+            const pData = settings.providers[localProvider] || settings.providers["gemini"];
             const res = await fetch("/api/user/ai-settings", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: authHeaders(),
                 body: JSON.stringify({
-                    provider: "gemini",
-                    apiKey: pData.apiKey && !pData.apiKey.includes("***") ? pData.apiKey : "",
-                    model: pData.model || "gemini-2.5-flash",
-                    enabled: pData.enabled,
-                    preferredProvider: localPreferred,
+                    provider: localProvider,
+                    model: pData.model,
+                    generationMode: localMode,
+                    selectedProvider: localProvider,
                 }),
             });
             const data = await res.json();
@@ -150,7 +204,7 @@ export default function AISettingsPage() {
         } catch (err) {
             showToast("Unable to save preferences. Please try again.", "error");
         } finally {
-            setSavingPreferred(false);
+            setSavingMode(false);
         }
     };
 
@@ -160,26 +214,25 @@ export default function AISettingsPage() {
                 <h1 className="text-3xl font-bold mb-2 tracking-tight">AI Settings</h1>
                 <p className="text-gray-400 mb-8">Configure your AI providers and set your intelligent fallbacks.</p>
 
-                {/* Preferred Provider Section */}
+                {/* Generation Mode Section */}
                 <section className="mb-12">
                     <div className="flex items-center justify-between mb-5">
-                        <h2 className="text-xl font-bold text-slate-100">Provider Preference</h2>
-                        <motion.button 
-                            whileHover={localPreferred !== settings.preferredProvider ? { scale: 1.02 } : {}} 
-                            whileTap={localPreferred !== settings.preferredProvider ? { scale: 0.98 } : {}}
-                            onClick={savePreferredProvider}
-                            disabled={savingPreferred || localPreferred === settings.preferredProvider}
-                            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 min-w-[140px] ${
-                                localPreferred !== settings.preferredProvider 
-                                ? "bg-cyan-500 text-white shadow-[0_0_15px_rgba(6,182,212,0.3)] hover:bg-cyan-400" 
+                        <h2 className="text-xl font-bold text-slate-100">Generation Mode</h2>
+                        <motion.button
+                            whileHover={(localMode !== settings.generationMode || localProvider !== settings.selectedProvider) ? { scale: 1.02 } : {}}
+                            whileTap={(localMode !== settings.generationMode || localProvider !== settings.selectedProvider) ? { scale: 0.98 } : {}}
+                            onClick={saveGenerationMode}
+                            disabled={savingMode || (localMode === settings.generationMode && localProvider === settings.selectedProvider)}
+                            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 min-w-[140px] ${(localMode !== settings.generationMode || localProvider !== settings.selectedProvider)
+                                ? "bg-cyan-500 text-white shadow-[0_0_15px_rgba(6,182,212,0.3)] hover:bg-cyan-400"
                                 : "bg-white/5 border border-white/5 text-slate-500 cursor-not-allowed"
-                            }`}
+                                }`}
                         >
-                            {savingPreferred && <Loader2 className="w-4 h-4 animate-spin" />}
-                            {savingPreferred ? "Saving..." : "Save Preferences"}
+                            {savingMode && <Loader2 className="w-4 h-4 animate-spin" />}
+                            {savingMode ? "Saving..." : "Save Preferences"}
                         </motion.button>
                     </div>
-                    
+
                     {loading ? (
                         <div className="flex flex-col gap-4">
                             <Skeleton className="h-20 w-full" />
@@ -190,12 +243,11 @@ export default function AISettingsPage() {
                     ) : (
                         <div className="flex flex-col gap-4">
                             <div
-                                onClick={() => setLocalPreferred('auto')}
-                                className={`relative p-5 rounded-xl border transition-all cursor-pointer flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-3 ${
-                                    localPreferred === 'auto' 
-                                    ? "border-cyan-500 bg-cyan-500/10 ring-1 ring-cyan-500" 
+                                onClick={() => setLocalMode('auto')}
+                                className={`relative p-5 rounded-xl border transition-all cursor-pointer flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-3 ${localMode === 'auto'
+                                    ? "border-cyan-500 bg-cyan-500/10 ring-1 ring-cyan-500"
                                     : "border-white/10 bg-white/5 hover:border-white/30 hover:bg-white/10"
-                                }`}
+                                    }`}
                             >
                                 <div className="flex-1">
                                     <div className="font-bold text-slate-100 flex items-center justify-center sm:justify-start gap-2">
@@ -204,20 +256,40 @@ export default function AISettingsPage() {
                                     <div className="text-sm text-slate-400 mt-1">Uses AutoStack intelligent fallback. Gemini → Groq</div>
                                 </div>
                             </div>
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                                {PROVIDERS.map((provider) => (
-                                    <div
-                                        key={provider.id}
-                                        onClick={() => setLocalPreferred(provider.id as PreferredProvider)}
-                                        className={`relative p-4 rounded-xl border transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                                            localPreferred === provider.id 
-                                            ? "border-white bg-white/10 ring-1 ring-white" 
-                                            : "border-white/10 bg-black hover:border-white/30 hover:bg-white/5"
-                                        }`}
-                                    >
-                                        <div className="text-sm font-semibold text-slate-200">{provider.name}</div>
+                            <div
+                                onClick={() => setLocalMode('manual')}
+                                className={`relative p-5 rounded-xl border transition-all cursor-pointer flex flex-col gap-3 ${localMode === 'manual'
+                                    ? "border-white bg-white/5 ring-1 ring-white"
+                                    : "border-white/10 bg-black hover:border-white/30 hover:bg-white/5"
+                                    }`}
+                            >
+                                <div className="font-bold text-slate-100">Manual Selection</div>
+                                <div className="text-sm text-slate-400">Choose a specific provider for AI generation.</div>
+
+                                {localMode === 'manual' && (
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-2">
+                                        {PROVIDERS.map((provider) => {
+                                            const brand = BRAND_COLORS[provider.id as SupportedProvider] || BRAND_COLORS.gemini;
+                                            const isSelected = localProvider === provider.id;
+                                            return (
+                                                <div
+                                                    key={provider.id}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setLocalProvider(provider.id);
+                                                    }}
+                                                    className={`relative p-4 rounded-xl border transition-all duration-300 cursor-pointer flex items-center justify-center gap-2.5 ${isSelected
+                                                        ? "border-slate-200 bg-white/10 shadow-lg shadow-black/40 ring-1 ring-white/10"
+                                                        : "border-white/5 bg-slate-950/40 hover:border-white/20 hover:bg-white/5"
+                                                        }`}
+                                                >
+                                                    <div className={`w-2 h-2 rounded-full transition-colors duration-300 ${isSelected ? brand.text.replace('text-', 'bg-') : 'bg-transparent border border-white/20'}`} />
+                                                    <div className="text-sm font-semibold text-slate-200">{provider.name}</div>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
-                                ))}
+                                )}
                             </div>
                         </div>
                     )}
@@ -229,11 +301,11 @@ export default function AISettingsPage() {
                 <section>
                     <h2 className="text-xl font-semibold mb-6">Providers</h2>
                     {loading ? (
-                        <div className="grid gap-6" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))" }}>
+                        <div className="grid gap-6" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))" }}>
                             {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-64" />)}
                         </div>
                     ) : (
-                        <div className="grid gap-6" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))" }}>
+                        <div className="grid gap-6" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))" }}>
                             {PROVIDERS.map((provider) => (
                                 <ProviderCard
                                     key={provider.id}
@@ -269,9 +341,8 @@ export default function AISettingsPage() {
                         initial={{ opacity: 0, y: 50, scale: 0.9 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 20, scale: 0.9 }}
-                        className={`fixed bottom-6 right-6 flex items-center gap-2 px-4 py-3 rounded-lg shadow-xl font-medium border ${
-                            toast.type === "success" ? "bg-green-950/80 border-green-500/50 text-green-400" : "bg-red-950/80 border-red-500/50 text-red-400"
-                        } backdrop-blur-md z-50`}
+                        className={`fixed bottom-6 right-6 flex items-center gap-2 px-4 py-3 rounded-lg shadow-xl font-medium border ${toast.type === "success" ? "bg-green-950/80 border-green-500/50 text-green-400" : "bg-red-950/80 border-red-500/50 text-red-400"
+                            } backdrop-blur-md z-50`}
                     >
                         {toast.type === "success" ? <CheckCircle2 className="w-5 h-5" /> : <XCircle className="w-5 h-5" />}
                         {toast.message}
@@ -285,22 +356,24 @@ export default function AISettingsPage() {
 // -------------------------------------------------------------
 // Provider Card Component
 // -------------------------------------------------------------
-function ProviderCard({ 
-    providerInfo, 
-    config, 
-    onUpdate, 
-    showToast 
-}: { 
+function ProviderCard({
+    providerInfo,
+    config,
+    onUpdate,
+    showToast
+}: {
     providerInfo: typeof PROVIDERS[0];
     config: ProviderConfig;
     onUpdate: (s: SettingsState) => void;
     showToast: (m: string, t: "success" | "error") => void;
 }) {
     const [localConfig, setLocalConfig] = useState(config);
+    const [apiKey, setApiKey] = useState("");
     const [showKey, setShowKey] = useState(false);
     const [saving, setSaving] = useState(false);
     const [testing, setTesting] = useState(false);
     const [testResult, setTestResult] = useState<{ status: "success" | "error", message: string } | null>(null);
+    const [validationError, setValidationError] = useState<string | null>(null);
 
     // Sync if upstream changes
     useEffect(() => {
@@ -308,21 +381,27 @@ function ProviderCard({
     }, [config]);
 
     const handleSave = async () => {
+        setValidationError(null);
+        if (!config.hasKey && !apiKey.trim()) {
+            setValidationError("API Key is required");
+            return;
+        }
+
         setSaving(true);
         try {
             const res = await fetch("/api/user/ai-settings", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: authHeaders(),
                 body: JSON.stringify({
                     provider: providerInfo.id,
-                    apiKey: localConfig.apiKey.includes("***") ? "" : localConfig.apiKey, // Don't send masked key
+                    apiKey: apiKey.trim(),
                     model: localConfig.model || providerInfo.defaultModels[0],
-                    enabled: localConfig.enabled,
                 }),
             });
             const data = await res.json();
             if (data.success) {
                 onUpdate(data.settings);
+                setApiKey("");
                 showToast("Settings saved successfully.", "success");
             } else {
                 showToast("Unable to save settings. Please try again.", "error");
@@ -340,10 +419,12 @@ function ProviderCard({
         try {
             const res = await fetch(`/api/user/ai-settings?provider=${providerInfo.id}`, {
                 method: "DELETE",
+                headers: authHeaders(),
             });
             const data = await res.json();
             if (data.success) {
                 onUpdate(data.settings);
+                setApiKey("");
                 showToast("API key removed.", "success");
             } else {
                 showToast("Failed to remove API key.", "error");
@@ -358,201 +439,185 @@ function ProviderCard({
     const handleTestConnection = async () => {
         setTesting(true);
         setTestResult(null);
-        
-        // Use the actual input key if changed, else use a placeholder indicating it's using the saved key (but we can't test masked key directly from client)
-        // If the key is masked, they should test by backend, but we don't have a backend route.
-        // So we will just show a mock success if it's masked, or try if it's raw.
-        const keyToUse = localConfig.apiKey;
-        if (keyToUse.includes("***")) {
-            // Cannot securely test from client without the real key.
-            setTimeout(() => {
-                setTestResult({ status: "success", message: "Connection successful (using stored key)" });
-                setTesting(false);
-            }, 800);
-            return;
-        }
+        setValidationError(null);
 
-        if (!keyToUse) {
-            setTestResult({ status: "error", message: "API key is required to test connection." });
+        if (!apiKey.trim() && !config.hasKey) {
+            setValidationError("API Key is required to test connection.");
             setTesting(false);
             return;
         }
 
         try {
-            let res;
-            if (providerInfo.id === "gemini") {
-                res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash?key=${keyToUse}`);
-            } else if (providerInfo.id === "openai") {
-                res = await fetch("https://api.openai.com/v1/models", { headers: { Authorization: `Bearer ${keyToUse}` }});
-            } else if (providerInfo.id === "groq") {
-                res = await fetch("https://api.groq.com/openai/v1/models", { headers: { Authorization: `Bearer ${keyToUse}` }});
-            } else if (providerInfo.id === "claude") {
-                // Claude will likely fail due to CORS in browser without specific headers/setup
-                res = await fetch("https://api.anthropic.com/v1/models", { 
-                    headers: { "x-api-key": keyToUse, "anthropic-version": "2023-06-01" },
-                }).catch(() => null);
-            }
+            const res = await fetch("/api/user/ai-settings/test", {
+                method: "POST",
+                headers: authHeaders(),
+                body: JSON.stringify({
+                    provider: providerInfo.id,
+                    apiKey: apiKey.trim(),
+                    model: localConfig.model || providerInfo.defaultModels[0],
+                }),
+            });
 
-            if (res && res.ok) {
+            if (res.ok) {
                 setTestResult({ status: "success", message: "Connection successful" });
+                showToast("Connection Successful", "success");
             } else {
-                const errData = res ? await res.json().catch(() => ({})) : {};
-                setTestResult({ status: "error", message: errData.error?.message || "Invalid API key or network error." });
+                const errData = await res.json().catch(() => ({}));
+                const errMsg = errData.message || "Invalid API key or network error.";
+                setTestResult({ status: "error", message: errMsg });
+                showToast("Connection Failed", "error");
             }
         } catch (e: unknown) {
-            setTestResult({ status: "error", message: "Connection failed. Please check your network or CORS settings." });
+            setTestResult({ status: "error", message: "Connection failed. Please check your network." });
+            showToast("Connection Failed", "error");
         } finally {
             setTesting(false);
         }
     };
 
-    const isDirty = localConfig.apiKey !== config.apiKey || localConfig.enabled !== config.enabled || localConfig.model !== config.model;
-    const isMasked = localConfig.apiKey.includes("***");
+    const isDirty = apiKey.length > 0 || localConfig.model !== config.model;
+
+    const brand = BRAND_COLORS[providerInfo.id as SupportedProvider] || BRAND_COLORS.gemini;
 
     return (
-        <motion.div 
+        <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-black border border-white/10 rounded-2xl p-6 relative flex flex-col"
+            className={`bg-linear-to-b from-slate-950/80 to-slate-900/60 backdrop-blur-xl border border-white/[0.07] rounded-2xl p-6 relative flex flex-col transition-all duration-500 shadow-xl shadow-black/40 group ${brand.cardHover}`}
         >
             {/* Header */}
-            <div className="flex items-start justify-between mb-6">
-                <div className="flex items-center gap-4">
-                    <div className="p-3 bg-white/5 rounded-xl border border-white/10">
-                        {providerInfo.icon}
+            <div className="flex flex-wrap items-start justify-between mb-6 gap-4">
+                <div className="flex items-center gap-4 min-w-0">
+                    <div className={`p-3 bg-linear-to-br ${brand.iconBg} rounded-xl border transition-all duration-300 relative shrink-0`}>
+                        <div className={`absolute inset-0 bg-linear-to-br ${brand.iconBg.replace('border-', '')} blur-md rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+                        <div className="relative z-10">
+                            {providerInfo.icon}
+                        </div>
                     </div>
-                    <div>
-                        <h3 className="text-xl font-bold flex items-center gap-2">
+                    <div className="min-w-0">
+                        <h3 className="text-xl font-bold flex items-center gap-2 text-slate-100">
                             {providerInfo.name}
                             <Tooltip content={`Use your personal ${providerInfo.name} API key. Your key is encrypted before being stored.`}>
-                                <Info className="w-4 h-4 text-gray-500 cursor-help" />
+                                <Info className="w-4 h-4 text-gray-500 hover:text-gray-300 cursor-help transition-colors" />
                             </Tooltip>
                         </h3>
-                        <p className="text-sm text-gray-400">{providerInfo.desc}</p>
+                        <p className="text-sm text-slate-400 mt-0.5 truncate">{providerInfo.desc}</p>
                     </div>
                 </div>
-                
+
                 {/* Status Badge */}
-                <div className="flex flex-col items-end gap-2 shrink-0">
-                    <div className={`whitespace-nowrap px-2.5 py-1 rounded-full text-xs font-medium border flex items-center gap-1.5 ${
-                        config.hasKey ? "bg-green-950/30 border-green-500/30 text-green-400" : "bg-white/5 border-white/10 text-gray-400"
-                    }`}>
-                        <div className={`w-1.5 h-1.5 rounded-full ${config.hasKey ? "bg-green-500" : "bg-gray-500"}`} />
+                <div className="flex items-center shrink-0">
+                    <div className={`whitespace-nowrap px-2.5 py-1 rounded-full text-xs font-medium border flex items-center gap-1.5 transition-all duration-300 ${config.hasKey ? brand.badge : "bg-white/5 border-white/10 text-slate-400"
+                        }`}>
+                        <div className={`w-1.5 h-1.5 rounded-full ${config.hasKey ? brand.text.replace('text-', 'bg-') : "bg-slate-500"}`} />
                         {config.hasKey ? "Configured" : "Not Configured"}
-                    </div>
-                    
-                    {/* Enable Switch */}
-                    <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs text-gray-400 font-medium">Enabled</span>
-                        <button 
-                            onClick={() => setLocalConfig({...localConfig, enabled: !localConfig.enabled})}
-                            className={`w-10 h-5 rounded-full p-0.5 transition-colors duration-200 ease-in-out ${localConfig.enabled ? providerInfo.color.replace('text-', 'bg-') : 'bg-gray-700'}`}
-                        >
-                            <motion.div 
-                                layout 
-                                className="w-4 h-4 bg-white rounded-full shadow-sm"
-                                animate={{ x: localConfig.enabled ? 20 : 0 }}
-                                transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                            />
-                        </button>
                     </div>
                 </div>
             </div>
 
-            {/* Form Fields - Disabled if OFF */}
-            <div className={`flex flex-col gap-4 transition-opacity duration-300 ${localConfig.enabled ? "opacity-100" : "opacity-40 pointer-events-none"}`}>
-                
+            {/* Form Fields */}
+            <div className="flex flex-col gap-4">
+
                 {/* API Key */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1.5">API Key</label>
+                    <label className="block text-sm font-medium text-slate-300 mb-1.5">API Key</label>
                     <div className="relative flex items-center">
                         <input
-                            type={showKey && !isMasked ? "text" : "password"}
-                            value={localConfig.apiKey}
-                            onChange={(e) => setLocalConfig({...localConfig, apiKey: e.target.value})}
-                            disabled={isMasked && !showKey}
-                            placeholder={`sk-... (${providerInfo.name} key)`}
-                            autoComplete="off"
-                            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/30 font-mono placeholder:font-sans pr-10"
-                            onFocus={() => {
-                                if (isMasked) {
-                                    setLocalConfig({...localConfig, apiKey: ""});
-                                }
+                            type={showKey ? "text" : "password"}
+                            value={apiKey}
+                            onChange={(e) => {
+                                setApiKey(e.target.value);
+                                setValidationError(null);
                             }}
+                            placeholder="Enter API Key"
+                            autoComplete="off"
+                            className={`w-full bg-white/2 backdrop-blur-sm border rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none transition-all duration-300 font-mono placeholder:font-sans pr-10 ${validationError
+                                ? 'border-red-500/50 focus:ring-red-500/20 focus:border-red-500/40'
+                                : `border-white/10 ${brand.focus}`
+                                }`}
                         />
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             onClick={() => setShowKey(!showKey)}
-                            disabled={isMasked}
-                            className="absolute right-3 text-gray-400 hover:text-white transition-colors disabled:opacity-50"
+                            className="absolute right-3 text-slate-400 hover:text-slate-200 transition-colors"
                         >
-                            {showKey && !isMasked ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
                     </div>
-                    {isMasked && (
-                        <p className="text-xs text-gray-500 mt-1.5">Key is securely stored. Start typing to replace it.</p>
+                    {validationError && (
+                        <p className="text-xs text-red-400 mt-1.5 flex items-center gap-1">
+                            <XCircle className="w-3 h-3" /> {validationError}
+                        </p>
                     )}
                 </div>
 
                 {/* Model */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1.5">Model</label>
-                    <select
-                        value={localConfig.model}
-                        onChange={(e) => setLocalConfig({...localConfig, model: e.target.value})}
-                        className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/30 appearance-none cursor-pointer"
-                    >
-                        {providerInfo.defaultModels.map(m => (
-                            <option key={m} value={m} className="bg-neutral-900 text-white">{m}</option>
-                        ))}
-                    </select>
+                    <label className="block text-sm font-medium text-slate-300 mb-1.5">Model</label>
+                    <div className="relative group/select">
+                        <select
+                            value={localConfig.model}
+                            onChange={(e) => setLocalConfig({ ...localConfig, model: e.target.value })}
+                            className={`w-full bg-white/2 backdrop-blur-sm border border-white/10 rounded-xl pl-4 pr-10 py-2.5 text-sm text-white focus:outline-none transition-all duration-300 appearance-none cursor-pointer ${brand.focus}`}
+                        >
+                            {providerInfo.defaultModels.map(m => (
+                                <option key={m} value={m} className="bg-neutral-950 text-slate-200">{m}</option>
+                            ))}
+                        </select>
+                        <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none group-hover/select:text-slate-200 transition-colors" />
+                    </div>
                 </div>
 
             </div>
 
-            {/* Actions */}
-            <div className={`mt-auto pt-6 flex flex-wrap items-center gap-2 transition-opacity ${localConfig.enabled ? "opacity-100" : "opacity-40"}`}>
+            {/* Actions Stack */}
+            <div className="mt-8 flex flex-col gap-2.5 w-full">
+                {/* Primary Action: Save */}
                 <motion.button
-                    whileHover={{ scale: localConfig.enabled ? 1.02 : 1 }}
-                    whileTap={{ scale: localConfig.enabled ? 0.98 : 1 }}
+                    whileHover={{ scale: (saving || (!isDirty && config.hasKey)) ? 1 : 1.01 }}
+                    whileTap={{ scale: (saving || (!isDirty && config.hasKey)) ? 1 : 0.99 }}
                     onClick={handleSave}
-                    disabled={saving || !localConfig.enabled || (!isDirty && config.hasKey)}
-                    className={`flex-1 min-w-[100px] flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        isDirty 
-                            ? "bg-white text-black hover:bg-gray-200" 
-                            : "bg-white/10 text-gray-300 hover:bg-white/20"
-                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                    disabled={saving || (!isDirty && config.hasKey)}
+                    className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${isDirty || !config.hasKey
+                        ? `${brand.bg} text-white shadow-md ${brand.glow}`
+                        : "bg-white/5 text-slate-500 border border-white/5 cursor-not-allowed"
+                        } disabled:opacity-50`}
                 >
                     {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                    Save
+                    <span>Save Settings</span>
                 </motion.button>
 
-                <motion.button
-                    whileHover={{ scale: localConfig.enabled && config.hasKey ? 1.02 : 1 }}
-                    whileTap={{ scale: localConfig.enabled && config.hasKey ? 0.98 : 1 }}
-                    onClick={handleDelete}
-                    disabled={saving || !config.hasKey || !localConfig.enabled}
-                    className="flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Delete stored API Key"
-                >
-                    <Trash2 className="w-4 h-4" />
-                </motion.button>
-                
-                <motion.button
-                    whileHover={{ scale: localConfig.enabled ? 1.02 : 1 }}
-                    whileTap={{ scale: localConfig.enabled ? 0.98 : 1 }}
-                    onClick={handleTestConnection}
-                    disabled={testing || !localConfig.enabled || (!localConfig.apiKey && !config.hasKey)}
-                    className="flex-1 min-w-[140px] whitespace-nowrap flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border border-white/10 bg-white/5 hover:bg-white/10 text-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    {testing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Activity className="w-4 h-4" />}
-                    Test Connection
-                </motion.button>
+                {/* Secondary Actions Row */}
+                <div className="flex gap-2 w-full">
+                    <motion.button
+                        whileHover={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.99 }}
+                        onClick={handleTestConnection}
+                        disabled={testing || (!apiKey && !config.hasKey)}
+                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold border border-white/10 bg-white/5 hover:bg-white/10 text-slate-300 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                        {testing ? <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-400" /> : <Activity className="w-3.5 h-3.5 text-slate-400" />}
+                        <span>Test Connection</span>
+                    </motion.button>
+
+                    {config.hasKey && (
+                        <motion.button
+                            whileHover={{ scale: 1.01 }}
+                            whileTap={{ scale: 0.99 }}
+                            onClick={handleDelete}
+                            disabled={saving}
+                            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 hover:border-red-500/30 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-semibold"
+                        >
+                            {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                            <span>Delete Key</span>
+                        </motion.button>
+                    )}
+                </div>
             </div>
-            
+
             {/* Test Result Message */}
             {testResult && (
-                <div className={`mt-4 p-3 rounded-lg text-sm flex items-start gap-2 ${testResult.status === 'success' ? 'bg-green-950/40 text-green-400' : 'bg-red-950/40 text-red-400'}`}>
+                <div className={`mt-4 p-3 rounded-xl text-sm flex items-start gap-2 ${testResult.status === 'success' ? 'bg-green-950/40 text-green-400' : 'bg-red-950/40 text-red-400'}`}>
                     {testResult.status === 'success' ? <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0" /> : <XCircle className="w-4 h-4 mt-0.5 shrink-0" />}
                     <span>{testResult.message}</span>
                 </div>
@@ -589,3 +654,4 @@ function Tooltip({ children, content }: { children: React.ReactNode; content: st
         </div>
     );
 }
+
