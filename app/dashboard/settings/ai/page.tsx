@@ -301,11 +301,11 @@ export default function AISettingsPage() {
                 <section>
                     <h2 className="text-xl font-semibold mb-6">Providers</h2>
                     {loading ? (
-                        <div className="grid gap-6" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))" }}>
+                        <div className="grid gap-6" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))" }}>
                             {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-64" />)}
                         </div>
                     ) : (
-                        <div className="grid gap-6" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))" }}>
+                        <div className="grid gap-6" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))" }}>
                             {PROVIDERS.map((provider) => (
                                 <ProviderCard
                                     key={provider.id}
@@ -486,31 +486,31 @@ function ProviderCard({
             className={`bg-linear-to-b from-slate-950/80 to-slate-900/60 backdrop-blur-xl border border-white/[0.07] rounded-2xl p-6 relative flex flex-col transition-all duration-500 shadow-xl shadow-black/40 group ${brand.cardHover}`}
         >
             {/* Header */}
-            <div className="flex flex-wrap items-start justify-between mb-6 gap-4">
-                <div className="flex items-center gap-4 min-w-0">
-                    <div className={`p-3 bg-linear-to-br ${brand.iconBg} rounded-xl border transition-all duration-300 relative shrink-0`}>
+            <div className="flex items-start justify-between mb-6 gap-3">
+                <div className="flex items-center gap-4">
+                    <div className={`p-3 bg-linear-to-br ${brand.iconBg} rounded-xl border transition-all duration-300 relative`}>
                         <div className={`absolute inset-0 bg-linear-to-br ${brand.iconBg.replace('border-', '')} blur-md rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
                         <div className="relative z-10">
                             {providerInfo.icon}
                         </div>
                     </div>
-                    <div className="min-w-0">
+                    <div>
                         <h3 className="text-xl font-bold flex items-center gap-2 text-slate-100">
                             {providerInfo.name}
                             <Tooltip content={`Use your personal ${providerInfo.name} API key. Your key is encrypted before being stored.`}>
                                 <Info className="w-4 h-4 text-gray-500 hover:text-gray-300 cursor-help transition-colors" />
                             </Tooltip>
                         </h3>
-                        <p className="text-sm text-slate-400 mt-0.5 truncate">{providerInfo.desc}</p>
+                        <p className="text-sm text-slate-400 mt-0.5">{providerInfo.desc}</p>
                     </div>
                 </div>
 
                 {/* Status Badge */}
-                <div className="flex items-center shrink-0">
-                    <div className={`whitespace-nowrap px-2.5 py-1 rounded-full text-xs font-medium border flex items-center gap-1.5 transition-all duration-300 ${config.hasKey ? brand.badge : "bg-white/5 border-white/10 text-slate-400"
+                <div className="flex flex-col items-end gap-2 shrink-0">
+                    <div className={`whitespace-nowrap px-1.5 py-1 rounded-full text-xs font-medium border flex items-center gap-1.5 transition-all duration-300 ${config.hasKey ? brand.badge : "bg-white/5 border-white/10 text-slate-400"
                         }`}>
                         <div className={`w-1.5 h-1.5 rounded-full ${config.hasKey ? brand.text.replace('text-', 'bg-') : "bg-slate-500"}`} />
-                        {config.hasKey ? "Configured" : "Not Configured"}
+                        {config.hasKey ? "API Key Configured" : "No API Key Configured"}
                     </div>
                 </div>
             </div>
