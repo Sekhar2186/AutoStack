@@ -36,7 +36,7 @@ Return ONLY the raw, fixed source code. DO NOT wrap the code in markdown blocks 
     ];
 
     try {
-        const text = await generateAI("gemini", promptParts);
+        const text = await generateAI({ provider: "gemini", prompt: promptParts });
 
         // Clean markdown blocks if the model accidentally included them
         const cleaned = text

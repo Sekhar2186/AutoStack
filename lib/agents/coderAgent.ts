@@ -90,11 +90,18 @@ RETURN ONLY JSON:
 }
   `;
 
-  const response = await generateAI("gemini", [
-    instruction,
-    "USER REQUEST: " + (blueprint?.appName || ""),
-    JSON.stringify(blueprint),
-  ]);
+  const response = await generateAI({
+    provider: "gemini",
+    prompt: [
+      instruction,
+      "USER REQUEST: " + (blueprint?.appName || ""),
+      JSON.stringify(blueprint),
+    ],
+    config: {
+      temperature: 0.1,
+      maxOutputTokens: 8192,
+    },
+  });
 
   try {
     return safeJsonParse(response);

@@ -16,9 +16,13 @@
  * reachable by users who supply their own key via /api/user/ai-settings.
  */
 
-import type { ProviderGenerateOptions } from "../providerRegistry";
+import type { GenerateOptions } from "../types";
 
 export const name = "claude";
+export const supportsStreaming = true;
+export const supportsVision = true;
+export const supportsJSON = true;
+export const maxTokens = 8192;
 
 /**
  * Generate a response from the Anthropic Claude Messages API.
@@ -33,7 +37,7 @@ export async function generate({
     model,
     apiKey,
     config = {} as Record<string, unknown>,
-}: ProviderGenerateOptions): Promise<string> {
+}: GenerateOptions): Promise<string> {
     if (!apiKey) {
         throw new Error(
             "[Claude] No API key provided. " +

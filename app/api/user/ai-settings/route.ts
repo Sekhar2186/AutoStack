@@ -13,7 +13,6 @@ import { connectDB } from "@/lib/db/connect";
 import { UserAISettings } from "@/lib/db/models/UserAISettings";
 import type {
     SupportedProvider,
-    PreferredProvider,
     ProviderConfig,
     IUserAISettings,
 } from "@/lib/db/models/UserAISettings";
@@ -31,41 +30,23 @@ const SUPPORTED_PROVIDERS: SupportedProvider[] = [
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-/** Mask an encrypted key for safe display — shows only "***" or empty string. */
-function maskKey(encryptedKey: string): string {
-    if (!encryptedKey) return "";
-    try {
-        const plain = decrypt(encryptedKey);
-        if (!plain) return "";
-        // Show first 4 and last 4 chars with *** in between
-        if (plain.length <= 8) return "***";
-        return `${plain.slice(0, 4)}${"*".repeat(plain.length - 8)}${plain.slice(-4)}`;
-    } catch {
-        return "***";
-    }
-}
-
-/** Build a safe (masked) view of all provider settings. */
 function buildSafeSettings(settings: IUserAISettings | null) {
     const providers: Record<string, {
-        enabled: boolean;
-        apiKey: string;
         model: string;
         hasKey: boolean;
     }> = {};
 
     for (const p of SUPPORTED_PROVIDERS) {
-        const cfg: ProviderConfig | undefined = settings?.providers?.[p];
+        const cfg: ProviderConfig | undefined = settings?.providers?.[p as SupportedProvider];
         providers[p] = {
-            enabled: cfg?.enabled ?? false,
-            apiKey: maskKey(cfg?.apiKey ?? ""),
             model: cfg?.model ?? "",
             hasKey: Boolean(cfg?.apiKey),
         };
     }
 
     return {
-        preferredProvider: settings?.preferredProvider ?? "auto",
+        generationMode: settings?.generationMode ?? "auto",
+        selectedProvider: settings?.selectedProvider ?? "gemini",
         providers,
     };
 }
@@ -134,8 +115,8 @@ export async function POST(req: NextRequest) {
         provider: SupportedProvider;
         apiKey: string;
         model: string;
-        enabled: boolean;
-        preferredProvider?: PreferredProvider;
+        generationMode?: "auto" | "manual";
+        selectedProvider?: SupportedProvider;
     };
 
     try {
@@ -147,7 +128,7 @@ export async function POST(req: NextRequest) {
         );
     }
 
-    const { provider, apiKey, model, enabled, preferredProvider } = body;
+    const { provider, apiKey, model, generationMode, selectedProvider } = body;
 
     // Validate provider
     if (!SUPPORTED_PROVIDERS.includes(provider)) {
@@ -156,13 +137,6 @@ export async function POST(req: NextRequest) {
                 success: false,
                 message: `Unsupported provider "${provider}". Valid: ${SUPPORTED_PROVIDERS.join(", ")}`,
             },
-            { status: 400 }
-        );
-    }
-
-    if (typeof enabled !== "boolean") {
-        return NextResponse.json(
-            { success: false, message: '"enabled" must be a boolean' },
             { status: 400 }
         );
     }
@@ -182,7 +156,6 @@ export async function POST(req: NextRequest) {
 
         // Build the update object
         const updateFields: Record<string, unknown> = {
-            [`providers.${provider}.enabled`]: enabled,
             [`providers.${provider}.model`]: model.trim(),
         };
 
@@ -191,25 +164,29 @@ export async function POST(req: NextRequest) {
             updateFields[`providers.${provider}.apiKey`] = encryptedKey;
         }
 
-        // Update preferredProvider if supplied
-        if (preferredProvider) {
-            const validPreferred: PreferredProvider[] = [
-                "auto",
-                "gemini",
-                "groq",
-                "openai",
-                "claude",
-            ];
-            if (!validPreferred.includes(preferredProvider)) {
+        // Update mode and selected provider if supplied
+        if (generationMode) {
+            const validModes = ["auto", "manual"];
+            if (!validModes.includes(generationMode)) {
+                return NextResponse.json(
+                    { success: false, message: `Invalid generationMode "${generationMode}"` },
+                    { status: 400 }
+                );
+            }
+            updateFields["generationMode"] = generationMode;
+        }
+
+        if (selectedProvider) {
+            if (!SUPPORTED_PROVIDERS.includes(selectedProvider)) {
                 return NextResponse.json(
                     {
                         success: false,
-                        message: `Invalid preferredProvider "${preferredProvider}"`,
+                        message: `Invalid selectedProvider "${selectedProvider}"`,
                     },
                     { status: 400 }
                 );
             }
-            updateFields["preferredProvider"] = preferredProvider;
+            updateFields["selectedProvider"] = selectedProvider;
         }
 
         const updated = await UserAISettings.findOneAndUpdate(
@@ -269,7 +246,6 @@ export async function DELETE(req: NextRequest) {
             {
                 $set: {
                     [`providers.${provider}.apiKey`]: "",
-                    [`providers.${provider}.enabled`]: false,
                 },
             },
             { new: true }

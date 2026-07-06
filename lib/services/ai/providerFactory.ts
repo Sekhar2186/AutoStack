@@ -14,9 +14,9 @@
 
 import {
     providerRegistry,
-    type AIProvider,
     type RegisteredProviderName,
 } from "@/lib/services/ai/providerRegistry";
+import type { AIProvider } from "@/lib/services/ai/types";
 
 /**
  * Returns the AIProvider instance for the given name.

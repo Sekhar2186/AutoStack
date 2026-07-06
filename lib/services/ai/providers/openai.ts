@@ -15,9 +15,13 @@
  * reachable by users who supply their own key via /api/user/ai-settings.
  */
 
-import type { ProviderGenerateOptions } from "../providerRegistry";
+import type { GenerateOptions } from "../types";
 
 export const name = "openai";
+export const supportsStreaming = true;
+export const supportsVision = true;
+export const supportsJSON = true;
+export const maxTokens = 8192;
 
 /**
  * Generate a response from the OpenAI Chat Completions API.
@@ -32,7 +36,7 @@ export async function generate({
     model,
     apiKey,
     config = {} as Record<string, unknown>,
-}: ProviderGenerateOptions): Promise<string> {
+}: GenerateOptions): Promise<string> {
     if (!apiKey) {
         throw new Error(
             "[OpenAI] No API key provided. " +

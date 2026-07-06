@@ -183,7 +183,7 @@ APPLICATION FLOW RULE — CRITICAL:
     promptParts += `\n\nExisting project is located at: ${previousPath}. Please maintain architectural consistency.`;
   }
 
-  const text = await generateAI("gemini", [promptParts]);
+  const text = await generateAI({ provider: "gemini", prompt: [promptParts] });
 
   try {
     return safeJsonParse(text);

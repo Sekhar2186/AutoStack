@@ -12,9 +12,13 @@
  */
 
 import Groq from "groq-sdk";
-import type { ProviderGenerateOptions } from "../providerRegistry";
+import type { GenerateOptions } from "../types";
 
 export const name = "groq";
+export const supportsStreaming = true;
+export const supportsVision = false;
+export const supportsJSON = true;
+export const maxTokens = 8192;
 
 /**
  * Generate a response from the Groq API.
@@ -29,7 +33,7 @@ export async function generate({
     model,
     apiKey,
     config = {},
-}: ProviderGenerateOptions): Promise<string> {
+}: GenerateOptions): Promise<string> {
     if (!apiKey) {
         throw new Error("[Groq] No API key provided. Cannot call Groq API.");
     }

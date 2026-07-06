@@ -109,8 +109,12 @@ Return JSON:
   }
 
   try {
-    const raw = await generateAI("gemini", [prompt], {
-      responseMimeType: "application/json",
+    const raw = await generateAI({
+      provider: "gemini",
+      prompt: [prompt],
+      config: {
+        responseMimeType: "application/json",
+      }
     });
 
     const cleaned = raw

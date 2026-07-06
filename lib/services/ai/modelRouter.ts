@@ -169,20 +169,27 @@ async function runUserProvider(
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 
+export interface GenerateAIParams {
+    provider?: string;
+    prompt: string | unknown[];
+    config?: GenerateConfig;
+    userId?: string;
+}
+
 /**
  * Main entry point for all AI generation in AutoStack.
  *
- * @param model   - Preferred model hint (e.g. "gemini"). Ignored if userId resolves a user provider.
- * @param prompt  - Prompt string or array of parts.
- * @param config  - Optional generation config.
- * @param userId  - Optional user ID. When provided, attempts to resolve user's custom provider first.
+ * @param params.provider - Preferred provider hint (e.g. "gemini"). Ignored if userId resolves a user provider.
+ * @param params.prompt   - Prompt string or array of parts.
+ * @param params.config   - Optional generation config.
+ * @param params.userId   - Optional user ID. When provided, attempts to resolve user's custom provider first.
  */
-export async function generateAI(
-    model: string,
-    prompt: string | unknown[],
-    config: GenerateConfig = {},
-    userId?: string
-): Promise<string> {
+export async function generateAI({
+    provider = "gemini",
+    prompt,
+    config = {},
+    userId
+}: GenerateAIParams): Promise<string> {
     // 1. Attempt user provider if userId is provided
     if (userId) {
         const resolved = await resolveProviderForUser(userId);

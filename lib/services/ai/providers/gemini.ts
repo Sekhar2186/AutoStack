@@ -12,9 +12,13 @@
  */
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import type { ProviderGenerateOptions } from "../providerRegistry";
+import type { GenerateOptions } from "../types";
 
 export const name = "gemini";
+export const supportsStreaming = true;
+export const supportsVision = true;
+export const supportsJSON = true;
+export const maxTokens = 8192;
 
 /**
  * Generate a response from the Gemini API.
@@ -29,7 +33,7 @@ export async function generate({
     model,
     apiKey,
     config = {},
-}: ProviderGenerateOptions): Promise<string> {
+}: GenerateOptions): Promise<string> {
     if (!apiKey) {
         throw new Error("[Gemini] No API key provided. Cannot call Gemini API.");
     }

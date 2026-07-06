@@ -61,8 +61,12 @@ PROJECT DATA:
 ${JSON.stringify(data, null, 2)}
 `;
 
-    const raw = await generateAI("gemini", [prompt], {
+    const raw = await generateAI({
+      provider: "gemini",
+      prompt: [prompt],
+      config: {
         responseMimeType: "application/json",
+      }
     });
 
     const cleaned = raw

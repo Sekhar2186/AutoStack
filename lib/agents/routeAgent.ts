@@ -36,8 +36,12 @@ Return JSON:
     promptParts += `\n\nExisting project is at: ${previousPath}. Ensure API routes are consistent with existing structure.`;
   }
 
-  const raw = await generateAI("gemini", [promptParts], {
-    responseMimeType: "application/json",
+  const raw = await generateAI({
+    provider: "gemini",
+    prompt: [promptParts],
+    config: {
+      responseMimeType: "application/json",
+    }
   });
 
   try {

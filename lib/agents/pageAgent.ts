@@ -195,7 +195,7 @@ CUSTOM UI REQUIREMENTS:
 
   //const text = result.response.text();
 
-  const text = await generateAI("gemini", promptParts);
+  const text = await generateAI({ provider: "gemini", prompt: promptParts });
 
   // clean markdown if present (defensive)
   const cleaned = text

@@ -6,10 +6,10 @@
  *
  * Resolution logic:
  *   1. Load UserAISettings for the userId.
- *   2. Check preferredProvider — if "auto", return { provider: "auto" }.
- *   3. Check if the preferred provider is enabled and has an API key.
+ *   2. Check generationMode — if "auto", return { provider: "auto" }.
+ *   3. Check if the selectedProvider has an API key.
  *   4. Decrypt the API key and return the full config.
- *   5. If any step fails (no settings, not enabled, no key), return { provider: "auto" }
+ *   5. If any step fails (no settings, no key), return { provider: "auto" }
  *      to signal fallback to system providers.
  *
  * Responsibilities:
@@ -61,20 +61,21 @@ export async function resolveProviderForUser(
             return { provider: "auto", isUserProvider: false };
         }
 
-        const preferred = settings.preferredProvider;
+        const mode = settings.generationMode;
 
         // "auto" means user wants system defaults
-        if (preferred === "auto") {
+        if (mode === "auto") {
             return { provider: "auto", isUserProvider: false };
         }
 
-        const providerConfig = settings.providers[preferred];
+        const providerName = settings.selectedProvider;
+        const providerConfig = settings.providers[providerName];
 
-        // Check provider is enabled and has a key
-        if (!providerConfig?.enabled || !providerConfig.apiKey) {
+        // Check provider has a key
+        if (!providerConfig || !providerConfig.apiKey) {
             console.warn(
-                `[ProviderResolver] User ${userId} preferred "${preferred}" ` +
-                `but it is not enabled or has no API key. Falling back to system.`
+                `[ProviderResolver] User ${userId} selected "${providerName}" ` +
+                `but it has no API key. Falling back to system.`
             );
             return { provider: "auto", isUserProvider: false };
         }
@@ -84,18 +85,18 @@ export async function resolveProviderForUser(
 
         if (!apiKey) {
             console.warn(
-                `[ProviderResolver] Decryption returned empty key for user ${userId} / "${preferred}". ` +
+                `[ProviderResolver] Decryption returned empty key for user ${userId} / "${providerName}". ` +
                 `Falling back to system.`
             );
             return { provider: "auto", isUserProvider: false };
         }
 
         console.log(
-            `[ProviderResolver] Resolved user provider: "${preferred}" for user ${userId}`
+            `[ProviderResolver] Resolved user provider: "${providerName}" for user ${userId}`
         );
 
         return {
-            provider: preferred,
+            provider: providerName,
             apiKey,
             model: providerConfig.model,
             isUserProvider: true,
