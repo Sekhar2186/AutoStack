@@ -258,7 +258,7 @@ LinkedIn
 
 Portfolio
 
-sekhar-kurapati-six.vercel.app
+https://sekhar-kurapati-six.vercel.app/
 
 ---
 
