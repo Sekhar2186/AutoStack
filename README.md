@@ -21,7 +21,7 @@ Generate beautiful production-ready full-stack applications using AI in minutes.
 
 ### 🌐 Live Demo
 
-**🔗 https://YOUR-DOMAIN.vercel.app**
+**🔗 https://auto-stack-mu.vercel.app/**
 
 ---
 
@@ -204,40 +204,10 @@ Features
 
 ---
 
-# 📁 Project Structure
-
-```
-AutoStack/
-
-├── app/
-├── components/
-├── lib/
-│
-├── agents/
-│   ├── plannerAgent
-│   ├── pageAgent
-│   ├── componentAgent
-│   ├── routeAgent
-│   ├── docAgent
-│   └── fixAgent
-│
-├── services/
-│
-├── validator/
-│
-├── templates/
-│
-├── generated/
-│
-└── public/
-```
-
----
-
 # 🚀 Installation
 
 ```bash
-git clone https://github.com/yourusername/autostack.git
+git clone https://github.com/Sekhar2186/AutoStack
 
 cd autostack
 
@@ -245,61 +215,6 @@ npm install
 
 npm run dev
 ```
-
----
-
-# 🔑 Environment Variables
-
-Create a `.env.local`
-
-```env
-MONGODB_URI=
-
-JWT_SECRET=
-
-GEMINI_API_KEY=
-
-GROQ_API_KEY=
-
-API_KEY_SECRET=
-```
-
----
-
-# 📸 Screenshots
-
-| Landing | Dashboard |
-|----------|-----------|
-| Image | Image |
-
-| Generator | Preview |
-|-----------|----------|
-| Image | Image |
-
-| AI Settings | Generated Project |
-|-------------|-------------------|
-| Image | Image |
-
----
-
-# 🛣 Roadmap
-
-- [x] AI Planning
-- [x] Component Generation
-- [x] Page Generation
-- [x] Documentation Generation
-- [x] WebContainer Preview
-- [x] ZIP Download
-- [x] PDF Reports
-- [x] AI Provider System
-- [x] User API Keys
-- [ ] Streaming Generation
-- [ ] Image Generation
-- [ ] Team Collaboration
-- [ ] Deployment to Vercel
-- [ ] GitHub Repository Creation
-- [ ] Database Generation
-- [ ] Backend API Generation
 
 ---
 
@@ -339,11 +254,11 @@ https://github.com/Sekhar2186
 
 LinkedIn
 
-(Add your LinkedIn)
+----
 
 Portfolio
 
-(Add your Portfolio)
+sekhar-kurapati-six.vercel.app
 
 ---
 
