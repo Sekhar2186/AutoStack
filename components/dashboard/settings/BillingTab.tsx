@@ -1,7 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { Crown, Star, Check, ArrowUpRight, Receipt } from "lucide-react";
+import { Check, Crown, Star, ArrowUpRight, Receipt } from "lucide-react";
 
 interface BillingTabProps {
   userPlan: string;
@@ -71,16 +70,15 @@ export default function BillingTab({ userPlan, credits, creditHistory }: Billing
   );
 
   return (
-    <motion.div key="billing" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-8">
+    <div className="space-y-8">
 
       {/* Current Plan Card */}
       <div>
         <h3 className="text-lg font-bold text-slate-100 mb-6">Current Plan</h3>
-        <div className={`relative rounded-2xl p-6 border overflow-hidden ${
-          userPlan === "enterprise" ? "bg-linear-to-br from-amber-500/10 to-orange-600/10 border-amber-500/20"
+        <div className={`relative rounded-2xl p-6 border overflow-hidden ${userPlan === "enterprise" ? "bg-linear-to-br from-amber-500/10 to-orange-600/10 border-amber-500/20"
           : userPlan === "pro" ? "bg-linear-to-br from-cyan-500/10 to-purple-600/10 border-cyan-500/20"
-          : "bg-white/3 border-white/10"
-        }`}>
+            : "bg-white/3 border-white/10"
+          }`}>
           <div className="flex items-start justify-between">
             <div>
               <div className="flex items-center gap-2 mb-2">
@@ -95,13 +93,12 @@ export default function BillingTab({ userPlan, credits, creditHistory }: Billing
               </div>
               <p className="text-xs text-slate-500">
                 {userPlan === "free" ? "20 credits/day · Community support · 1 project"
-                : userPlan === "pro" ? "500 credits/day · Priority support · Unlimited projects"
-                : "1000 credits/day · Dedicated support · Enterprise features"}
+                  : userPlan === "pro" ? "500 credits/day · Priority support · Unlimited projects"
+                    : "1000 credits/day · Dedicated support · Enterprise features"}
               </p>
             </div>
-            <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${
-              userPlan === "free" ? "border-white/10 text-slate-500 bg-white/3" : "border-emerald-500/25 text-emerald-400 bg-emerald-500/10"
-            }`}>
+            <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${userPlan === "free" ? "border-white/10 text-slate-500 bg-white/3" : "border-emerald-500/25 text-emerald-400 bg-emerald-500/10"
+              }`}>
               {userPlan === "free" ? "Starter" : "Active"}
             </div>
           </div>
@@ -150,7 +147,7 @@ export default function BillingTab({ userPlan, credits, creditHistory }: Billing
                 {isCurrent ? (
                   <button disabled className="w-full py-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-500 text-sm font-bold cursor-default flex items-center justify-center gap-2"><Check size={14} /> Current Plan</button>
                 ) : isUpgrade ? (
-                  <a href="/#pricing" className={`shimmer-btn flex items-center justify-center gap-2 w-full py-2.5 rounded-xl ${plan.btnUpgrade} text-white text-sm font-bold transition-all hover:opacity-90`}>Upgrade to {plan.name} <ArrowUpRight size={14} /></a>
+                  <a href="/#pricing" className={`shimmer-btn flex items-center justify-center gap-0.5 w-full py-2.5 rounded-xl ${plan.btnUpgrade} text-white text-sm font-bold transition-all hover:opacity-90`}>Upgrade to {plan.name} <ArrowUpRight size={12} /></a>
                 ) : isDowngrade ? (
                   <a href="/#pricing" className={`flex items-center justify-center gap-2 w-full py-2.5 rounded-xl ${plan.btnDowngrade} text-sm font-bold transition-all`}>Downgrade to {plan.name}</a>
                 ) : null}
@@ -191,6 +188,6 @@ export default function BillingTab({ userPlan, credits, creditHistory }: Billing
           )}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

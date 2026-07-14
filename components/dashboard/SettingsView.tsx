@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   User, Shield, CreditCard, Palette, LogOut,
-  ChevronRight, BarChart3, Zap, ArrowLeft
+  ChevronDown, BarChart3, Zap, ArrowLeft
 } from "lucide-react";
 
 import ProfileTab from "@/components/dashboard/settings/ProfileTab";
@@ -46,7 +46,7 @@ export default function SettingsView({
   userName, userEmail, userPlan, userAvatar = "",
   onUpdateUser, activeTheme, setActiveTheme, animationsEnabled, onToggleAnimations, onBack
 }: SettingsViewProps) {
-  const [activeTab, setActiveTab] = useState("profile");
+  const [openTab, setOpenTab] = useState<string | null>("profile");
   const [toast, setToast] = useState<{ type: "success" | "error"; msg: string } | null>(null);
 
   const showToast = (type: "success" | "error", msg: string) => {
@@ -54,9 +54,63 @@ export default function SettingsView({
     setTimeout(() => setToast(null), 4000);
   };
 
+  const toggle = (id: string) => setOpenTab((prev) => (prev === id ? null : id));
+
+  const renderContent = (id: string) => {
+    switch (id) {
+      case "profile":
+        return (
+          <ProfileTab
+            userName={userName}
+            userEmail={userEmail}
+            userAvatar={userAvatar}
+            onUpdateUser={onUpdateUser}
+            showToast={showToast}
+          />
+        );
+      case "usage":
+        return (
+          <UsageTab
+            credits={credits}
+            creditHistory={creditHistory}
+            usageTrend={usageTrend}
+            genHistoryCount={genHistoryCount}
+            projectCount={projectCount}
+          />
+        );
+      case "appearance":
+        return (
+          <AppearanceTab
+            activeTheme={activeTheme}
+            setActiveTheme={setActiveTheme}
+            animationsEnabled={animationsEnabled}
+            onToggleAnimations={onToggleAnimations}
+          />
+        );
+      case "billing":
+        return (
+          <BillingTab
+            userPlan={userPlan}
+            credits={credits}
+            creditHistory={creditHistory}
+          />
+        );
+      case "security":
+        return <SecurityTab />;
+      case "ai":
+        return (
+          <div className="pb-6">
+            <AISettingsPage />
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="h-full flex flex-col overflow-hidden">
-      {/* ── Header row ── */}
+      {/* ── Header ── */}
       <div className="flex items-center gap-4 shrink-0 px-4 pt-4 md:px-0 md:pt-0 mb-4 md:mb-6">
         {onBack && (
           <button
@@ -72,110 +126,75 @@ export default function SettingsView({
         </div>
       </div>
 
-      {/* ── MOBILE: horizontal tab strip ── */}
-      <div className="md:hidden shrink-0 px-4 mb-3">
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none" style={{ scrollbarWidth: "none" }}>
+      {/* ── Accordion list ── */}
+      <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
+        <div className="space-y-2 pb-6">
           {tabs.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
+            const isOpen = openTab === tab.id;
             return (
-              <button
+              <div
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap shrink-0 transition-all duration-200 border ${isActive
-                  ? "bg-white/8 border-cyan-500/30 text-cyan-400"
-                  : "border-white/5 text-slate-500 bg-white/3"
-                  }`}
+                className={`rounded-2xl border transition-all duration-200 overflow-hidden ${
+                  isOpen
+                    ? "border-white/15 bg-white/3 shadow-lg"
+                    : "border-white/8 bg-white/2 hover:border-white/15 hover:bg-white/3"
+                }`}
               >
-                <Icon size={13} />
-                {tab.label}
-              </button>
+                {/* Section header / trigger */}
+                <button
+                  onClick={() => toggle(tab.id)}
+                  className="w-full flex items-center gap-3 px-5 py-4 text-left transition-all duration-200 cursor-pointer"
+                >
+                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors duration-200 ${
+                    isOpen ? "bg-cyan-500/15 text-cyan-400" : "bg-white/5 text-slate-500"
+                  }`}>
+                    <tab.icon size={17} />
+                  </div>
+                  <span className={`text-sm font-semibold transition-colors duration-200 ${isOpen ? "text-slate-100" : "text-slate-400"}`}>
+                    {tab.label}
+                  </span>
+                  <motion.div
+                    animate={{ rotate: isOpen ? 180 : 0 }}
+                    transition={{ duration: 0.2, ease: "easeInOut" }}
+                    className="ml-auto"
+                  >
+                    <ChevronDown size={16} className={`transition-colors duration-200 ${isOpen ? "text-cyan-400" : "text-slate-600"}`} />
+                  </motion.div>
+                </button>
+
+                {/* Collapsible content */}
+                <AnimatePresence initial={false}>
+                  {isOpen && (
+                    <motion.div
+                      key={tab.id + "-content"}
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.25, ease: "easeInOut" }}
+                      className="overflow-hidden"
+                    >
+                      <div className="px-5 pb-6 pt-1 border-t border-white/5">
+                        {renderContent(tab.id)}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             );
           })}
-          <button
-            onClick={() => { localStorage.removeItem("token"); window.location.href = "/"; }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap shrink-0 border border-red-500/15 text-red-400 bg-red-500/5 transition-all"
-          >
-            <LogOut size={13} />
-            Logout
-          </button>
-        </div>
-      </div>
 
-      {/* ── Main body: desktop = 2-col, mobile = single col ── */}
-      <div className="flex-1 flex gap-6 overflow-hidden">
-
-        {/* DESKTOP sidebar nav (hidden on mobile) */}
-        <div className="hidden md:flex w-64 shrink-0 flex-col gap-1">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-left ${activeTab === tab.id
-                ? "bg-white/5 text-slate-100 border border-white/10"
-                : "text-slate-500 hover:text-slate-300 hover:bg-white/4"
-                }`}
-            >
-              <tab.icon size={18} />
-              <span className="text-sm font-medium">{tab.label}</span>
-              {activeTab === tab.id && <ChevronRight size={14} className="ml-auto opacity-50" />}
-            </button>
-          ))}
-
-          <div className="mt-auto pt-4 border-t border-white/5">
+          {/* Logout row */}
+          <div className="rounded-2xl border border-red-500/10 bg-red-500/3 overflow-hidden">
             <button
               onClick={() => { localStorage.removeItem("token"); window.location.href = "/"; }}
-              className="flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-500/5 transition-all w-full text-left cursor-pointer"
+              className="w-full flex items-center gap-3 px-5 py-4 text-left cursor-pointer hover:bg-red-500/5 transition-colors"
             >
-              <LogOut size={18} />
-              <span className="text-sm font-medium">Logout Session</span>
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-red-500/10 text-red-500">
+                <LogOut size={17} />
+              </div>
+              <span className="text-sm font-semibold text-red-400">Logout Session</span>
             </button>
           </div>
-        </div>
-
-        {/* Settings Content — full width on mobile, flex-1 on desktop */}
-        <div className="flex-1 min-w-0 md:glass md:rounded-2xl md:border md:border-white/10 px-4 pb-4 md:p-8 overflow-y-auto custom-scrollbar">
-          <AnimatePresence mode="wait">
-            {activeTab === "profile" && (
-              <ProfileTab
-                userName={userName}
-                userEmail={userEmail}
-                userAvatar={userAvatar}
-                onUpdateUser={onUpdateUser}
-                showToast={showToast}
-              />
-            )}
-            {activeTab === "usage" && (
-              <UsageTab
-                credits={credits}
-                creditHistory={creditHistory}
-                usageTrend={usageTrend}
-                genHistoryCount={genHistoryCount}
-                projectCount={projectCount}
-              />
-            )}
-            {activeTab === "appearance" && (
-              <AppearanceTab
-                activeTheme={activeTheme}
-                setActiveTheme={setActiveTheme}
-                animationsEnabled={animationsEnabled}
-                onToggleAnimations={onToggleAnimations}
-              />
-            )}
-            {activeTab === "billing" && (
-              <BillingTab
-                userPlan={userPlan}
-                credits={credits}
-                creditHistory={creditHistory}
-              />
-            )}
-            {activeTab === "security" && <SecurityTab />}
-            {activeTab === "ai" && (
-              <motion.div key="ai" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full overflow-y-auto pb-10">
-                <AISettingsPage />
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
       </div>
 
@@ -186,10 +205,11 @@ export default function SettingsView({
             initial={{ opacity: 0, y: 50, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.9 }}
-            className={`fixed bottom-20 md:bottom-6 right-4 md:right-6 z-50 px-4 md:px-5 py-3 md:py-3.5 rounded-xl border shadow-2xl flex items-center gap-3 text-sm font-semibold backdrop-blur-md max-w-[calc(100vw-2rem)] ${toast.type === "success"
-              ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
-              : "bg-rose-500/10 border-rose-500/20 text-rose-400"
-              }`}
+            className={`fixed bottom-20 md:bottom-6 right-4 md:right-6 z-50 px-4 md:px-5 py-3 md:py-3.5 rounded-xl border shadow-2xl flex items-center gap-3 text-sm font-semibold backdrop-blur-md max-w-[calc(100vw-2rem)] ${
+              toast.type === "success"
+                ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                : "bg-rose-500/10 border-rose-500/20 text-rose-400"
+            }`}
           >
             <div className={`w-2 h-2 rounded-full shrink-0 ${toast.type === "success" ? "bg-emerald-400 animate-pulse" : "bg-rose-400"}`} />
             {toast.msg}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Zap, Globe, Clock } from "lucide-react";
 
 interface UsageTabProps {
@@ -28,7 +28,7 @@ export default function UsageTab({ credits, creditHistory, usageTrend, genHistor
   ];
 
   return (
-    <motion.div key="usage" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-8">
+    <div className="space-y-8">
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="glass p-5 rounded-2xl border border-white/5">
@@ -126,6 +126,6 @@ export default function UsageTab({ credits, creditHistory, usageTrend, genHistor
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { motion } from "framer-motion";
+
 import { User, Camera, Loader2 } from "lucide-react";
 
 interface ProfileTabProps {
@@ -74,7 +74,7 @@ export default function ProfileTab({ userName, userEmail, userAvatar, onUpdateUs
   };
 
   return (
-    <motion.div key="profile" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-8">
+    <div className="space-y-8">
       <div>
         <h3 className="text-lg font-bold text-slate-100 mb-6">Profile Information</h3>
         <div className="flex items-center gap-4 md:gap-8 mb-6 md:mb-8">
@@ -151,6 +151,6 @@ export default function ProfileTab({ userName, userEmail, userAvatar, onUpdateUs
           </a>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

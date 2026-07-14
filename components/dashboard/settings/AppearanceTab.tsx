@@ -19,7 +19,7 @@ const themes = [
 
 export default function AppearanceTab({ activeTheme, setActiveTheme, animationsEnabled, onToggleAnimations }: AppearanceTabProps) {
   return (
-    <motion.div key="appearance" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-8">
+    <div className="space-y-8">
       {/* Theme Grid */}
       <div>
         <h3 className="text-lg font-bold text-slate-100 mb-6">Theme & Personalization</h3>
@@ -63,6 +63,6 @@ export default function AppearanceTab({ activeTheme, setActiveTheme, animationsE
           </button>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
