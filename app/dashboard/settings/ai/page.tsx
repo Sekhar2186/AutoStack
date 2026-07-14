@@ -507,7 +507,7 @@ function ProviderCard({
 
                 {/* Status Badge */}
                 <div className="flex flex-col items-end gap-2 shrink-0">
-                    <div className={`whitespace-nowrap px-1.5 py-1 rounded-full text-xs font-medium border flex items-center gap-1.5 transition-all duration-300 ${config.hasKey ? brand.badge : "bg-white/5 border-white/10 text-slate-400"
+                    <div className={`whitespace-nowrap px-1 py-1 rounded-full text-xs font-medium border flex items-center gap-1.5 transition-all duration-300 ${config.hasKey ? brand.badge : "bg-white/5 border-white/10 text-slate-400"
                         }`}>
                         <div className={`w-1.5 h-1.5 rounded-full ${config.hasKey ? brand.text.replace('text-', 'bg-') : "bg-slate-500"}`} />
                         {config.hasKey ? "API Key Configured" : "No API Key Configured"}

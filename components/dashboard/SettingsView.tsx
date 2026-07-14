@@ -707,6 +707,136 @@ export default function SettingsView({
                   </div>
                 </div>
 
+                {/* All Plans — upgrade / downgrade */}
+                <div>
+                  <h3 className="text-lg font-bold text-slate-100 mb-1 flex items-center gap-2">
+                    <Star size={18} className="text-amber-400" />
+                    All Plans
+                  </h3>
+                  <p className="text-xs text-slate-500 mb-5">
+                    {userPlan === "free"
+                      ? "Upgrade anytime to unlock more credits and features."
+                      : "Switch plans anytime. Changes take effect at the next billing cycle."}
+                  </p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {[
+                      {
+                        id: "free",
+                        name: "Free",
+                        price: "$0",
+                        period: "/mo",
+                        features: ["20 credits/day", "Community support", "1 project", "Basic AI models", "Hosted preview"],
+                        accent: "border-white/10",
+                        bg: "bg-white/3",
+                        badgeBg: "bg-white/8 border-white/10 text-slate-400",
+                        btnUpgrade: null,
+                        btnDowngrade: "bg-white/5 border border-white/10 text-slate-400 hover:bg-white/10",
+                        checkColor: "text-slate-400",
+                      },
+                      {
+                        id: "pro",
+                        name: "Pro",
+                        price: "$29",
+                        period: "/mo",
+                        features: ["500 credits/day", "Priority support", "Unlimited projects", "All AI models", "Export to GitHub"],
+                        accent: "border-cyan-500/25",
+                        bg: "bg-linear-to-br from-cyan-500/10 to-sky-600/5",
+                        badgeBg: "bg-cyan-500/10 border-cyan-500/20 text-cyan-400",
+                        btnUpgrade: "bg-linear-to-r from-cyan-500 to-sky-600",
+                        btnDowngrade: "bg-white/5 border border-white/10 text-slate-400 hover:bg-white/10",
+                        checkColor: "text-cyan-400",
+                        badge: "Most Popular",
+                      },
+                      {
+                        id: "enterprise",
+                        name: "Enterprise",
+                        price: "$99",
+                        period: "/mo",
+                        features: ["1000 credits/day", "Dedicated support", "Custom integrations", "SSO & team seats", "SLA guarantee"],
+                        accent: "border-amber-500/25",
+                        bg: "bg-linear-to-br from-amber-500/10 to-orange-600/5",
+                        badgeBg: "bg-amber-500/10 border-amber-500/20 text-amber-400",
+                        btnUpgrade: "bg-linear-to-r from-amber-500 to-orange-500",
+                        btnDowngrade: "bg-white/5 border border-white/10 text-slate-400 hover:bg-white/10",
+                        checkColor: "text-amber-400",
+                        badge: "Best Value",
+                      },
+                    ].map((plan) => {
+                      const isCurrent = userPlan === plan.id;
+                      const planOrder = { free: 0, pro: 1, enterprise: 2 };
+                      const currentOrder = planOrder[userPlan as keyof typeof planOrder] ?? 0;
+                      const planOrd = planOrder[plan.id as keyof typeof planOrder] ?? 0;
+                      const isUpgrade = planOrd > currentOrder;
+                      const isDowngrade = planOrd < currentOrder;
+
+                      return (
+                        <div
+                          key={plan.id}
+                          className={`relative glass rounded-2xl p-6 border ${plan.accent} ${plan.bg} flex flex-col transition-all duration-200 ${isCurrent ? "ring-2 ring-offset-2 ring-offset-transparent ring-white/10" : "hover:border-white/20"}`}
+                        >
+                          {/* Badge */}
+                          {isCurrent ? (
+                            <div className="absolute top-4 right-4">
+                              <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 flex items-center gap-1">
+                                <Check size={9} /> Current Plan
+                              </span>
+                            </div>
+                          ) : plan.badge ? (
+                            <div className="absolute top-4 right-4">
+                              <span className={`text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border ${plan.badgeBg}`}>
+                                {plan.badge}
+                              </span>
+                            </div>
+                          ) : null}
+
+                          {/* Plan name & price */}
+                          <div className="mb-4 pr-20">
+                            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">{plan.name}</p>
+                            <p className="text-3xl font-bold text-slate-100">
+                              {plan.price}<span className="text-sm font-normal text-slate-500">{plan.period}</span>
+                            </p>
+                          </div>
+
+                          {/* Features */}
+                          <ul className="space-y-2 mb-6 flex-1">
+                            {plan.features.map((f, i) => (
+                              <li key={i} className="flex items-center gap-2 text-xs text-slate-400">
+                                <Check size={12} className={`${plan.checkColor} shrink-0`} />
+                                {f}
+                              </li>
+                            ))}
+                          </ul>
+
+                          {/* CTA button */}
+                          {isCurrent ? (
+                            <button
+                              disabled
+                              className="w-full py-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-500 text-sm font-bold cursor-default flex items-center justify-center gap-2"
+                            >
+                              <Check size={14} /> Current Plan
+                            </button>
+                          ) : isUpgrade ? (
+                            <a
+                              href={`/#pricing`}
+                              className={`shimmer-btn flex items-center justify-center gap-2 w-full py-2.5 rounded-xl ${plan.btnUpgrade} text-white text-sm font-bold transition-all hover:opacity-90`}
+                            >
+                              Upgrade to {plan.name} <ArrowUpRight size={14} />
+                            </a>
+                          ) : isDowngrade ? (
+                            <a
+                              href={`/#pricing`}
+                              className={`flex items-center justify-center gap-2 w-full py-2.5 rounded-xl ${plan.btnDowngrade} text-sm font-bold transition-all`}
+                            >
+                              Downgrade to {plan.name}
+                            </a>
+                          ) : null}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
                 {/* Recent Purchases */}
                 <div>
                   <h3 className="text-lg font-bold text-slate-100 mb-4 flex items-center gap-2">
@@ -768,65 +898,6 @@ export default function SettingsView({
                   </div>
                 </div>
 
-                {/* Upgrade Plans */}
-                {userPlan === "free" && (
-                  <div>
-                    <h3 className="text-lg font-bold text-slate-100 mb-4 flex items-center gap-2">
-                      <Star size={18} className="text-amber-400" />
-                      Upgrade Your Plan
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {[
-                        {
-                          id: "pro",
-                          name: "Pro",
-                          price: "$29",
-                          color: "cyan",
-                          features: ["500 credits/day", "Priority support", "Unlimited projects", "All AI models", "Export to GitHub"],
-                          accent: "from-cyan-500/15 to-sky-600/10 border-cyan-500/25",
-                          badge: "Most Popular",
-                          btnClass: "bg-linear-to-r from-cyan-500 to-sky-600"
-                        },
-                        {
-                          id: "enterprise",
-                          name: "Enterprise",
-                          price: "$99",
-                          color: "amber",
-                          features: ["1000 credits/day", "Dedicated support", "Custom integrations", "SSO & team seats", "SLA guarantee"],
-                          accent: "from-amber-500/15 to-orange-600/10 border-amber-500/25",
-                          badge: "Best Value",
-                          btnClass: "bg-linear-to-r from-amber-500 to-orange-500"
-                        }
-                      ].map((plan) => (
-                        <div key={plan.id} className={`relative glass rounded-2xl p-6 border bg-linear-to-br ${plan.accent}`}>
-                          <div className="absolute top-4 right-4">
-                            <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-white/10 border border-white/10 text-slate-300">
-                              {plan.badge}
-                            </span>
-                          </div>
-                          <div className="mb-4">
-                            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">{plan.name}</p>
-                            <p className="text-3xl font-bold text-slate-100">{plan.price}<span className="text-sm font-normal text-slate-500">/mo</span></p>
-                          </div>
-                          <ul className="space-y-2 mb-5">
-                            {plan.features.map((f, i) => (
-                              <li key={i} className="flex items-center gap-2 text-xs text-slate-400">
-                                <Check size={12} className="text-emerald-400 shrink-0" />
-                                {f}
-                              </li>
-                            ))}
-                          </ul>
-                          <a
-                            href={`/#pricing`}
-                            className={`shimmer-btn flex items-center justify-center gap-2 w-full py-2.5 rounded-xl ${plan.btnClass} text-white text-sm font-bold transition-all hover:opacity-90`}
-                          >
-                            Upgrade to {plan.name} <ArrowUpRight size={14} />
-                          </a>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </motion.div>
             )}
 
