@@ -20,65 +20,85 @@ const techBadges = ["Next.js", "React", "TypeScript", "Tailwind", "PostgreSQL", 
 const processSteps = [
   {
     node: (
-      <div className="flex items-center gap-4 px-6 py-4 glass rounded-2xl border border-white/10 min-w-[280px]">
-        <div className="w-12 h-12 rounded-full bg-cyan-500/20 flex items-center justify-center shrink-0">
-          <MessageSquare size={20} className="text-cyan-400" />
+      <div className="group relative flex items-center gap-5 px-7 py-5 rounded-[2rem] bg-slate-950/80 backdrop-blur-xl border border-white/10 min-w-[340px] transition-all duration-500 hover:-translate-y-1 hover:border-cyan-500/50 hover:shadow-[0_10px_40px_-10px_rgba(6,182,212,0.3)] overflow-hidden">
+        <div className="absolute inset-0 bg-linear-to-br from-cyan-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <div className="relative z-10 w-14 h-14 rounded-2xl bg-cyan-500/10 flex items-center justify-center shrink-0 border border-cyan-500/20 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
+          <MessageSquare size={21} className="text-cyan-400 drop-shadow-[0_0_15px_rgba(6,182,212,0.5)]" />
         </div>
-        <div>
-          <h3 className="text-white font-semibold text-sm">Describe</h3>
-          <p className="text-slate-400 text-xs">Plain English prompt</p>
-        </div>
-      </div>
-    )
-  },
-  {
-    node: (
-      <div className="flex items-center gap-4 px-6 py-4 glass rounded-2xl border border-white/10 min-w-[280px]">
-        <div className="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center shrink-0">
-          <Network size={20} className="text-purple-400" />
-        </div>
-        <div>
-          <h3 className="text-white font-semibold text-sm">Architecture</h3>
-          <p className="text-slate-400 text-xs">AI plans the stack</p>
+        <div className="relative z-10 flex-1">
+          <div className="flex items-center justify-between mb-1">
+            <h3 className="text-white font-bold text-lg tracking-tight group-hover:text-cyan-400 transition-colors">Describe</h3>
+            <span className="text-[10px] font-black text-cyan-500/50 uppercase tracking-widest bg-cyan-500/10 px-2 py-1 rounded-lg">Step 01</span>
+          </div>
+          <p className="text-slate-400 text-sm group-hover:text-slate-300 transition-colors">Plain English prompt</p>
         </div>
       </div>
     )
   },
   {
     node: (
-      <div className="flex items-center gap-4 px-6 py-4 glass rounded-2xl border border-white/10 min-w-[280px]">
-        <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0">
-          <LayoutTemplate size={20} className="text-blue-400" />
+      <div className="group relative flex items-center gap-5 px-7 py-5 rounded-[2rem] bg-slate-950/80 backdrop-blur-xl border border-white/10 min-w-[340px] transition-all duration-500 hover:-translate-y-1 hover:border-purple-500/50 hover:shadow-[0_10px_40px_-10px_rgba(168,85,247,0.3)] overflow-hidden">
+        <div className="absolute inset-0 bg-linear-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <div className="relative z-10 w-14 h-14 rounded-2xl bg-purple-500/10 flex items-center justify-center shrink-0 border border-purple-500/20 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
+          <Network size={21} className="text-purple-400 drop-shadow-[0_0_15px_rgba(168,85,247,0.5)]" />
         </div>
-        <div>
-          <h3 className="text-white font-semibold text-sm">Scaffold</h3>
-          <p className="text-slate-400 text-xs">Next.js & UI setup</p>
-        </div>
-      </div>
-    )
-  },
-  {
-    node: (
-      <div className="flex items-center gap-4 px-6 py-4 glass rounded-2xl border border-white/10 min-w-[280px]">
-        <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center shrink-0">
-          <Database size={20} className="text-green-400" />
-        </div>
-        <div>
-          <h3 className="text-white font-semibold text-sm">Database</h3>
-          <p className="text-slate-400 text-xs">Prisma schemas generated</p>
+        <div className="relative z-10 flex-1">
+          <div className="flex items-center justify-between mb-1">
+            <h3 className="text-white font-bold text-lg tracking-tight group-hover:text-purple-400 transition-colors">Architecture</h3>
+            <span className="text-[10px] font-black text-purple-500/50 uppercase tracking-widest bg-purple-500/10 px-2 py-1 rounded-lg">Step 02</span>
+          </div>
+          <p className="text-slate-400 text-sm group-hover:text-slate-300 transition-colors">AI plans the stack</p>
         </div>
       </div>
     )
   },
   {
     node: (
-      <div className="flex items-center gap-4 px-6 py-4 glass rounded-2xl border border-white/10 min-w-[280px]">
-        <div className="w-12 h-12 rounded-full bg-orange-500/20 flex items-center justify-center shrink-0">
-          <Rocket size={20} className="text-orange-400" />
+      <div className="group relative flex items-center gap-5 px-7 py-5 rounded-[2rem] bg-slate-950/80 backdrop-blur-xl border border-white/10 min-w-[340px] transition-all duration-500 hover:-translate-y-1 hover:border-blue-500/50 hover:shadow-[0_10px_40px_-10px_rgba(59,130,246,0.3)] overflow-hidden">
+        <div className="absolute inset-0 bg-linear-to-br from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <div className="relative z-10 w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center shrink-0 border border-blue-500/20 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
+          <LayoutTemplate size={21} className="text-blue-400 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]" />
         </div>
-        <div>
-          <h3 className="text-white font-semibold text-sm">Deploy</h3>
-          <p className="text-slate-400 text-xs">Instant Vercel deployment</p>
+        <div className="relative z-10 flex-1">
+          <div className="flex items-center justify-between mb-1">
+            <h3 className="text-white font-bold text-lg tracking-tight group-hover:text-blue-400 transition-colors">Scaffold</h3>
+            <span className="text-[10px] font-black text-blue-500/50 uppercase tracking-widest bg-blue-500/10 px-2 py-1 rounded-lg">Step 03</span>
+          </div>
+          <p className="text-slate-400 text-sm group-hover:text-slate-300 transition-colors">Next.js & UI setup</p>
+        </div>
+      </div>
+    )
+  },
+  {
+    node: (
+      <div className="group relative flex items-center gap-5 px-7 py-5 rounded-[2rem] bg-slate-950/80 backdrop-blur-xl border border-white/10 min-w-[340px] transition-all duration-500 hover:-translate-y-1 hover:border-green-500/50 hover:shadow-[0_10px_40px_-10px_rgba(34,197,94,0.3)] overflow-hidden">
+        <div className="absolute inset-0 bg-linear-to-br from-green-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <div className="relative z-10 w-14 h-14 rounded-2xl bg-green-500/10 flex items-center justify-center shrink-0 border border-green-500/20 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
+          <Database size={21} className="text-green-400 drop-shadow-[0_0_15px_rgba(34,197,94,0.5)]" />
+        </div>
+        <div className="relative z-10 flex-1">
+          <div className="flex items-center justify-between mb-1">
+            <h3 className="text-white font-bold text-lg tracking-tight group-hover:text-green-400 transition-colors">Database</h3>
+            <span className="text-[10px] font-black text-green-500/50 uppercase tracking-widest bg-green-500/10 px-2 py-1 rounded-lg">Step 04</span>
+          </div>
+          <p className="text-slate-400 text-sm group-hover:text-slate-300 transition-colors">Prisma schemas generated</p>
+        </div>
+      </div>
+    )
+  },
+  {
+    node: (
+      <div className="group relative flex items-center gap-5 px-7 py-5 rounded-[2rem] bg-slate-950/80 backdrop-blur-xl border border-white/10 min-w-[340px] transition-all duration-500 hover:-translate-y-1 hover:border-orange-500/50 hover:shadow-[0_10px_40px_-10px_rgba(249,115,22,0.3)] overflow-hidden">
+        <div className="absolute inset-0 bg-linear-to-br from-orange-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <div className="relative z-10 w-14 h-14 rounded-2xl bg-orange-500/10 flex items-center justify-center shrink-0 border border-orange-500/20 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
+          <Rocket size={21} className="text-orange-400 drop-shadow-[0_0_15px_rgba(249,115,22,0.5)]" />
+        </div>
+        <div className="relative z-10 flex-1">
+          <div className="flex items-center justify-between mb-1">
+            <h3 className="text-white font-bold text-lg tracking-tight group-hover:text-orange-400 transition-colors">Deploy</h3>
+            <span className="text-[10px] font-black text-orange-500/50 uppercase tracking-widest bg-orange-500/10 px-2 py-1 rounded-lg">Step 05</span>
+          </div>
+          <p className="text-slate-400 text-sm group-hover:text-slate-300 transition-colors">Instant Vercel deployment</p>
         </div>
       </div>
     )
@@ -270,9 +290,15 @@ export default function Hero() {
         </div>
 
         {/* Generation Process Loop */}
-        <motion.div {...fadeUp(0.6)} className="mt-24 w-full relative z-20">
-          <div className="text-center mb-8">
-            <h2 className="text-sm font-semibold tracking-widest text-slate-500 uppercase">The AutoStack Generation Process</h2>
+        <motion.div {...fadeUp(0.6)} className="mt-32 w-full relative z-20">
+          <div className="text-center mb-10 flex flex-col items-center">
+            <div className="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-white/5 border border-white/10 mb-4">
+              <span className="text-xs font-bold tracking-widest text-transparent bg-clip-text bg-linear-to-r from-cyan-400 to-purple-400 uppercase">
+                Under the Hood
+              </span>
+            </div>
+            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white">The AutoStack Generation Process</h2>
+            <p className="text-slate-400 mt-3 max-w-lg mx-auto text-sm md:text-base">Watch how our multi-agent AI system transforms your prompt into a production-ready application.</p>
           </div>
           <div className="w-screen relative left-1/2 -translate-x-1/2">
             {/* @ts-ignore */}
