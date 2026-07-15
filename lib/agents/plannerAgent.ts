@@ -12,12 +12,20 @@ Your task is to take a user query and generate a detailed software architecture 
 The output must be valid JSON. Use EXACTLY this format:
 {
   "appName": "string",
+  "entities": ["Book", "User", "BorrowRecord"],
+  "relationships": [
+    {
+      "from": "BorrowRecord",
+      "to": "Book",
+      "type": "many-to-one"
+    }
+  ],
   "frontendPages": [
     { "name": "HomePage", "route": "/", "interactions": ["search", "filter"] },
     { "name": "AboutPage", "route": "/about" }
   ],
   "frontendComponents": ["component1", "component2"],
-  "backendRoutes": ["route1", "route2"],
+  "backendRoutes": ["/api/upload", "/api/search"],
   "databaseModels": ["model1", "model2"],
   "features": ["feature1", "feature2"],
   "interactionNotes": "High level notes on how components should interact"
@@ -26,10 +34,13 @@ The output must be valid JSON. Use EXACTLY this format:
 PLANNING RULES:
 - Return only JSON. No explanations. No markdown.
 - Components should be simple names (e.g., "Navbar", "ProductCard", "FilterPanel").
+- CRITICAL ENTITIES: Analyze the user request and deduce the core data entities (e.g., E-Commerce -> Product, Order, User). Output them in "entities".
+- CRITICAL RELATIONSHIPS: Provide basic relationship metadata (one-to-one, one-to-many, many-to-one, many-to-many) between the entities in "relationships".
 - CRITICAL ROUTING: Every component that implies a page view MUST have a corresponding entry in frontendPages.
 - CRITICAL COMPLETENESS: Provide a COMPLETE list of frontendPages and frontendComponents.
   - If the app needs Dashboard, Login, Signup, Settings — list ALL of them.
   - Do not skip essential pages.
+- MISC ROUTES: Use backendRoutes for MISCELLANEOUS endpoints only (e.g. /api/upload, /api/search). DO NOT put CRUD routes for entities in backendRoutes (CRUD routes are automatically generated).
 - If existing project context is provided, maintain architectural consistency.
 
 FEATURE PLANNING GUARDRAILS — these prevent common bugs in generated code:

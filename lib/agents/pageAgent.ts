@@ -116,6 +116,12 @@ NEXT.JS 15 APP ROUTER RULES — MANDATORY:
 - CLIENT COMPONENTS: Must use 'useRouter()', 'useSearchParams()', 'useParams()' from 'next/navigation'.
 - NEVER generate '"use client"' automatically. ONLY add it when the page actually uses: useState, useEffect, useMemo, useCallback, browser APIs, event handlers, useRouter, useSearchParams, or useParams. Otherwise, generate a Server Component.
 
+FRONTEND STRICT ISOLATION RULES — CRITICAL:
+- NEVER generate ANY backend code in page files. No database connections, no raw file reads.
+- NEVER import files from 'data/' or 'lib/storage/'.
+- The frontend MUST ONLY communicate with the backend via fetch('/api/<entity>').
+- All CRUD operations must use standard HTTP methods (GET, POST, PUT, DELETE) against the API.
+
 ROUTING & LINKS — CRITICAL:
 - Every generated Link must point to an existing page.
 - For dynamic routes (e.g., app/books/[id]/page.tsx), href="/books/\${id}" MUST be generated. Never generate hardcoded invalid URLs.

@@ -42,6 +42,13 @@ export function buildVirtualFileTree(generatedCode: any): VirtualFileTree {
             files[fileName] = content as string;
         }
     }
+    
+    // Backend (CRUD, Types, Data, Storage)
+    if (generatedCode.backend) {
+        for (const [filePath, content] of Object.entries(generatedCode.backend)) {
+            files[filePath] = content as string;
+        }
+    }
 
     // Config Files
     if (generatedCode.configFiles) {

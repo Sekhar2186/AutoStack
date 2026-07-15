@@ -87,6 +87,24 @@ export function validateGeneratedCode(files: Record<string, string>): Validation
             if (code.includes('className="') && code.includes('class="')) {
                 issues.push("Found 'class=' instead of 'className=' in React component.");
             }
+
+            // 6. Architectural Validations (Page -> API -> Storage -> Data)
+            if (filePath.startsWith('app/') && !filePath.startsWith('app/api/')) {
+                // Frontend pages/components
+                if (code.includes('from "@/data') || code.includes("from '@/data") || code.includes('from "../data') || code.includes("from '../data")) {
+                    issues.push("Frontend code cannot import directly from data/. It must fetch from /api endpoints.");
+                }
+                if (code.includes('from "@/lib/storage') || code.includes("from '@/lib/storage") || code.includes('from "../lib/storage') || code.includes("from '../lib/storage")) {
+                    issues.push("Frontend code cannot import directly from lib/storage/. It must fetch from /api endpoints.");
+                }
+            }
+
+            if (filePath.startsWith('app/api/')) {
+                // API Routes
+                if (code.includes('from "@/data') || code.includes("from '@/data") || code.includes('from "../../data') || code.includes("from '../../data")) {
+                    issues.push("API routes cannot import directly from data/. They must use lib/storage/.");
+                }
+            }
         }
 
         if (issues.length > 0) {

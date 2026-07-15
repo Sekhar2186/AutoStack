@@ -5,13 +5,15 @@ import { generateAI } from "../services/ai/modelRouter";
 export async function routeAgent(blueprint: any, previousPath?: string) {
 
   const instruction = `
-Generate API routes ONLY if required.
+Generate API routes ONLY if required for MISCELLANEOUS functionality.
 
 RULES:
+- Do NOT generate CRUD routes for entities (e.g. do not generate /api/users, /api/products). CRUD routes are handled by a separate agent.
+- ONLY generate miscellaneous routes like /api/upload, /api/search, /api/ai, /api/contact, /api/payment, etc.
 - Use Next.js route.ts format
 - Use NextRequest, NextResponse
 - MOCK DATA — CRITICAL: If no database is specified, ALWAYS return realistic mock data (JSON).
-- SYMMETRY: Ensure routes match the expected endpoints called by the frontend (e.g., /api/chat, /api/predict, /api/predictions).
+- SYMMETRY: Ensure routes match the expected endpoints called by the frontend.
 - DELAY SIMULATION: Add a small artificial delay (e.g., await new Promise(res => setTimeout(res, 1000))) to simulate network latency for better UX testing.
 - No MongoDB unless required
 - No todo logic unless asked

@@ -5,6 +5,7 @@ import { resetProviderSession } from "@/lib/services/ai/modelRouter";
 import { plannerAgent } from "@/lib/agents/plannerAgent";
 import { componentAgent } from "@/lib/agents/componentAgent";
 import { routeAgent } from "@/lib/agents/routeAgent";
+import { backendAgent } from "@/lib/agents/backendAgent";
 import { pageAgent } from "@/lib/agents/pageAgent";
 import { fixAgent } from "@/lib/agents/fixAgent";
 import { validateGeneratedCode } from "@/lib/services/validator";
@@ -161,6 +162,7 @@ export async function POST(req: Request) {
         // STEP 6 & 7: Components and Routes (parallel)
         let components = {};
         let routes = {};
+        let backend = {};
 
         const parallelTasks = [];
 
@@ -180,13 +182,24 @@ export async function POST(req: Request) {
                 })
         );
 
-        if (blueprint?.requiresAPI) {
+        if (blueprint?.backendRoutes && blueprint.backendRoutes.length > 0) {
             parallelTasks.push(
                 routeAgent(blueprint, previousPath)
                     .then(res => { routes = res; })
                     .catch(e => {
                         console.error("RouteAgent failed:", e);
                         routes = {};
+                    })
+            );
+        }
+
+        if (blueprint?.entities && blueprint.entities.length > 0) {
+            parallelTasks.push(
+                backendAgent(blueprint, previousPath)
+                    .then(res => { backend = res; })
+                    .catch(e => {
+                        console.error("BackendAgent failed:", e);
+                        backend = {};
                     })
             );
         }
@@ -277,6 +290,7 @@ export async function POST(req: Request) {
         const code = {
             components: components || {},
             routes: routes || {},
+            backend: backend || {},
             pages: generatedPages,
 
             configFiles: {
