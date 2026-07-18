@@ -1,8 +1,8 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+
 import { safeJsonParse } from "@/lib/utils/jsonUtils";
 import { generateAI } from "../services/ai/modelRouter";
 
-export async function backendAgent(blueprint: any, previousPath?: string) {
+export async function backendAgent(blueprint: any, previousPath?: string, userId?: string) {
   const instruction = `
 You are a senior backend engineer.
 
@@ -44,13 +44,15 @@ Output format MUST be valid JSON mapping file paths to their content:
     promptParts += `\n\nExisting project is at: ${previousPath}. Ensure backend structure remains consistent.`;
   }
 
-  const raw = await generateAI({
+  const result = await generateAI({
     provider: "gemini",
     prompt: [promptParts],
     config: {
       responseMimeType: "application/json",
-    }
+    },
+    userId
   });
+  const raw = result.text;
 
   try {
     return safeJsonParse(raw);

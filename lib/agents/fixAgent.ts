@@ -1,11 +1,13 @@
 import { generateAI } from "../services/ai/modelRouter";
+import { safeJsonParse } from "@/lib/utils/jsonUtils";
 
 export async function fixAgent(data: {
     fileName: string;
     fileCode: string;
     issues: string[];
+    userId?: string;
 }): Promise<string> {
-    const { fileName, fileCode, issues } = data;
+    const { fileName, fileCode, issues, userId } = data;
 
     const instruction = `
 You are an expert Next.js developer acting as an automated code fixer.
@@ -27,7 +29,11 @@ YOUR MISSION:
 6. If the issue is related to external placeholder images, replace them with '/public/placeholder.png' or a Tailwind CSS div placeholder.
 
 RETURN FORMAT:
-Return ONLY the raw, fixed source code. DO NOT wrap the code in markdown blocks (e.g., \`\`\`tsx). DO NOT include any explanations. The string you return will be written directly to the file.
+- CRITICAL: Return ONLY a valid JSON object. No markdown. No conversational text.
+- Use EXACTLY this JSON schema:
+{
+  "code": "full fixed source code here"
+}
 `;
 
     const promptParts = [
@@ -36,15 +42,17 @@ Return ONLY the raw, fixed source code. DO NOT wrap the code in markdown blocks 
     ];
 
     try {
-        const text = await generateAI({ provider: "gemini", prompt: promptParts });
+        const result = await generateAI({
+            provider: "gemini",
+            prompt: promptParts,
+            config: {
+                responseMimeType: "application/json",
+            },
+            userId
+        });
 
-        // Clean markdown blocks if the model accidentally included them
-        const cleaned = text
-            .replace(/^```[a-z]*\n?/gm, "")
-            .replace(/```$/gm, "")
-            .trim();
-
-        return cleaned;
+        const parsed = safeJsonParse(result.text);
+        return parsed.code;
     } catch (error) {
         console.error(`FixAgent failed for ${fileName}:`, error);
         // Fallback to original code if fix fails

@@ -1,6 +1,6 @@
 import { generateAI } from "../services/ai/modelRouter";
 
-export async function docAgent(data: any) {
+export async function docAgent(data: any, userId?: string) {
 
     const prompt = `
 You are an expert software architect and technical documentation writer.
@@ -61,13 +61,15 @@ PROJECT DATA:
 ${JSON.stringify(data, null, 2)}
 `;
 
-    const raw = await generateAI({
+    const result = await generateAI({
       provider: "gemini",
       prompt: [prompt],
       config: {
         responseMimeType: "application/json",
-      }
+      },
+      userId
     });
+    const raw = result.text;
 
     const cleaned = raw
         .replace(/```json/g, "")

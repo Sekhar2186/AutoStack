@@ -1,8 +1,8 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+
 import { safeJsonParse } from "@/lib/utils/jsonUtils";
 import { generateAI } from "../services/ai/modelRouter";
 
-export async function plannerAgent(userQuery: string, previousPath?: string) {
+export async function plannerAgent(userQuery: string, previousPath?: string, userId?: string) {
 
   const Instruction = `
 You are a senior software engineer and architecture planner.
@@ -194,7 +194,8 @@ APPLICATION FLOW RULE — CRITICAL:
     promptParts += `\n\nExisting project is located at: ${previousPath}. Please maintain architectural consistency.`;
   }
 
-  const text = await generateAI({ provider: "gemini", prompt: [promptParts] });
+  const result = await generateAI({ provider: "gemini", prompt: [promptParts], userId });
+  const text = result.text;
 
   try {
     return safeJsonParse(text);

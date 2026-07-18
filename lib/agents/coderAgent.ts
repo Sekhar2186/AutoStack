@@ -1,13 +1,7 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { safeJsonParse } from "@/lib/utils/jsonUtils";
 import { generateAI } from "@/lib/services/ai/modelRouter";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-
-export async function coderAgent(blueprint: any) {
-  const model = genAI.getGenerativeModel({
-    model: process.env.NEXT_PUBLIC_GEMINI_MODEL || "gemini-2.5-flash",
-  });
+export async function coderAgent(blueprint: any, userId?: string) {
 
   const instruction = `
 You are a professional full-stack developer.
@@ -90,7 +84,7 @@ RETURN ONLY JSON:
 }
   `;
 
-  const response = await generateAI({
+  const result = await generateAI({
     provider: "gemini",
     prompt: [
       instruction,
@@ -101,7 +95,9 @@ RETURN ONLY JSON:
       temperature: 0.1,
       maxOutputTokens: 8192,
     },
+    userId
   });
+  const response = result.text;
 
   try {
     return safeJsonParse(response);

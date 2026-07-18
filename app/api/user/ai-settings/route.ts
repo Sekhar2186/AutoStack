@@ -30,10 +30,22 @@ const SUPPORTED_PROVIDERS: SupportedProvider[] = [
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+function maskKey(encrypted: string): string {
+    if (!encrypted) return "";
+    try {
+        const plain = decrypt(encrypted);
+        if (plain.length <= 8) return "••••••••";
+        return plain.slice(0, 4) + "••••••••••••••••" + plain.slice(-4);
+    } catch {
+        return "••••••••";
+    }
+}
+
 function buildSafeSettings(settings: IUserAISettings | null) {
     const providers: Record<string, {
         model: string;
         hasKey: boolean;
+        maskedKey: string;
     }> = {};
 
     for (const p of SUPPORTED_PROVIDERS) {
@@ -41,6 +53,7 @@ function buildSafeSettings(settings: IUserAISettings | null) {
         providers[p] = {
             model: cfg?.model ?? "",
             hasKey: Boolean(cfg?.apiKey),
+            maskedKey: maskKey(cfg?.apiKey ?? ""),
         };
     }
 

@@ -73,6 +73,9 @@ export async function resolveProviderForUser(
 
         // Check provider has a key
         if (!providerConfig || !providerConfig.apiKey) {
+            if (mode === "manual") {
+                throw new Error(`Generation Mode is manual but the selected provider (${providerName}) has no API key.`);
+            }
             console.warn(
                 `[ProviderResolver] User ${userId} selected "${providerName}" ` +
                 `but it has no API key. Falling back to system.`
@@ -84,6 +87,9 @@ export async function resolveProviderForUser(
         const apiKey = decrypt(providerConfig.apiKey);
 
         if (!apiKey) {
+            if (mode === "manual") {
+                throw new Error(`Generation Mode is manual but the selected provider (${providerName}) has an invalid API key.`);
+            }
             console.warn(
                 `[ProviderResolver] Decryption returned empty key for user ${userId} / "${providerName}". ` +
                 `Falling back to system.`

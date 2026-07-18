@@ -1,8 +1,8 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+
 import { safeJsonParse } from "@/lib/utils/jsonUtils";
 import { generateAI } from "../services/ai/modelRouter";
 
-export async function componentAgent(blueprint: any, previousPath?: string) {
+export async function componentAgent(blueprint: any, previousPath?: string, userId?: string) {
 
   const instruction = `
 Generate React components based on USER REQUEST.
@@ -109,13 +109,15 @@ Return JSON:
   }
 
   try {
-    const raw = await generateAI({
+    const result = await generateAI({
       provider: "gemini",
       prompt: [prompt],
       config: {
         responseMimeType: "application/json",
-      }
+      },
+      userId
     });
+    const raw = result.text;
 
     const cleaned = raw
       .replace(/```json/g, "")

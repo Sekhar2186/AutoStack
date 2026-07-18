@@ -146,7 +146,8 @@ export async function POST(req: Request) {
         // STEP 5: AI planning
         // Reset provider session so every new generation starts with Gemini.
         resetProviderSession();
-        const blueprint = await plannerAgent(prompt, previousPath);
+        const userIdForGeneration = currentUser?._id?.toString() || user?.id;
+        const blueprint = await plannerAgent(prompt, previousPath, userIdForGeneration);
 
         // Save new project to user history
         if (currentUser && version === "v1" && !existingProjectId) {
@@ -167,7 +168,7 @@ export async function POST(req: Request) {
         const parallelTasks = [];
 
         parallelTasks.push(
-            componentAgent(blueprint, previousPath)
+            componentAgent(blueprint, previousPath, userIdForGeneration)
                 .then(res => {
                     components = res;
 
@@ -184,7 +185,7 @@ export async function POST(req: Request) {
 
         if (blueprint?.backendRoutes && blueprint.backendRoutes.length > 0) {
             parallelTasks.push(
-                routeAgent(blueprint, previousPath)
+                routeAgent(blueprint, previousPath, userIdForGeneration)
                     .then(res => { routes = res; })
                     .catch(e => {
                         console.error("RouteAgent failed:", e);
@@ -195,7 +196,7 @@ export async function POST(req: Request) {
 
         if (blueprint?.entities && blueprint.entities.length > 0) {
             parallelTasks.push(
-                backendAgent(blueprint, previousPath)
+                backendAgent(blueprint, previousPath, userIdForGeneration)
                     .then(res => { backend = res; })
                     .catch(e => {
                         console.error("BackendAgent failed:", e);
@@ -263,7 +264,7 @@ export async function POST(req: Request) {
                             previousPath,
                             previousPageCode,
                             uiPrompt
-                        });
+                        }, userIdForGeneration);
 
                         generatedPages[routePath] = pageCode;
 
@@ -345,7 +346,8 @@ export async function POST(req: Request) {
                 const fixedCode = await fixAgent({
                     fileName: err.file,
                     fileCode: virtualFiles[err.file],
-                    issues: err.issues
+                    issues: err.issues,
+                    userId: userIdForGeneration
                 });
                 
                 virtualFiles[err.file] = fixedCode;

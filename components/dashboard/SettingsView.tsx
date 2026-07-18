@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   User, Shield, CreditCard, Palette, LogOut,
-  ChevronDown, BarChart3, Zap, ArrowLeft
+  ChevronDown, BarChart3, Zap, ArrowLeft, Key
 } from "lucide-react";
 
 import ProfileTab from "@/components/dashboard/settings/ProfileTab";
@@ -13,6 +13,7 @@ import AppearanceTab from "@/components/dashboard/settings/AppearanceTab";
 import BillingTab from "@/components/dashboard/settings/BillingTab";
 import SecurityTab from "@/components/dashboard/settings/SecurityTab";
 import AISettingsPage from "@/app/dashboard/settings/ai/page";
+import MyApiKeys from "@/components/dashboard/settings/MyApiKey";
 
 interface SettingsViewProps {
   onBack?: () => void;
@@ -39,6 +40,7 @@ const tabs = [
   { id: "billing", label: "Billing & Plan", icon: CreditCard },
   { id: "security", label: "Security", icon: Shield },
   { id: "ai", label: "AI Providers", icon: Zap },
+  { id: "mykeys", label: "My API Keys", icon: Key },
 ];
 
 export default function SettingsView({
@@ -101,6 +103,12 @@ export default function SettingsView({
         return (
           <div className="pb-6">
             <AISettingsPage />
+          </div>
+        );
+      case "mykeys":
+        return (
+          <div className="pb-6">
+            <MyApiKeys />
           </div>
         );
       default:

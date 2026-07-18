@@ -1,8 +1,8 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+
 import { safeJsonParse } from "@/lib/utils/jsonUtils";
 import { generateAI } from "../services/ai/modelRouter";
 
-export async function routeAgent(blueprint: any, previousPath?: string) {
+export async function routeAgent(blueprint: any, previousPath?: string, userId?: string) {
 
   const instruction = `
 Generate API routes ONLY if required for MISCELLANEOUS functionality.
@@ -38,13 +38,15 @@ Return JSON:
     promptParts += `\n\nExisting project is at: ${previousPath}. Ensure API routes are consistent with existing structure.`;
   }
 
-  const raw = await generateAI({
+  const result = await generateAI({
     provider: "gemini",
     prompt: [promptParts],
     config: {
       responseMimeType: "application/json",
-    }
+    },
+    userId
   });
+  const raw = result.text;
 
   try {
     return safeJsonParse(raw);

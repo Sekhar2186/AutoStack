@@ -34,3 +34,12 @@ export const systemProviders: Record<SupportedProvider, SystemProviderConfig> = 
         model: process.env.CLAUDE_MODEL ?? "claude-3-5-sonnet-20241022",
     },
 } as const;
+
+/**
+ * Dedicated fallback provider used when a user's personal API key fails (rate limit, quota, etc).
+ * This key is separate from the main system Groq key to protect auto-mode quota.
+ */
+export const userFallbackProvider: SystemProviderConfig = {
+    apiKey: process.env.GROQ_USER_FALLBACK_API_KEY ?? "",
+    model: process.env.GROQ_MODEL ?? "llama-3.3-70b-versatile",
+};

@@ -1,93 +1,8 @@
-/** import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-
-export async function pageAgent(blueprint: any) {
-    const model = genAI.getGenerativeModel({
-        model: process.env.NEXT_PUBLIC_GEMINI_MODEL || "gemini-2.5-flash",
-    });
-
-    /**  const instruction = `
- You are a Next.js frontend developer.
- 
- Generate ONLY the main page (app/page.tsx).
- 
- STRICT RULES:
- - Use TypeScript (.tsx)
- - Use React functional component
- - Use Tailwind CSS
- - Use ONLY components passed/imported
- - DO NOT create new layout
- - DO NOT modify layout.tsx
- - Follow template styling
- - Ensure responsive UI
- 
- IMPORTANT:
- - STRICTLY follow user request
- - DO NOT generate Todo UI unless asked
- - Use proper structure (hero, sections, cards, etc.)
- - Keep UI clean and modern
- 
- RETURN JSON:
- 
- {
-   "imports": "all required import statements",
-   "page": "complete page.tsx code"
- }
- 
- Rules:
- - Return raw JSON only
- - No markdown
- - No explanations
- `;
- 
-    const instruction = `
-You are a professional React + Next.js developer.
-
-Generate ONLY the main page.tsx.
-
-RULES:
-- Use React functional component
-- Use Tailwind CSS
-- Use components from "../components"
-- Follow the USER REQUEST strictly
-- DO NOT generate Todo apps unless explicitly asked
-- Build real UI (portfolio, dashboard, landing page, etc.)
-- Include sections like:
-  - Hero
-  - Cards
-  - Sections based on request
-
-TEMPLATE:
-- Layout already exists
-- You are allowed to fully design page content
-
-OUTPUT:
-Return ONLY valid TSX code for page.tsx
-
-NO markdown
-NO explanation
-`;
-
-    const result = await model.generateContent([
-        instruction,
-        "USER REQUEST: " + (blueprint?.appName || ""),
-        JSON.stringify(blueprint),
-    ]);
-
-    const text = result.response.text();
-
-    const cleaned = text.replace(/```json|```/g, "").trim();
-
-    const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error("Invalid JSON from pageAgent");
-
-    return JSON.parse(jsonMatch[0]);
-}
-*/
 import { generateAI } from "../services/ai/modelRouter";
+import { safeJsonParse } from "@/lib/utils/jsonUtils";
 
-export async function pageAgent(data: any) {
+export async function pageAgent(data: any, userId?: string) {
   const { blueprint, components, pageName, pageRoute, previousPageCode, uiPrompt } = data;
 
   const isIterative = !!previousPageCode;
@@ -182,8 +97,11 @@ CUSTOM UI REQUIREMENTS:
 - DO NOT generate plain/basic UI.
 - CRITICAL: DO NOT return placeholder text like "/* AUTO-IMPORTS */"
 \` : ""}
-- CRITICAL: Return ONLY the raw TSX code. DO NOT wrap in markdown code blocks. No explanations.
-- Return full page.tsx code with implemented business logic.
+- CRITICAL: Return ONLY a valid JSON object. No markdown. No conversational text.
+- Use EXACTLY this JSON schema:
+{
+  "code": "full page.tsx code with implemented business logic here"
+}
   `;
 
   const promptParts = [
@@ -201,13 +119,21 @@ CUSTOM UI REQUIREMENTS:
 
   //const text = result.response.text();
 
-  const text = await generateAI({ provider: "gemini", prompt: promptParts });
+  const result = await generateAI({
+    provider: "gemini",
+    prompt: promptParts,
+    config: {
+      responseMimeType: "application/json",
+    },
+    userId
+  });
+  const text = result.text;
 
-  // clean markdown if present (defensive)
-  const cleaned = text
-    .replace(/^```[a - z] *\n?/gm, "")
-    .replace(/```$/gm, "")
-    .trim();
-
-  return cleaned;
+  try {
+    const parsed = safeJsonParse(text);
+    return parsed.code;
+  } catch (err) {
+    console.error("JSON parse failed in pageAgent. Raw text snippet:", text.slice(0, 200));
+    throw err;
+  }
 }
