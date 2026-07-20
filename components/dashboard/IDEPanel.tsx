@@ -113,9 +113,10 @@ function PreviewTab({ app, isGenerating, onComplete }: { app: any, isGenerating:
             />
           ) : (
             <div className="h-full flex items-center justify-center text-center p-12">
-              <div className="max-w-xs">
+              <div className="max-w-s">
                 <Monitor size={32} className="text-slate-700 mx-auto mb-4" />
                 <p className="text-sm text-slate-500">Preview link will appear here after generation complete.</p>
+                <p className="text-sm text-slate-500">Generated application is ready! - Click the 'Test WC' button in the IDE above to load your preview</p>
               </div>
             </div>
           )}
@@ -450,7 +451,7 @@ function VersionsTab({ app, onSwitch }: { app: any, onSwitch: (v: string) => voi
 function DocsTab({ app, onDocsGenerated }: { app: any, onDocsGenerated: (docs: any) => void }) {
   const [downloading, setDownloading] = useState(false);
   const [generating, setGenerating] = useState(false);
-  
+
   const hasDocs = app?.docs && Object.keys(app.docs).length > 0;
 
   const downloadPDF = () => {
@@ -473,9 +474,9 @@ function DocsTab({ app, onDocsGenerated }: { app: any, onDocsGenerated: (docs: a
       });
       const data = await res.json();
       if (data.success && data.docs) {
-         onDocsGenerated(data.docs);
+        onDocsGenerated(data.docs);
       } else {
-         alert("Documentation generation failed.\nPlease try again.");
+        alert("Documentation generation failed.\nPlease try again.");
       }
     } catch (e) {
       console.error(e);
@@ -488,28 +489,28 @@ function DocsTab({ app, onDocsGenerated }: { app: any, onDocsGenerated: (docs: a
   if (!hasDocs) {
     return (
       <div className="flex flex-col h-full p-8 overflow-y-auto items-center justify-center text-center">
-         <Book size={48} className="text-slate-700 mb-4" />
-         <h2 className="text-xl font-bold text-slate-200 mb-2">Documentation</h2>
-         <p className="text-slate-500 max-w-sm mb-6">Documentation has not been generated yet.</p>
-         
-         <button 
-           onClick={generateDocs} 
-           disabled={generating} 
-           className="flex items-center justify-center gap-2 px-6 py-2 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 font-bold hover:bg-cyan-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-         >
-           {generating && <Loader2 size={16} className="animate-spin" />}
-           {generating ? "Generating Documentation..." : "Generate Documentation"}
-         </button>
+        <Book size={48} className="text-slate-700 mb-4" />
+        <h2 className="text-xl font-bold text-slate-200 mb-2">Documentation</h2>
+        <p className="text-slate-500 max-w-sm mb-6">Documentation has not been generated yet.</p>
 
-         {generating && (
-           <div className="mt-8 flex flex-col gap-3 text-sm text-slate-400 text-left bg-white/5 p-5 rounded-xl border border-white/10 w-full max-w-xs shadow-lg">
-             <div className="flex items-center gap-3"><Loader2 size={14} className="animate-spin text-cyan-400"/> README</div>
-             <div className="flex items-center gap-3"><Loader2 size={14} className="animate-spin text-cyan-400"/> Architecture</div>
-             <div className="flex items-center gap-3"><Loader2 size={14} className="animate-spin text-cyan-400"/> Project Report</div>
-             <div className="flex items-center gap-3"><Loader2 size={14} className="animate-spin text-cyan-400"/> TODO</div>
-             <div className="flex items-center gap-3"><Loader2 size={14} className="animate-spin text-cyan-400"/> PDF</div>
-           </div>
-         )}
+        <button
+          onClick={generateDocs}
+          disabled={generating}
+          className="flex items-center justify-center gap-2 px-6 py-2 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 font-bold hover:bg-cyan-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {generating && <Loader2 size={16} className="animate-spin" />}
+          {generating ? "Generating Documentation..." : "Generate Documentation"}
+        </button>
+
+        {generating && (
+          <div className="mt-8 flex flex-col gap-3 text-sm text-slate-400 text-left bg-white/5 p-5 rounded-xl border border-white/10 w-full max-w-xs shadow-lg">
+            <div className="flex items-center gap-3"><Loader2 size={14} className="animate-spin text-cyan-400" /> README</div>
+            <div className="flex items-center gap-3"><Loader2 size={14} className="animate-spin text-cyan-400" /> Architecture</div>
+            <div className="flex items-center gap-3"><Loader2 size={14} className="animate-spin text-cyan-400" /> Project Report</div>
+            <div className="flex items-center gap-3"><Loader2 size={14} className="animate-spin text-cyan-400" /> TODO</div>
+            <div className="flex items-center gap-3"><Loader2 size={14} className="animate-spin text-cyan-400" /> PDF</div>
+          </div>
+        )}
       </div>
     );
   }
