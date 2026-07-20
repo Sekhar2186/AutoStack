@@ -131,7 +131,7 @@ export default function CommandCenter() {
         fetch("/api/projects", { headers: { "Authorization": `Bearer ${token}` } })
           .then(r => r.json())
           .then(data => {
-            if (data.success && data.projects.length > 0) {
+            if (data.success) {
               setProjects(data.projects);
             } else {
               setProjects(JSON.parse(localStorage.getItem("guestProjects") || "[]"));
@@ -548,8 +548,9 @@ export default function CommandCenter() {
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       {[
-                        { id: "gemini", name: "Gemini 1.5 Pro", provider: "Google", tier: "free", speed: "High", reasoning: "High", default: true },
-                        { id: "gemini-flash", name: "Gemini 2.0 Flash", provider: "Google", tier: "free", speed: "Very High", reasoning: "Medium", default: false },
+                        { id: "gemini-3.5-flash", name: "Gemini 3.5 Flash", provider: "Google", tier: "free", speed: "Very High", reasoning: "High", default: true },
+                        { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash", provider: "Google", tier: "free", speed: "Very High", reasoning: "Medium", default: false },
+                        { id: "gemini", name: "Gemini 1.5 Pro", provider: "Google", tier: "free", speed: "High", reasoning: "High", default: false },
                         { id: "gpt4o", name: "GPT-4o", provider: "OpenAI", tier: "pro", speed: "High", reasoning: "Very High", default: false },
                         { id: "claude-sonnet", name: "Claude 3.5 Sonnet", provider: "Anthropic", tier: "pro", speed: "High", reasoning: "Very High", default: false },
                         { id: "claude-opus", name: "Claude 3 Opus", provider: "Anthropic", tier: "enterprise", speed: "Medium", reasoning: "Maximum", default: false },
@@ -633,7 +634,7 @@ export default function CommandCenter() {
                           { id: "v1", msg: "Initial app generation from prompt", time: "3 hours ago", current: false }
                         ].map((commit) => (
                           <div key={commit.id} className="relative">
-                            <div className={`absolute left-[31px] w-4 h-4 rounded-full border-4 border-slate-900 ${commit.current ? "bg-cyan-400" : "bg-slate-500"}`} />
+                            <div className={`absolute left-7.75 w-4 h-4 rounded-full border-4 border-slate-900 ${commit.current ? "bg-cyan-400" : "bg-slate-500"}`} />
                             <div className={`glass p-5 rounded-2xl border ${commit.current ? "border-cyan-500/30" : "border-white/5"} transition-all`}>
                               <div className="flex items-start justify-between">
                                 <div>

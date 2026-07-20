@@ -25,6 +25,20 @@ import { UserAISettings } from "@/lib/db/models/UserAISettings";
 import type { SupportedProvider } from "@/lib/db/models/UserAISettings";
 import { decrypt } from "@/lib/services/ai/encryption";
 
+// ─── Model Migration Map ───────────────────────────────────────────────────────
+// Maps deprecated model names → current replacement.
+// Applied automatically at read time so users don't need to re-save settings.
+
+const DEPRECATED_MODELS: Record<string, string> = {
+    "gemini-2.5-pro":         "gemini-1.5-pro",
+    "gemini-2.0-flash":       "gemini-2.5-flash",
+    "gemini-1.5-flash":       "gemini-2.5-flash",
+};
+
+function migrateModel(model: string): string {
+    return DEPRECATED_MODELS[model] ?? model;
+}
+
 // ─── Return types ─────────────────────────────────────────────────────────────
 
 interface UserProviderResolved {
@@ -97,14 +111,22 @@ export async function resolveProviderForUser(
             return { provider: "auto", isUserProvider: false };
         }
 
+        const resolvedModel = migrateModel(providerConfig.model);
+
+        if (resolvedModel !== providerConfig.model) {
+            console.warn(
+                `[ProviderResolver] Deprecated model "${providerConfig.model}" auto-migrated → "${resolvedModel}" for user ${userId}`
+            );
+        }
+
         console.log(
-            `[ProviderResolver] Resolved user provider: "${providerName}" for user ${userId}`
+            `[ProviderResolver] Resolved user provider: "${providerName}" (model: ${resolvedModel}) for user ${userId}`
         );
 
         return {
             provider: providerName,
             apiKey,
-            model: providerConfig.model,
+            model: resolvedModel,
             isUserProvider: true,
         };
     } catch (error: unknown) {

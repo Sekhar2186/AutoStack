@@ -73,7 +73,7 @@ const PROVIDERS: { id: SupportedProvider; name: string; desc: string; defaultMod
         id: "gemini",
         name: "Gemini",
         desc: "Google Generative AI",
-        defaultModels: ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-1.5-pro"],
+        defaultModels: ["gemini-3.5-flash", "gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-1.5-pro"],
         color: "text-blue-500",
         icon: (
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-blue-500">

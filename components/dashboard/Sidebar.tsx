@@ -20,8 +20,9 @@ const navItems = [
 ];
 
 const modelOptions = [
+  { id: "gemini-3.5-flash", name: "Gemini 3.5 Flash", provider: "Google", tier: "free", available: true },
+  { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash", provider: "Google", tier: "free", available: true },
   { id: "gemini", name: "Gemini 1.5 Pro", provider: "Google", tier: "free", available: true },
-  { id: "gemini-flash", name: "Gemini 2.0 Flash", provider: "Google", tier: "free", available: true },
   { id: "gpt4o", name: "GPT-4o", provider: "OpenAI", tier: "pro", available: false },
   { id: "gpt4o-mini", name: "GPT-4o Mini", provider: "OpenAI", tier: "pro", available: false },
   { id: "claude-sonnet", name: "Claude Sonnet", provider: "Anthropic", tier: "pro", available: false },

@@ -26,7 +26,24 @@ YOUR MISSION:
    - Or if the component doesn't need to be a Client Component, remove '"use client"' and make it a Server Component.
 4. If the issue is related to nested Links or anchors, refactor the HTML so that only one element handles the navigation (usually the outer <Link>).
 5. If the issue is related to missing imports, either remove the unused component or fix the import path if it's obvious.
-6. If the issue is related to external placeholder images, replace them with '/public/placeholder.png' or a Tailwind CSS div placeholder.
+6. If the issue is related to external placeholder images, replace them with '/placeholder.png' (NOT '/public/placeholder.png') or a Tailwind CSS div placeholder.
+7. COMPONENT PROP MISMATCH FIXES — apply these known corrections:
+   - HeroSection: accepted props are { title, description, imageUrl, buttonText?, buttonLink? }.
+     * Rename 'subtitle' → 'description'.
+     * Rename 'backgroundImage' → 'imageUrl'.
+     * Rename 'ctaText' → 'buttonText', 'ctaLink' → 'buttonLink'.
+     * Remove 'children' prop. Move any child content (e.g., SearchInput, forms) OUTSIDE the HeroSection tag.
+   - SectionHeader: accepted props are { title, description? }.
+     * Rename 'subtitle' → 'description'.
+   - SearchInput: accepted props are { placeholder?, onSearch? }.
+     * Remove props: name, className, buttonText, value, onChange.
+     * If a search form is needed, wrap <SearchInput> in a <form> element instead of passing 'name' or 'buttonText'.
+   - DestinationCard: accepted props are { destination: Destination, onClick? }.
+     * Replace flat props (name, location, imageUrl, id, etc.) with a single destination={{id, name, location, imageUrl, description, category}} object.
+     * If wrapping DestinationCard in a <Link>, REMOVE the outer <Link> — DestinationCard handles its own navigation internally.
+10. SERVER TO CLIENT EVENT HANDLERS: If the error is 'Event handlers cannot be passed to Client Component props', REMOVE the offending inline function prop (like onSearch={...} or onClick={...}) from the component invocation in the Server Component.
+11. WEBCONTAINER FETCH CRASH: If the error is 'Failed to parse URL from undefined/api...', REPLACE the entire 'fetch(process.env.NEXT_PUBLIC_BASE_URL...)' block with a static mock data array definition. Do not attempt to use absolute URLs for fetching in Server Components.
+12. ORPHANED CODE / PARSING ERRORS: If you see 'Return statement is not allowed here' or 'Parsing ecmascript source code failed', look for orphaned code (like an extra return statement after a function already returned) or mismatched braces, and delete the invalid leftover code.
 
 RETURN FORMAT:
 - CRITICAL: Return ONLY a valid JSON object. No markdown. No conversational text.

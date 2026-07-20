@@ -8,10 +8,10 @@ import {
 
 const uiLibraries = ["Tailwind CSS", "Shadcn/UI", "Material UI", "Chakra UI", "Ant Design", "Bootstrap"];
 const aiModels = [
-  { id: "gemini-3.0-flash", name: "Gemini 3.0 Flash", locked: false },
+  { id: "gemini-3.5-flash", name: "Gemini 3.5 Flash", locked: false },
   { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash", locked: false },
-  { id: "gemini-1.5-flash", name: "Gemini 1.5 Flash", locked: false },
-  { id: "gemini-2.0-flash", name: "Gemini 2.0 Flash", locked: false },
+  { id: "gemini-2.5-flash-lite", name: "Gemini 2.5 Flash Lite", locked: false },
+  { id: "gemini-1.5-pro", name: "Gemini 1.5 Pro", locked: false },
   { id: "gpt4o", name: "GPT-4o", locked: true },
   { id: "claude-sonnet", name: "Claude Sonnet", locked: true },
 ];

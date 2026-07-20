@@ -18,6 +18,32 @@ RULES:
   - Prop interfaces MUST use optional '?' for all interactive/callback props (e.g., onClick?: (id: string) => void).
   - ALWAYS provide a default no-op function in component parameters for callbacks (e.g., { onClick = () => {} }).
   - ALWAYS provide an empty array as a default for any array prop to prevent .map() crashes (e.g., { items = [] }).
+  - CRITICAL: Component Props interfaces MUST accurately reflect the exact props expected to be passed by parent components. Do NOT define required properties in the interface that won't be provided.
+  - CRITICAL: Data model interfaces (e.g., Message, User) MUST accurately reflect the actual object structure. If a property is accessed (e.g., message.sender), it MUST be defined in the interface. If it is sometimes omitted, mark it as optional (e.g., id?: string).
+
+SHARED GLOBAL TYPES — MANDATORY COMPATIBILITY:
+- The project has a global Destination.d.ts with:
+  interface Destination { id: string; name: string; location: string; description: string; imageUrl: string; category: string; rating?: number; price?: string; }
+- If you generate a DestinationCard or any component that accepts a Destination object:
+  - Its Props interface MUST accept { destination: Destination } (the full object), NOT flat fields like name/location/id.
+  - The Destination interface inside the component MUST match the global one exactly (same required fields: id, name, location, description, imageUrl, category).
+  - NEVER use 'subtitle', 'averageRating', or 'slug' as field names — these don't exist in the global type.
+
+SELF-NAVIGATING COMPONENT RULE — CRITICAL:
+- If you generate a Card component (e.g., DestinationCard, ProductCard, ArticleCard) that contains an internal <Link> for navigation:
+  - DO NOT accept 'children' in the props interface.
+  - Add a JSDoc comment above the export: /** @selfNavigating — do NOT wrap this component in <Link> from the parent page. It handles its own routing internally. */
+  - This prevents parent pages from creating nested <a> inside <Link> hydration errors.
+- If a component does NOT handle its own navigation (e.g., it's just a display card), clearly omit any Link imports.
+
+PROP NAMING CONSISTENCY — CRITICAL:
+- Use 'description' (NOT 'subtitle') for secondary text in HeroSection, SectionHeader, or any section component.
+- HeroSection MUST have this exact interface: { title: string; description: string; imageUrl: string; buttonText?: string; buttonLink?: string; }
+  - NEVER add 'subtitle', 'ctaText', 'ctaLink', 'backgroundImage', or 'children' to HeroSection.
+- SectionHeader MUST have: { title: string; description?: string; }
+  - NEVER add 'subtitle' to SectionHeader.
+- SearchInput MUST have: { placeholder?: string; onSearch?: (query: string) => void; }
+  - NEVER add 'name', 'className', 'buttonText', 'value', or 'onChange' to SearchInput.
 
 ROUTING & HTML SEMANTICS — MANDATORY:
 - NEVER assume routing responsibility unless explicitly requested.
@@ -92,8 +118,9 @@ Pages belong ONLY to PageAgent.
 If a file represents a route or page, do NOT generate it.
 
 PLACEHOLDER IMAGE RULES — CRITICAL:
+- ALWAYS use '/placeholder.png' — Next.js serves /public as the root, so the correct URL path is '/placeholder.png'.
+- NEVER write '/public/placeholder.png' — this path will 404 at runtime.
 - NEVER generate external placeholder image services (no placehold.co, no dummyimage.com, etc.).
-- Use '/public/placeholder.png' or standard CSS/Tailwind placeholders.
 - Do NOT import Image from "next/image" for placeholder or mock images. Use standard <img> tags.
 
 Return JSON:

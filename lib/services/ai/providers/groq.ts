@@ -53,6 +53,9 @@ export async function generate({
         ],
         temperature: (config.temperature as number | undefined) ?? 0.7,
         max_tokens: (config.maxOutputTokens as number | undefined) ?? 8192,
+        ...(config.responseMimeType === "application/json" && {
+            response_format: { type: "json_object" },
+        }),
     });
 
     return completion.choices[0]?.message?.content ?? "";

@@ -13,13 +13,13 @@ interface GenerationProgressProps {
 }
 
 const steps = [
-  { label: "Analyzing Prompt", desc: "Extracting requirements & AI context", duration: 1200, icon: Sparkles },
-  { label: "Planning Architecture", desc: "Designing component tree & state", duration: 1800, icon: LayoutTemplate },
-  { label: "Generating Components", desc: "Writing React components", duration: 2500, icon: Blocks },
+  { label: "Analyzing Prompt", desc: "Extracting requirements & AI context", duration: 1400, icon: Sparkles },
+  { label: "Planning Architecture", desc: "Designing component tree & state", duration: 2800, icon: LayoutTemplate },
+  { label: "Generating Components", desc: "Writing React components", duration: 3500, icon: Blocks },
   { label: "Generating Pages", desc: "Setting up Next.js app router", duration: 3000, icon: FileCode2 },
-  { label: "Generating APIs", desc: "Creating backend endpoints", duration: 2000, icon: Server },
-  { label: "Injecting Code", desc: "Linking modules & dependencies", duration: 1000, icon: TerminalSquare },
-  { label: "Starting Preview", desc: "Booting up WebContainer sandbox", duration: 2000, icon: MonitorPlay },
+  { label: "Generating APIs", desc: "Creating backend endpoints", duration: 1500, icon: Server },
+  { label: "Injecting Code", desc: "Linking modules & dependencies", duration: 2000, icon: TerminalSquare },
+  { label: "Starting Preview", desc: "Booting up WebContainer sandbox", duration: 2500, icon: MonitorPlay },
 ];
 
 export default function GenerationProgress({ isGenerating, onComplete }: GenerationProgressProps) {
@@ -113,10 +113,10 @@ export default function GenerationProgress({ isGenerating, onComplete }: Generat
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
                     className={`relative overflow-hidden flex items-start gap-3 sm:gap-4 rounded-2xl border p-3.5 sm:p-4 transition-all duration-500 ${isDone
-                        ? "border-emerald-500/20 bg-emerald-500/5 shadow-[0_0_15px_rgba(16,185,129,0.05)]"
-                        : isActive
-                          ? "border-cyan-500/40 bg-cyan-500/10 shadow-[0_0_20px_rgba(6,182,212,0.15)]"
-                          : "border-white/5 bg-white/5 opacity-50"
+                      ? "border-emerald-500/20 bg-emerald-500/5 shadow-[0_0_15px_rgba(16,185,129,0.05)]"
+                      : isActive
+                        ? "border-cyan-500/40 bg-cyan-500/10 shadow-[0_0_20px_rgba(6,182,212,0.15)]"
+                        : "border-white/5 bg-white/5 opacity-50"
                       }`}
                   >
                     {isActive && (

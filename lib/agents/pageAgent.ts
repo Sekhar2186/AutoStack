@@ -48,17 +48,73 @@ ROUTING & LINKS — CRITICAL:
   - RestaurantCard used → /restaurants/[id]/page.tsx MUST be generated.
   - ProductCard used → /products/[id]/page.tsx MUST be generated.
 
+COMPONENT PROP CONTRACT — HIGHEST PRIORITY RULE:
+- BEFORE using any component from the Available Components list, you MUST reason about its EXACT TypeScript interface.
+- YOU ARE PROVIDED THE COMPONENT SOURCE CODE in the COMPONENTS section below. Read the Props interface for EVERY component you use.
+- PASS ONLY the props that are explicitly declared in the component's Props interface. DO NOT invent, assume, or guess prop names.
+- DO NOT pass props that do not exist in the interface. This causes TypeScript errors and build failures.
+- SPECIFIC KNOWN VIOLATIONS TO AVOID:
+  - HeroSection accepts: { title, description, imageUrl, buttonText?, buttonLink? }.
+    NEVER pass: subtitle, backgroundImage, ctaText, ctaLink, children — THESE DO NOT EXIST.
+  - SearchInput accepts: { placeholder?, onSearch? }.
+    NEVER pass: name, className, buttonText, value, onChange — THESE DO NOT EXIST.
+  - SectionHeader accepts: { title, description? }.
+    NEVER pass: subtitle — IT DOES NOT EXIST. The prop is called 'description'.
+  - DestinationCard accepts: { destination: Destination, onClick? }.
+    NEVER pass flat props like name, location, imageUrl, id directly — WRAP THEM in a destination={{...}} object.
+- DO NOT pass children to a component unless its interface explicitly includes 'children: React.ReactNode'.
+
+NESTED LINK / DOUBLE NAVIGATION RULE — CRITICAL:
+- If a component (e.g., DestinationCard, ProductCard, ArticleCard) already contains a <Link> internally, DO NOT wrap it in another <Link> in the page.
+- Nested <a> tags inside <Link> cause hydration errors and broken navigation.
+- Rule: ONE component, ONE navigation owner. Check the component source to see if it handles its own navigation.
+
+SERVER COMPONENT EVENT HANDLER RULE — CRITICAL:
+- Page components in the App Router are Server Components by default.
+- NEVER pass inline functions, closures, or event handlers (e.g., onClick={...}, onSearch={...}) from a Server Component to a Client Component.
+- This will cause the error: 'Event handlers cannot be passed to Client Component props.'
+- If you use a Client Component like SearchInput in a page, do NOT pass onSearch. Let the component handle it internally or use standard HTML <form action="...">.
+
+DYNAMIC ROUTE HALLUCINATION PREVENTION:
+- If you are generating a dynamic route page (e.g., /app/destinations/[id]/page.tsx), it MUST be a DETAIL view.
+- DO NOT generate a list page (mapping over an array of cards) for an [id] route.
+- It MUST accept the dynamic param (e.g., { params }: { params: Promise<{ id: string }> }), look up a single record, and render a dedicated detail layout for that specific entity.
+
+SHARED TYPE DEFINITIONS — MANDATORY:
+- The project has a global Destination.d.ts that defines:
+  interface Destination { id: string; name: string; location: string; description: string; imageUrl: string; category: string; rating?: number; price?: string; }
+- When building mock data arrays for Destination, your local interface MUST include ALL required fields from the global definition, especially 'category'.
+- NEVER define a local interface that is LESS complete than the global shared type.
+- NEVER use field names that don't exist in the global type (e.g., do NOT use 'slug', 'averageRating', 'subtitle' on a Destination object).
+- If you use 'averageRating' in an API response, MAP it to 'rating' before passing to DestinationCard.
+
+STRING LITERAL SAFETY:
+- NEVER use a bare backslash (\) inside a string literal in JSX/TSX. Use escape sequences or template literals.
+- NEVER use invalid characters in object property values or JSX attributes.
+
+PLACEHOLDER IMAGE PATH — CRITICAL:
+- ALWAYS use '/placeholder.png' (served from /public/placeholder.png).
+- NEVER write '/public/placeholder.png' — Next.js serves /public as root, so the path is '/placeholder.png'.
+
 COMPONENT RESPONSIBILITIES & MODULARITY:
 - DEFENSIVE PROP PASSING: Lift state to page level, pass required props with realistic sample data.
 - PROP CONSISTENCY: Match props exactly to what was likely generated (e.g., 'isAuthenticated' vs 'isLoggedIn').
+- PROP CONTRACTS: When passing props to a child component, ensure you pass ALL required properties that the child component expects, and DO NOT pass props that the child does not define.
+- DATA MODEL ACCURACY: Ensure data objects passed to components match the expected TypeScript interfaces (e.g., do not omit 'id' or 'category' if the component strictly requires it).
 - COMPONENT MODULARITY: Available Components should be treated as modular units. Avoid double-wrapping components in unnecessary Cards or Containers.
 - Maintain logical UI order and spacing with Tailwind CSS.
 - INPUT VISIBILITY: All <input> or <textarea> elements MUST explicitly set a dark text color class (e.g., className="... text-gray-900").
 - AUTH PERSISTENCE: Every page that handles login/signup MUST use localStorage.setItem('isLoggedIn', 'true') upon success.
 
+DATA FETCHING & WEBCONTAINER SAFETY — CRITICAL:
+- When generating frontend prototypes, DO NOT use 'fetch' with 'process.env.NEXT_PUBLIC_BASE_URL' in Server Components.
+- WebContainers often lack these environment variables, causing 'Failed to parse URL from undefined/api/...' crashes.
+- INSTEAD: Define static mock data arrays directly inside the page components (e.g., const popularDestinations = [...]) to ensure the prototype runs reliably.
+
 PLACEHOLDER IMAGE RULES — CRITICAL:
+- ALWAYS use '/placeholder.png' — Next.js serves /public as the root, so the correct path is '/placeholder.png'.
+- NEVER write '/public/placeholder.png' — this path will 404 at runtime.
 - NEVER generate external placeholder image services (no placehold.co, no dummyimage.com, etc.).
-- Use '/public/placeholder.png' or standard CSS/Tailwind placeholders (e.g. <div className="w-full h-48 bg-gray-200 animate-pulse rounded-md flex items-center justify-center text-gray-400">Placeholder</div>).
 - Only use next/image when referencing local files from /public.
 
 SVG RULES — CRITICAL — BREAKING BUG IF VIOLATED:
@@ -110,10 +166,13 @@ CUSTOM UI REQUIREMENTS:
     "BLUEPRINT: " + JSON.stringify(blueprint),
   ];
 
+  promptParts.push("COMPONENT SOURCE CODE (READ PROP INTERFACES BEFORE USING):\n" + JSON.stringify(components, null, 2));
+
   if (isIterative) {
     promptParts.push("EXISTING PAGE CODE TO BE UPDATED:\n" + previousPageCode);
     promptParts.push("INSTRUCTIONS: Modify the existing code above to incorporate the new requirements from the blueprint. Keep what works, fix what is broken, and add what is missing.");
   }
+
 
   //const result = await model.generateContent(promptParts);
 

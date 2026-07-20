@@ -278,23 +278,24 @@ export async function DELETE(
 
         const project = await Project.findOne({ projectId });
 
-        if (!project) {
-            return Response.json({ success: false, message: "Project not found" }, { status: 404 });
+        // If the project exists in ProjectFiles, verify ownership and soft-delete it
+        if (project) {
+            if (project.userId && project.userId !== userId) {
+                return Response.json({ success: false, message: "Forbidden" }, { status: 403 });
+            }
+            await Project.updateOne({ projectId }, { $set: { isDeleted: true } });
         }
 
-        // Verify ownership
-        if (project.userId && project.userId !== userId) {
-            return Response.json({ success: false, message: "Forbidden" }, { status: 403 });
-        }
-
-        // Soft-delete: mark isDeleted on the Project document
-        await Project.updateOne({ projectId }, { $set: { isDeleted: true } });
-
-        // Soft-delete: mark isDeleted on the User's embedded project entry
-        await User.updateOne(
+        // Always attempt to soft-delete the embedded project entry in User history
+        // This handles "ghost projects" where generation failed before ProjectFiles was created
+        const userUpdate = await User.updateOne(
             { _id: userId, "projects.projectId": projectId },
             { $set: { "projects.$.isDeleted": true } }
         );
+
+        if (!project && userUpdate.modifiedCount === 0) {
+            return Response.json({ success: false, message: "Project not found" }, { status: 404 });
+        }
 
         return Response.json({ success: true, message: "Project deleted successfully" });
     } catch (error) {
