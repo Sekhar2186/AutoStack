@@ -13,13 +13,13 @@ interface GenerationProgressProps {
 }
 
 const steps = [
-  { label: "Analyzing Prompt", desc: "Extracting requirements & AI context", duration: 1400, icon: Sparkles },
-  { label: "Planning Architecture", desc: "Designing component tree & state", duration: 2800, icon: LayoutTemplate },
+  { label: "Analyzing Prompt", desc: "Extracting requirements & AI context", duration: 2490, icon: Sparkles },
+  { label: "Planning Architecture", desc: "Designing component tree & state", duration: 2990, icon: LayoutTemplate },
   { label: "Generating Components", desc: "Writing React components", duration: 3500, icon: Blocks },
-  { label: "Generating Pages", desc: "Setting up Next.js app router", duration: 3000, icon: FileCode2 },
-  { label: "Generating APIs", desc: "Creating backend endpoints", duration: 1500, icon: Server },
-  { label: "Injecting Code", desc: "Linking modules & dependencies", duration: 2000, icon: TerminalSquare },
-  { label: "Starting Preview", desc: "Booting up WebContainer sandbox", duration: 2500, icon: MonitorPlay },
+  { label: "Generating Pages", desc: "Setting up Next.js app router", duration: 3500, icon: FileCode2 },
+  { label: "Generating APIs", desc: "Creating backend endpoints", duration: 2400, icon: Server },
+  { label: "Injecting Code", desc: "Linking modules & dependencies", duration: 3000, icon: TerminalSquare },
+  { label: "Starting Preview", desc: "Booting up WebContainer sandbox", duration: 4000, icon: MonitorPlay },
 ];
 
 export default function GenerationProgress({ isGenerating, onComplete }: GenerationProgressProps) {
