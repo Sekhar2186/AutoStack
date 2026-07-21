@@ -331,7 +331,7 @@ function FilesTab({ app, onSelect }: { app: any, onSelect: (f: string) => void }
           {active && (
             <div className="flex items-center text-[9px] text-slate-600 font-mono">
               <span className="mx-1">/</span>
-              <span className="truncate max-w-[120px]">{active.split('/').slice(0, -1).join('/')}</span>
+              <span className="truncate max-w-30">{active.split('/').slice(0, -1).join('/')}</span>
             </div>
           )}
         </div>
@@ -429,7 +429,7 @@ function VersionsTab({ app, onSwitch }: { app: any, onSwitch: (v: string) => voi
               animate={{ opacity: 1, x: 0 }}
               className={`relative mb-6 p-4 rounded-xl border ${ver.current ? "bg-cyan-500/5 border-cyan-500/20" : "bg-white/2 border-white/5 hover:border-white/10"}`}
             >
-              <div className={`absolute left-[21px] top-4 w-3 h-3 rounded-full border-2 ${ver.current ? "bg-cyan-500 border-cyan-400" : "bg-slate-800 border-slate-700"}`} />
+              <div className={`absolute left-5.25 top-4 w-3 h-3 rounded-full border-2 ${ver.current ? "bg-cyan-500 border-cyan-400" : "bg-slate-800 border-slate-700"}`} />
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-bold text-slate-200">{ver.v}</span>
                 {ver.current ? (

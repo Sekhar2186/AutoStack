@@ -63,11 +63,16 @@ function AuthContent() {
 
   const handleSocialAuth = (provider: string) => {
     setLoading(true);
-    // Simulate social auth
-    setTimeout(() => {
-      localStorage.setItem("token", `mock_${provider}_token_${Date.now()}`);
-      router.push("/dashboard");
-    }, 1200);
+    
+    if (provider === "github") {
+      const clientId = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID || "YOUR_GITHUB_CLIENT_ID";
+      const redirectUri = encodeURIComponent(`${window.location.origin}/api/auth/callback/github`);
+      window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=user:email`;
+    } else if (provider === "google") {
+      const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID";
+      const redirectUri = encodeURIComponent(`${window.location.origin}/api/auth/callback/google`);
+      window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=email%20profile`;
+    }
   };
 
   return (
